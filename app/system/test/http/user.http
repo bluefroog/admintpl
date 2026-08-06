@@ -1,0 +1,86 @@
+### create
+POST http://127.0.0.1:8080/system/user/create
+content-type: application/json
+
+{
+  "username": "bluefrog",
+  "mobile": "13212341234",
+  "nickname": "bluefrog",
+  "birthday": "2019-01-01",
+  "status": 1,
+  "email": "bluefrog.wu@gmail.com",
+  "gender": 0,
+  "avatar": "",
+  "departmentID": 0,
+  "remark": "",
+  "isAdmin": true
+}
+
+### list
+GET http://127.0.0.1:8080/system/user/list?pageSize=1
+
+### update
+PUT http://127.0.0.1:8080/system/user/update
+content-type: application/json
+
+{
+  "id": 1,
+  "username": "bluefrog1",
+  "mobile": "13212341235",
+  "nickname": "bluefrog1",
+  "birthday": "2019-01-02",
+  "status": 0,
+  "email": "bluefrog.wu1@gmail.com",
+  "gender": 0,
+  "avatar": "",
+  "departmentID": 0,
+  "remark": "remark",
+  "isAdmin": false
+}
+
+### delete
+DELETE http://127.0.0.1:8080/system/user/delete
+content-type: application/json
+
+{
+  "ids": [2,3]
+}
+
+### detail
+GET http://127.0.0.1:8080/system/user/detail?id=1
+
+### validate create empty
+POST http://127.0.0.1:8080/system/user/create
+content-type: application/json
+
+{
+}
+
+### validate update empty
+PUT http://127.0.0.1:8080/system/user/update
+content-type: application/json
+
+{
+}
+
+### valiate delete empty
+DELETE http://127.0.0.1:8080/system/user/delete
+content-type: application/json
+
+{
+}
+
+### list search with keyword
+GET http://127.0.0.1:8080/system/user/list?pageSize=1&keyword=bluefrog
+
+### list search with username
+GET http://127.0.0.1:8080/system/user/list?pageSize=1&username=bluefrog1
+
+### list search with email
+GET http://127.0.0.1:8080/system/user/list?pageSize=1&email=bluefrog
+
+### list search with mobile
+GET http://127.0.0.1:8080/system/user/list?pageSize=1&mobile=13212341235
+
+###
+

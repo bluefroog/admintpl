@@ -1,0 +1,12 @@
+service:
+  port: :8080
+  debug: true
+database:
+  admin:
+    type: mysql
+    dsn: root:123456@tcp(192.168.154.128:3306)/ruoyi?charset=utf8mb4&parseTime=True&loc=Local
+    prefix: "" # 表前缀
+    max-idle: 10 # 连接池最大闲置的连接数
+    max-open: 10 # 连接池最大打开的连接数
+    max-lifetime: 30 #连接对象可重复使用的时间长度(秒)
+    debug: true # 是否开启 sql 调试模式
