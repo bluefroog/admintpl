@@ -1,0 +1,78 @@
+### list default
+GET http://127.0.0.1:8080/system/role-menu/list
+
+### list search by role_id
+GET http://127.0.0.1:8080/system/role-menu/list?role_id=1
+
+### list search by menu_id
+GET http://127.0.0.1:8080/system/role-menu/list?menu_id=1
+
+### list search by role_id and menu_id
+GET http://127.0.0.1:8080/system/role-menu/list?role_id=1&menu_id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/role-menu/create
+content-type: application/json
+
+{
+}
+
+### create empty role_id
+POST http://127.0.0.1:8080/system/role-menu/create
+content-type: application/json
+
+{
+  "menu_id": 1
+}
+
+### create empty menu_id
+POST http://127.0.0.1:8080/system/role-menu/create
+content-type: application/json
+
+{
+  "role_id": 1
+}
+
+### create success
+POST http://127.0.0.1:8080/system/role-menu/create
+content-type: application/json
+
+{
+  "role_id": 1,
+  "menu_id": 1
+}
+
+### create success 1
+POST http://127.0.0.1:8080/system/role-menu/create
+content-type: application/json
+
+{
+  "role_id": 2,
+  "menu_id": 2
+}
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/role-menu/delete
+content-type: application/json
+
+{
+}
+
+### delete success by menu_id
+DELETE http://127.0.0.1:8080/system/role-menu/delete
+content-type: application/json
+
+{
+  "menu_id": 2
+}
+
+### delete success by role_id
+DELETE http://127.0.0.1:8080/system/role-menu/delete
+content-type: application/json
+
+{
+  "role_id": 1
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/role-menu/list?role_id=1

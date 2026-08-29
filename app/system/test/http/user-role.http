@@ -1,0 +1,78 @@
+### list default
+GET http://127.0.0.1:8080/system/user-role/list
+
+### list search by user_id
+GET http://127.0.0.1:8080/system/user-role/list?user_id=1
+
+### list search by role_id
+GET http://127.0.0.1:8080/system/user-role/list?role_id=1
+
+### list search by user_id and role_id
+GET http://127.0.0.1:8080/system/user-role/list?user_id=1&role_id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/user-role/create
+content-type: application/json
+
+{
+}
+
+### create empty user_id
+POST http://127.0.0.1:8080/system/user-role/create
+content-type: application/json
+
+{
+  "role_id": 1
+}
+
+### create empty role_id
+POST http://127.0.0.1:8080/system/user-role/create
+content-type: application/json
+
+{
+  "user_id": 1
+}
+
+### create success
+POST http://127.0.0.1:8080/system/user-role/create
+content-type: application/json
+
+{
+  "user_id": 1,
+  "role_id": 1
+}
+
+### create success 1
+POST http://127.0.0.1:8080/system/user-role/create
+content-type: application/json
+
+{
+  "user_id": 2,
+  "role_id": 2
+}
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/user-role/delete
+content-type: application/json
+
+{
+}
+
+### delete success by role_id
+DELETE http://127.0.0.1:8080/system/user-role/delete
+content-type: application/json
+
+{
+  "role_id": 2
+}
+
+### delete success by user_id
+DELETE http://127.0.0.1:8080/system/user-role/delete
+content-type: application/json
+
+{
+  "user_id": 1
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/user-role/list?user_id=1

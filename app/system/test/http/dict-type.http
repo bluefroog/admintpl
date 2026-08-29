@@ -1,0 +1,149 @@
+### list default
+GET http://127.0.0.1:8080/system/dict-type/list
+
+### list search by keyword
+GET http://127.0.0.1:8080/system/dict-type/list?keyword=类型
+
+### list search by status = 1
+GET http://127.0.0.1:8080/system/dict-type/list?status=1
+
+### list search by status = 0
+GET http://127.0.0.1:8080/system/dict-type/list?status=0
+
+### list search by name
+GET http://127.0.0.1:8080/system/dict-type/list?name=字典名称
+
+### list search by type
+GET http://127.0.0.1:8080/system/dict-type/list?type=sys_user_sex
+
+### list search by id
+GET http://127.0.0.1:8080/system/dict-type/list?id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/dict-type/create
+content-type: application/json
+
+{
+}
+
+### create empty name
+POST http://127.0.0.1:8080/system/dict-type/create
+content-type: application/json
+
+{
+  "type": "dict-type-1",
+  "name": ""
+}
+
+### create empty type
+POST http://127.0.0.1:8080/system/dict-type/create
+content-type: application/json
+
+{
+  "name": "dict-type-name-1",
+  "type": ""
+}
+
+### create success
+POST http://127.0.0.1:8080/system/dict-type/create
+content-type: application/json
+
+{
+  "name": "dict-type-name-1",
+  "type": "dict-type-1"
+}
+
+### create with exitst type
+POST http://127.0.0.1:8080/system/dict-type/create
+content-type: application/json
+
+{
+  "name": "dict-type-name-2",
+  "type": "dict-type-1"
+}
+
+### create success 1
+POST http://127.0.0.1:8080/system/dict-type/create
+content-type: application/json
+
+{
+  "name": "dict-type-name-2",
+  "type": "dict-type-2",
+  "status": 1
+}
+
+### update empty
+PUT http://127.0.0.1:8080/system/dict-type/update
+content-type: application/json
+
+{
+}
+
+### update empty id
+PUT http://127.0.0.1:8080/system/dict-type/update
+content-type: application/json
+
+{
+  "id": 0,
+  "name": "字典类型名称",
+  "type": "dict-type-1"
+}
+
+### update empty name
+PUT http://127.0.0.1:8080/system/dict-type/update
+content-type: application/json
+
+{
+  "id": 1,
+  "type": "dict-type-1",
+  "name": ""
+}
+
+### update success
+PUT http://127.0.0.1:8080/system/dict-type/update
+content-type: application/json
+
+{
+  "id": 1,
+  "name": "dict-type-name-111",
+  "type": "dict-type-1",
+  "status": 0
+}
+
+### detail empty
+GET http://127.0.0.1:8080/system/dict-type/detail
+
+### detail empty id
+GET http://127.0.0.1:8080/system/dict-type/detail?id=
+
+### detail not exist data
+GET http://127.0.0.1:8080/system/dict-type/detail?id=99999
+
+### detail success
+GET http://127.0.0.1:8080/system/dict-type/detail?id=1
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/dict-type/delete
+content-type: application/json
+
+{
+}
+
+### delete empty ids
+DELETE http://127.0.0.1:8080/system/dict-type/delete
+content-type: application/json
+
+{
+  "ids": []
+}
+
+### delete success
+DELETE http://127.0.0.1:8080/system/dict-type/delete
+content-type: application/json
+
+{
+  "ids": [2]
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/dict-type/detail?id=2

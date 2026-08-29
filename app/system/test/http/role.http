@@ -1,0 +1,151 @@
+### list default
+GET http://127.0.0.1:8080/system/role/list
+
+### list search by keyword
+GET http://127.0.0.1:8080/system/role/list?keyword=角色
+
+### list search by status = 1
+GET http://127.0.0.1:8080/system/role/list?status=1
+
+### list search by status = 0
+GET http://127.0.0.1:8080/system/role/list?status=0
+
+### list search by name
+GET http://127.0.0.1:8080/system/role/list?name=角色名称
+
+### list search by key
+GET http://127.0.0.1:8080/system/role/list?key=admin
+
+### list search by id
+GET http://127.0.0.1:8080/system/role/list?id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/role/create
+content-type: application/json
+
+{
+}
+
+### create empty name
+POST http://127.0.0.1:8080/system/role/create
+content-type: application/json
+
+{
+  "key": "role-key-1",
+  "name": ""
+}
+
+### create empty key
+POST http://127.0.0.1:8080/system/role/create
+content-type: application/json
+
+{
+  "name": "role-name-1",
+  "key": ""
+}
+
+### create success
+POST http://127.0.0.1:8080/system/role/create
+content-type: application/json
+
+{
+  "name": "role-name-1",
+  "key": "role-key-1"
+}
+
+### create success 1
+POST http://127.0.0.1:8080/system/role/create
+content-type: application/json
+
+{
+  "name": "role-name-2",
+  "key": "role-key-2",
+  "status": 1,
+  "sort": 1
+}
+
+### create with exitst key
+POST http://127.0.0.1:8080/system/role/create
+content-type: application/json
+
+{
+  "name": "role-name-3",
+  "key": "role-key-1"
+}
+
+### update empty
+PUT http://127.0.0.1:8080/system/role/update
+content-type: application/json
+
+{
+}
+
+### update empty id
+PUT http://127.0.0.1:8080/system/role/update
+content-type: application/json
+
+{
+  "id": 0,
+  "name": "角色名称",
+  "key": "role-key-1"
+}
+
+### update empty name
+PUT http://127.0.0.1:8080/system/role/update
+content-type: application/json
+
+{
+  "id": 1,
+  "key": "role-key-1",
+  "name": ""
+}
+
+### update success
+PUT http://127.0.0.1:8080/system/role/update
+content-type: application/json
+
+{
+  "id": 1,
+  "name": "role-name-111",
+  "key": "role-key-1",
+  "status": 0,
+  "sort": 1
+}
+
+### detail empty
+GET http://127.0.0.1:8080/system/role/detail
+
+### detail empty id
+GET http://127.0.0.1:8080/system/role/detail?id=
+
+### detail not exist data
+GET http://127.0.0.1:8080/system/role/detail?id=99999
+
+### detail success
+GET http://127.0.0.1:8080/system/role/detail?id=1
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/role/delete
+content-type: application/json
+
+{
+}
+
+### delete empty ids
+DELETE http://127.0.0.1:8080/system/role/delete
+content-type: application/json
+
+{
+  "ids": []
+}
+
+### delete success
+DELETE http://127.0.0.1:8080/system/role/delete
+content-type: application/json
+
+{
+  "ids": [2]
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/role/detail?id=2

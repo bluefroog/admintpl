@@ -1,0 +1,10 @@
+# 统一行尾：仓库内存储 LF，Windows 检出为 CRLF（与项目约定一致）
+* text=auto
+
+# 二进制文件不转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.exe binary

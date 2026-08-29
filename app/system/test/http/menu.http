@@ -1,0 +1,150 @@
+### list default
+GET http://127.0.0.1:8080/system/menu/list
+
+### list search by keyword
+GET http://127.0.0.1:8080/system/menu/list?keyword=菜单
+
+### list search by status = 1
+GET http://127.0.0.1:8080/system/menu/list?status=1
+
+### list search by status = 0
+GET http://127.0.0.1:8080/system/menu/list?status=0
+
+### list search by menu_type = M
+GET http://127.0.0.1:8080/system/menu/list?menu_type=M
+
+### list search by menu_type = C
+GET http://127.0.0.1:8080/system/menu/list?menu_type=C
+
+### list search by name
+GET http://127.0.0.1:8080/system/menu/list?name=菜单名称
+
+### list search by parent_id = 0
+GET http://127.0.0.1:8080/system/menu/list?parent_id=0
+
+### list search by id
+GET http://127.0.0.1:8080/system/menu/list?id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/menu/create
+content-type: application/json
+
+{
+}
+
+### create empty name
+POST http://127.0.0.1:8080/system/menu/create
+content-type: application/json
+
+{
+  "name": ""
+}
+
+### create success
+POST http://127.0.0.1:8080/system/menu/create
+content-type: application/json
+
+{
+  "name": "菜单名称1",
+  "parent_id": 0,
+  "path": "/menu1",
+  "menu_type": "C",
+  "status": 0
+}
+
+### create success child
+POST http://127.0.0.1:8080/system/menu/create
+content-type: application/json
+
+{
+  "name": "菜单名称1-1",
+  "parent_id": 1,
+  "path": "/menu1/child",
+  "menu_type": "F",
+  "perms": "system:menu:list",
+  "status": 0
+}
+
+### update empty
+PUT http://127.0.0.1:8080/system/menu/update
+content-type: application/json
+
+{
+}
+
+### update empty id
+PUT http://127.0.0.1:8080/system/menu/update
+content-type: application/json
+
+{
+  "id": 0,
+  "name": "菜单名称"
+}
+
+### update empty name
+PUT http://127.0.0.1:8080/system/menu/update
+content-type: application/json
+
+{
+  "id": 1,
+  "name": ""
+}
+
+### update success
+PUT http://127.0.0.1:8080/system/menu/update
+content-type: application/json
+
+{
+  "id": 1,
+  "name": "菜单名称111",
+  "parent_id": 0,
+  "path": "/menu1",
+  "menu_type": "C",
+  "status": 1
+}
+
+### detail empty
+GET http://127.0.0.1:8080/system/menu/detail
+
+### detail empty id
+GET http://127.0.0.1:8080/system/menu/detail?id=
+
+### detail not exist data
+GET http://127.0.0.1:8080/system/menu/detail?id=99999
+
+### detail success
+GET http://127.0.0.1:8080/system/menu/detail?id=1
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/menu/delete
+content-type: application/json
+
+{
+}
+
+### delete empty ids
+DELETE http://127.0.0.1:8080/system/menu/delete
+content-type: application/json
+
+{
+  "ids": []
+}
+
+### delete exist child menu
+DELETE http://127.0.0.1:8080/system/menu/delete
+content-type: application/json
+
+{
+  "ids": [1]
+}
+
+### delete success
+DELETE http://127.0.0.1:8080/system/menu/delete
+content-type: application/json
+
+{
+  "ids": [2]
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/menu/detail?id=2

@@ -1,0 +1,78 @@
+### list default
+GET http://127.0.0.1:8080/system/user-post/list
+
+### list search by user_id
+GET http://127.0.0.1:8080/system/user-post/list?user_id=1
+
+### list search by post_id
+GET http://127.0.0.1:8080/system/user-post/list?post_id=1
+
+### list search by user_id and post_id
+GET http://127.0.0.1:8080/system/user-post/list?user_id=1&post_id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/user-post/create
+content-type: application/json
+
+{
+}
+
+### create empty user_id
+POST http://127.0.0.1:8080/system/user-post/create
+content-type: application/json
+
+{
+  "post_id": 1
+}
+
+### create empty post_id
+POST http://127.0.0.1:8080/system/user-post/create
+content-type: application/json
+
+{
+  "user_id": 1
+}
+
+### create success
+POST http://127.0.0.1:8080/system/user-post/create
+content-type: application/json
+
+{
+  "user_id": 1,
+  "post_id": 1
+}
+
+### create success 1
+POST http://127.0.0.1:8080/system/user-post/create
+content-type: application/json
+
+{
+  "user_id": 2,
+  "post_id": 2
+}
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/user-post/delete
+content-type: application/json
+
+{
+}
+
+### delete success by post_id
+DELETE http://127.0.0.1:8080/system/user-post/delete
+content-type: application/json
+
+{
+  "post_id": 2
+}
+
+### delete success by user_id
+DELETE http://127.0.0.1:8080/system/user-post/delete
+content-type: application/json
+
+{
+  "user_id": 1
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/user-post/list?user_id=1

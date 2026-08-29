@@ -19,14 +19,38 @@
 
 # 项目初始化
 ```bash
-# 初始化
+# 初始化（下载依赖）
 go mod tidy
 ```
 
-# 项目启动
+# 项目开发 / 测试 / 打包 / 发布（使用 just）
 ```bash
-# 启动
-go run main.go
+# 查看全部命令
+just --list
+
+# 开发：启动项目（默认监听 :8080）
+just dev
+
+# 测试：运行全部单元测试
+just test
+
+# 检查：go vet
+just vet
+
+# 打包：编译静态二进制
+just build
+
+# 发布：构建 Docker 镜像并推送远程仓库
+just release
+```
+
+# 接口文档生成
+```bash
+# 生成文档
+just docs   # 等价于 swag init -o ./app/swagger
+
+# 访问
+http://127.0.0.1:8080/swagger.json
 ```
 
 # 使用组件
@@ -37,15 +61,6 @@ github.com/sirupsen/logrus 日志
 github.com/spf13/viper 配置文件
 github.com/go-playground/validator/v10 结构体参数验证
 github.com/swaggo/swag 接口文档
-```
-
-# 接口文档生成
-```bash
-# 生成文档
-swag init -o ./app/swagger
-
-# 访问
-http://127.0.0.1:8080/swagger.json
 ```
 
 # swag 安装

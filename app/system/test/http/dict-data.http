@@ -1,0 +1,163 @@
+### list default
+GET http://127.0.0.1:8080/system/dict-data/list
+
+### list search by keyword
+GET http://127.0.0.1:8080/system/dict-data/list?keyword=标签
+
+### list search by type
+GET http://127.0.0.1:8080/system/dict-data/list?type=sys_user_sex
+
+### list search by status = 1
+GET http://127.0.0.1:8080/system/dict-data/list?status=1
+
+### list search by status = 0
+GET http://127.0.0.1:8080/system/dict-data/list?status=0
+
+### list search by label
+GET http://127.0.0.1:8080/system/dict-data/list?label=字典标签
+
+### list search by value
+GET http://127.0.0.1:8080/system/dict-data/list?value=1
+
+### list search by id
+GET http://127.0.0.1:8080/system/dict-data/list?id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/dict-data/create
+content-type: application/json
+
+{
+}
+
+### create empty label
+POST http://127.0.0.1:8080/system/dict-data/create
+content-type: application/json
+
+{
+  "type": "dict-data-1",
+  "value": "1",
+  "label": ""
+}
+
+### create empty value
+POST http://127.0.0.1:8080/system/dict-data/create
+content-type: application/json
+
+{
+  "type": "dict-data-1",
+  "label": "dict-data-label-1",
+  "value": ""
+}
+
+### create success
+POST http://127.0.0.1:8080/system/dict-data/create
+content-type: application/json
+
+{
+  "type": "dict-data-1",
+  "label": "dict-data-label-1",
+  "value": "1"
+}
+
+### create success 1
+POST http://127.0.0.1:8080/system/dict-data/create
+content-type: application/json
+
+{
+  "type": "dict-data-1",
+  "label": "dict-data-label-2",
+  "value": "2",
+  "sort": 1,
+  "status": 1,
+  "is_default": "N"
+}
+
+### create with exitst label
+POST http://127.0.0.1:8080/system/dict-data/create
+content-type: application/json
+
+{
+  "type": "dict-data-1",
+  "label": "dict-data-label-1",
+  "value": "3"
+}
+
+### update empty
+PUT http://127.0.0.1:8080/system/dict-data/update
+content-type: application/json
+
+{
+}
+
+### update empty id
+PUT http://127.0.0.1:8080/system/dict-data/update
+content-type: application/json
+
+{
+  "id": 0,
+  "type": "dict-data-1",
+  "label": "字典数据标签",
+  "value": "1"
+}
+
+### update empty label
+PUT http://127.0.0.1:8080/system/dict-data/update
+content-type: application/json
+
+{
+  "id": 1,
+  "type": "dict-data-1",
+  "value": "1",
+  "label": ""
+}
+
+### update success
+PUT http://127.0.0.1:8080/system/dict-data/update
+content-type: application/json
+
+{
+  "id": 1,
+  "type": "dict-data-1",
+  "label": "dict-data-label-111",
+  "value": "1",
+  "sort": 1,
+  "status": 0
+}
+
+### detail empty
+GET http://127.0.0.1:8080/system/dict-data/detail
+
+### detail empty id
+GET http://127.0.0.1:8080/system/dict-data/detail?id=
+
+### detail not exist data
+GET http://127.0.0.1:8080/system/dict-data/detail?id=99999
+
+### detail success
+GET http://127.0.0.1:8080/system/dict-data/detail?id=1
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/dict-data/delete
+content-type: application/json
+
+{
+}
+
+### delete empty ids
+DELETE http://127.0.0.1:8080/system/dict-data/delete
+content-type: application/json
+
+{
+  "ids": []
+}
+
+### delete success
+DELETE http://127.0.0.1:8080/system/dict-data/delete
+content-type: application/json
+
+{
+  "ids": [2]
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/dict-data/detail?id=2

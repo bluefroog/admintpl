@@ -60,6 +60,16 @@ func autoMigrate(db *gorm.DB) {
 		Config{},     // 参数表
 		LoginLog{},   // 文章日志表
 		Role{},       // 角色表
+		Menu{},       // 菜单表
+		DictType{},   // 字典类型表
+		DictData{},   // 字典数据表
+		Job{},        // 定时任务表
+		JobLog{},     // 定时任务日志表
+		OperationLog{}, // 操作日志表
+		RoleDept{},   // 角色部门关联表
+		RoleMenu{},   // 角色菜单关联表
+		UserPost{},   // 用户岗位关联表
+		UserRole{},   // 用户角色关联表
 	)
 	if err != nil {
 		log.Fatalf("migrate error: %v", err.Error())

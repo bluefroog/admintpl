@@ -1,0 +1,153 @@
+### list default
+GET http://127.0.0.1:8080/system/job/list
+
+### list search by keyword
+GET http://127.0.0.1:8080/system/job/list?keyword=任务
+
+### list search by status = 1
+GET http://127.0.0.1:8080/system/job/list?status=1
+
+### list search by status = 0
+GET http://127.0.0.1:8080/system/job/list?status=0
+
+### list search by name
+GET http://127.0.0.1:8080/system/job/list?name=任务名称
+
+### list search by group
+GET http://127.0.0.1:8080/system/job/list?group=default
+
+### list search by id
+GET http://127.0.0.1:8080/system/job/list?id=1
+
+### create empty
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+
+{
+}
+
+### create empty name
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+
+{
+  "invoke_target": "task.target",
+  "name": ""
+}
+
+### create empty invoke_target
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+
+{
+  "name": "job-name-1",
+  "invoke_target": ""
+}
+
+### create success
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+
+{
+  "name": "job-name-1",
+  "invoke_target": "task.target"
+}
+
+### create success 1
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+
+{
+  "name": "job-name-2",
+  "group": "default",
+  "invoke_target": "task.target2",
+  "cron_expression": "0/5 * * * * ?",
+  "status": 1
+}
+
+### create with exitst name
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+
+{
+  "name": "job-name-1",
+  "invoke_target": "task.target3"
+}
+
+### update empty
+PUT http://127.0.0.1:8080/system/job/update
+content-type: application/json
+
+{
+}
+
+### update empty id
+PUT http://127.0.0.1:8080/system/job/update
+content-type: application/json
+
+{
+  "id": 0,
+  "name": "定时任务",
+  "invoke_target": "task.target"
+}
+
+### update empty name
+PUT http://127.0.0.1:8080/system/job/update
+content-type: application/json
+
+{
+  "id": 1,
+  "invoke_target": "task.target",
+  "name": ""
+}
+
+### update success
+PUT http://127.0.0.1:8080/system/job/update
+content-type: application/json
+
+{
+  "id": 1,
+  "name": "job-name-111",
+  "group": "default",
+  "invoke_target": "task.target",
+  "cron_expression": "0/10 * * * * ?",
+  "status": 0
+}
+
+### detail empty
+GET http://127.0.0.1:8080/system/job/detail
+
+### detail empty id
+GET http://127.0.0.1:8080/system/job/detail?id=
+
+### detail not exist data
+GET http://127.0.0.1:8080/system/job/detail?id=99999
+
+### detail success
+GET http://127.0.0.1:8080/system/job/detail?id=1
+
+### delete empty
+DELETE http://127.0.0.1:8080/system/job/delete
+content-type: application/json
+
+{
+}
+
+### delete empty ids
+DELETE http://127.0.0.1:8080/system/job/delete
+content-type: application/json
+
+{
+  "ids": []
+}
+
+### delete success
+DELETE http://127.0.0.1:8080/system/job/delete
+content-type: application/json
+
+{
+  "ids": [2]
+}
+
+### check delete
+GET http://127.0.0.1:8080/system/job/detail?id=2
