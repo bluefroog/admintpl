@@ -28,6 +28,9 @@ go mod tidy
 # 查看全部命令
 just --list
 
+# 初始化：检查项目依赖（有则绿勾 ✔，缺失自动安装）
+just init
+
 # 开发：启动项目（默认监听 :8080）
 just dev
 

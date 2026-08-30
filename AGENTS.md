@@ -21,6 +21,7 @@
 
 - 统一使用 `just`（命令运行器，项目根目录 `justfile`）管理开发、测试、打包、发布。
 - 常用命令：
+  - `just init` — 初始化：检查项目依赖（有则绿勾 ✔，缺失自动安装）+ `go mod tidy`
   - `just dev` — 开发：启动项目（`go run main.go`）
   - `just test` — 测试：`go test ./...`
   - `just vet` — 检查：`go vet ./...`
