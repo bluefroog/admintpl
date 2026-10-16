@@ -68,7 +68,6 @@ func (a Int64Array) Value() (driver.Value, error) {
 	return "{}", nil
 }
 
-
 func scanLinearArray(src, del []byte, typ string) (elems [][]byte, err error) {
 	dims, elems, err := parseArray(src, del)
 	if err != nil {

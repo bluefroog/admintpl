@@ -80,3 +80,9 @@ content-type: application/json
 {
   "ids": [3]
 }
+
+### clear all
+DELETE http://127.0.0.1:8080/system/login-log/clear
+
+### clear by status
+DELETE http://127.0.0.1:8080/system/login-log/clear?status=1

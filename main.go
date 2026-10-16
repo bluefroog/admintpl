@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/bootstrap"
 	"github.com/bluefroog/admintpl/common/config"
+	"github.com/gin-gonic/gin"
 )
 
 // @title github.com/bluefroog/admintpl API文档

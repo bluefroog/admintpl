@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -11,11 +11,11 @@ import (
 type DictData struct{}
 
 // GetCount 获取字典数据列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取字典数据列表数据数量
-//@param: searchParams *domain.DictDataSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取字典数据列表数据数量
+// @param: searchParams *domain.DictDataSearchRequest
+// @return: err error, total int64
 func (s DictData) GetCount(searchParams *domain.DictDataSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.DictData{})
@@ -27,11 +27,11 @@ func (s DictData) GetCount(searchParams *domain.DictDataSearchRequest) (err erro
 }
 
 // GetList 获取字典数据列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取字典数据列表数据
-//@param: searchParams *domain.DictDataSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取字典数据列表数据
+// @param: searchParams *domain.DictDataSearchRequest
+// @return: err error, list interface{}, total int64
 func (s DictData) GetList(searchParams *domain.DictDataSearchRequest) (err error, list []domain.DictData, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.DictData{})
@@ -57,12 +57,12 @@ func (s DictData) GetList(searchParams *domain.DictDataSearchRequest) (err error
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 字典数据列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.DictDataSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 字典数据列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.DictDataSearchRequest
+// @return: *gorm.DB
 func (s DictData) parseFilter(db *gorm.DB, searchParams *domain.DictDataSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 字典编码
@@ -101,11 +101,11 @@ func (s DictData) parseFilter(db *gorm.DB, searchParams *domain.DictDataSearchRe
 }
 
 // Create 添加字典数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加字典数据
-//@param: data *domain.DictDataCreateRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加字典数据
+// @param: data *domain.DictDataCreateRequest
+// @return: error
 func (s DictData) Create(data *domain.DictDataCreateRequest) error {
 	// 判断字典标签是否唯一
 	if s.LabelIsExist(data.Type, data.Label, nil) {
@@ -130,11 +130,11 @@ func (s DictData) Create(data *domain.DictDataCreateRequest) error {
 }
 
 // Update 修改字典数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改字典数据
-//@param: data *domain.DictDataUpdateRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改字典数据
+// @param: data *domain.DictDataUpdateRequest
+// @return: err error
 func (s DictData) Update(data *domain.DictDataUpdateRequest) (err error) {
 	// 判断字典标签是否唯一
 	if s.LabelIsExist(data.Type, data.Label, &[]uint{data.ID}) {
@@ -156,12 +156,12 @@ func (s DictData) Update(data *domain.DictDataUpdateRequest) (err error) {
 }
 
 // UpdateByMap 更新指定ID的字典数据信息
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的字典数据信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的字典数据信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s DictData) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.DictData{}).Where("dict_code = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -170,11 +170,11 @@ func (s DictData) UpdateByMap(id uint, updateMap map[string]interface{}) (err er
 }
 
 // Delete 删除字典数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除字典数据
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除字典数据
+// @param: ids []uint
+// @return: err error
 func (s DictData) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("dict_code in (?) ", ids).Unscoped().Delete(&domain.DictData{}).Error; err != nil {
 		return err
@@ -183,11 +183,11 @@ func (s DictData) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID字典数据详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID字典数据详情
-//@param: id uint
-//@return: *domain.DictData,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID字典数据详情
+// @param: id uint
+// @return: *domain.DictData,err error
 func (s DictData) Detail(id uint) (*domain.DictData, error) {
 	var detail domain.DictData
 	db := domain.DB.Where("dict_code = ?", id)
@@ -198,13 +198,13 @@ func (s DictData) Detail(id uint) (*domain.DictData, error) {
 }
 
 // LabelIsExist 判断字典标签是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: LabelIsExist
-//@description: 判断指定字典类型下字典标签是否存在
-//@param: dictType string 字典类型
-//@param: label string 字典标签
-//@param: excludeIds *[]uint 不包含的字典数据ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: LabelIsExist
+// @description: 判断指定字典类型下字典标签是否存在
+// @param: dictType string 字典类型
+// @param: label string 字典标签
+// @param: excludeIds *[]uint 不包含的字典数据ID
+// @return: err error
 func (s DictData) LabelIsExist(dictType string, label string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.DictDataSearchRequest{
@@ -216,4 +216,39 @@ func (s DictData) LabelIsExist(dictType string, label string, excludeIds *[]uint
 	}
 	_, total := s.GetCount(filter)
 	return total > 0
+}
+
+// GetByType 根据字典类型查询字典数据列表
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetByType
+// @description: 根据字典类型查询字典数据列表（前端下拉渲染使用）
+// @param: req *domain.DictDataByTypeRequest
+// @return: err error, list []domain.DictData
+func (s DictData) GetByType(req *domain.DictDataByTypeRequest) (err error, list []domain.DictData) {
+	if err = domain.DB.Where("dict_type = ?", req.Type).Order("dict_sort asc").Find(&list).Error; err != nil {
+		return err, nil
+	}
+	return nil, list
+}
+
+// CheckUniqueLabel 校验同一字典类型下字典标签是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckUniqueLabel
+// @description: 校验同一字典类型下字典标签是否唯一
+// @param: dictType string 字典类型
+// @param: label string 字典标签
+// @param: excludeIds *[]uint 排除的字典编码
+// @return: err error, unique bool
+func (s DictData) CheckUniqueLabel(dictType string, label string, excludeIds *[]uint) (err error, unique bool) {
+	db := domain.DB.Model(&domain.DictData{}).
+		Where("dict_type = ?", dictType).
+		Where("dict_label = ?", label)
+	if excludeIds != nil && len(*excludeIds) > 0 {
+		db = db.Where("dict_code NOT IN (?)", *excludeIds)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
 }

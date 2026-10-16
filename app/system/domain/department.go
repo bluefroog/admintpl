@@ -70,3 +70,17 @@ type DepartmentUpdateRequest struct {
 	request.GetById
 	DepartmentBase
 }
+
+// DepartmentTreeRequest 部门树查询请求结构体
+type DepartmentTreeRequest struct {
+	ParentID *uint  `json:"parent_id" form:"parent_id"` // 父部门ID
+	Name     string `json:"name" form:"name"`           // 部门名称
+	Status   *uint  `json:"status" form:"status"`       // 部门状态（0正常 1停用）
+}
+
+// DepartmentCheckNameRequest 部门名称唯一性校验请求结构体
+type DepartmentCheckNameRequest struct {
+	ID       *uint  `json:"id" form:"id"`                         // 部门ID（编辑时传入，排除自身）
+	ParentID uint   `json:"parent_id" form:"parent_id"`           // 父部门ID
+	Name     string `json:"name" form:"name" validate:"required"` // 部门名称
+}

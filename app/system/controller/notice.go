@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type Notice struct{}

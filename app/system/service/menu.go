@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/common/model/request"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -12,11 +12,11 @@ import (
 type Menu struct{}
 
 // GetCount 获取菜单列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取菜单列表数据数量
-//@param: searchParams *domain.MenuSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取菜单列表数据数量
+// @param: searchParams *domain.MenuSearchRequest
+// @return: err error, total int64
 func (s Menu) GetCount(searchParams *domain.MenuSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Menu{})
@@ -28,11 +28,11 @@ func (s Menu) GetCount(searchParams *domain.MenuSearchRequest) (err error, total
 }
 
 // GetList 获取菜单列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取菜单列表数据
-//@param: searchParams *domain.MenuSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取菜单列表数据
+// @param: searchParams *domain.MenuSearchRequest
+// @return: err error, list interface{}, total int64
 func (s Menu) GetList(searchParams *domain.MenuSearchRequest) (err error, list []domain.Menu, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Menu{})
@@ -58,12 +58,12 @@ func (s Menu) GetList(searchParams *domain.MenuSearchRequest) (err error, list [
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 菜单列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.MenuSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 菜单列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.MenuSearchRequest
+// @return: *gorm.DB
 func (s Menu) parseFilter(db *gorm.DB, searchParams *domain.MenuSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 菜单ID
@@ -111,11 +111,11 @@ func (s Menu) parseFilter(db *gorm.DB, searchParams *domain.MenuSearchRequest) *
 }
 
 // Create 添加菜单数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加菜单数据
-//@param: data *domain.MenuCreateRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加菜单数据
+// @param: data *domain.MenuCreateRequest
+// @return: error
 func (s Menu) Create(data *domain.MenuCreateRequest) error {
 	// 判断菜单名称是否唯一
 	if s.NameIsExist(data.Name, nil) {
@@ -146,11 +146,11 @@ func (s Menu) Create(data *domain.MenuCreateRequest) error {
 }
 
 // Update 修改菜单
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改菜单
-//@param: data *domain.MenuUpdateRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改菜单
+// @param: data *domain.MenuUpdateRequest
+// @return: err error
 func (s Menu) Update(data *domain.MenuUpdateRequest) (err error) {
 	// 判断菜单名称是否唯一
 	if s.NameIsExist(data.Name, &[]uint{data.ID}) {
@@ -178,12 +178,12 @@ func (s Menu) Update(data *domain.MenuUpdateRequest) (err error) {
 }
 
 // UpdateByMap 更新指定ID的菜单信息
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的菜单信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的菜单信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s Menu) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.Menu{}).Where("menu_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -192,11 +192,11 @@ func (s Menu) UpdateByMap(id uint, updateMap map[string]interface{}) (err error)
 }
 
 // Delete 删除菜单
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除菜单
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除菜单
+// @param: ids []uint
+// @return: err error
 func (s Menu) Delete(ids []uint) (err error) {
 	// 如果有子菜单存在，禁止删除,需要先删除完子菜单
 	_, _, total := s.GetList(&domain.MenuSearchRequest{
@@ -213,11 +213,11 @@ func (s Menu) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID菜单详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID菜单详情
-//@param: id uint
-//@return: *domain.Menu,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID菜单详情
+// @param: id uint
+// @return: *domain.Menu,err error
 func (s Menu) Detail(id uint) (*domain.Menu, error) {
 	var detail domain.Menu
 	db := domain.DB.Where("menu_id = ?", id)
@@ -228,12 +228,12 @@ func (s Menu) Detail(id uint) (*domain.Menu, error) {
 }
 
 // NameIsExist 判断菜单名称是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: NameIsExist
-//@description: 判断菜单名称是否存在
-//@param: name string 菜单名称
-//@param: excludeIds *[]uint 不包含的菜单ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: NameIsExist
+// @description: 判断菜单名称是否存在
+// @param: name string 菜单名称
+// @param: excludeIds *[]uint 不包含的菜单ID
+// @return: err error
 func (s Menu) NameIsExist(name string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.MenuSearchRequest{
@@ -244,4 +244,103 @@ func (s Menu) NameIsExist(name string, excludeIds *[]uint) bool {
 	}
 	_, total := s.GetCount(filter)
 	return total > 0
+}
+
+// TreeData 获取菜单树数据（返回扁平列表，由前端 zTree 组装成树）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: TreeData
+// @description: 获取菜单树数据
+// @param: req *domain.MenuTreeRequest
+// @return: err error, list []domain.Ztree
+func (s Menu) TreeData(req *domain.MenuTreeRequest) (err error, list []domain.Ztree) {
+	db := domain.DB.Model(&domain.Menu{})
+	if req.Name != "" {
+		db = db.Where("menu_name LIKE ?", "%"+req.Name+"%")
+	}
+	if req.Status != nil {
+		db = db.Where("status = ?", req.Status)
+	}
+	if req.MenuType != "" {
+		db = db.Where("menu_type = ?", req.MenuType)
+	}
+	var menus []domain.Menu
+	if err = db.Order("order_num asc").Find(&menus).Error; err != nil {
+		return err, nil
+	}
+	return nil, menuListToZtree(menus, nil)
+}
+
+// RoleMenuTreeData 获取角色菜单树数据（带勾选）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: RoleMenuTreeData
+// @description: 根据角色ID查询菜单树
+// @param: roleId uint
+// @return: err error, list []domain.Ztree
+func (s Menu) RoleMenuTreeData(roleId uint) (err error, list []domain.Ztree) {
+	var menus []domain.Menu
+	if err = domain.DB.Order("order_num asc").Find(&menus).Error; err != nil {
+		return err, nil
+	}
+	var checkedIds []uint
+	if roleId > 0 {
+		if err = domain.DB.Model(&domain.RoleMenu{}).Where("role_id = ?", roleId).Pluck("menu_id", &checkedIds).Error; err != nil {
+			return err, nil
+		}
+	}
+	return nil, menuListToZtree(menus, checkedIds)
+}
+
+// CheckNameUnique 校验菜单名称是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckNameUnique
+// @description: 同一父菜单下校验菜单名称是否唯一
+// @param: req *domain.MenuCheckNameRequest
+// @return: err error, unique bool
+func (s Menu) CheckNameUnique(req *domain.MenuCheckNameRequest) (err error, unique bool) {
+	db := domain.DB.Model(&domain.Menu{}).
+		Where("menu_name = ?", req.Name).
+		Where("parent_id = ?", req.ParentID)
+	if req.ID != nil {
+		db = db.Where("id <> ?", *req.ID)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
+}
+
+// CheckPermsUnique 校验权限标识是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckPermsUnique
+// @description: 校验权限标识是否唯一
+// @param: req *domain.MenuCheckPermsRequest
+// @return: err error, unique bool
+func (s Menu) CheckPermsUnique(req *domain.MenuCheckPermsRequest) (err error, unique bool) {
+	if req.Perms == "" {
+		return nil, true
+	}
+	db := domain.DB.Model(&domain.Menu{}).Where("perms = ?", req.Perms)
+	if req.ID != nil {
+		db = db.Where("id <> ?", *req.ID)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
+}
+
+// HasChild 判断菜单是否存在子菜单
+// @author: [bluefrog](https://github.com/freewu)
+// @function: HasChild
+// @description: 判断菜单是否存在子菜单
+// @param: menuId uint
+// @return: err error, has bool
+func (s Menu) HasChild(menuId uint) (err error, has bool) {
+	var count int64
+	if err = domain.DB.Model(&domain.Menu{}).Where("parent_id = ?", menuId).Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count > 0
 }

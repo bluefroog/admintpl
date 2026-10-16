@@ -127,6 +127,76 @@ func InitRouter(r *gin.Engine) {
 		group.POST("/user-role/create", userRole.Create)
 		group.DELETE("/user-role/delete", userRole.Delete)
 
+		// 用户扩展接口（重置密码 / 状态 / 角色岗位授权 / 个人资料）
+		group.PUT("/user/reset-pwd", user.ResetPwd)
+		group.PUT("/user/change-status", user.ChangeStatus)
+		group.PUT("/user/roles", user.AssignRoles)
+		group.GET("/user/roles", user.GetRoles)
+		group.PUT("/user/posts", user.AssignPosts)
+		group.GET("/user/posts", user.GetPosts)
+		group.GET("/user/check-username", user.CheckUsernameUnique)
+		group.GET("/user/check-mobile", user.CheckMobileUnique)
+		group.GET("/user/check-email", user.CheckEmailUnique)
+		group.PUT("/user/profile", user.UpdateProfile)
+		group.PUT("/user/password", user.UpdatePassword)
+		group.PUT("/user/avatar", user.UpdateAvatar)
+
+		// 部门扩展接口（部门树 / 唯一性校验）
+		group.GET("/department/tree", department.TreeData)
+		group.GET("/department/role-dept-tree", department.RoleDeptTree)
+		group.GET("/department/check-name", department.CheckNameUnique)
+
+		// 岗位扩展接口（唯一性校验）
+		group.GET("/post/check-name", post.CheckNameUnique)
+		group.GET("/post/check-code", post.CheckCodeUnique)
+
+		// 参数扩展接口（按键取值 / 唯一性校验）
+		group.GET("/config/get-by-key", config.GetByKey)
+		group.GET("/config/check-key", config.CheckKeyUnique)
+
+		// 登录日志扩展接口（清空）
+		group.DELETE("/login-log/clear", loginLog.Clear)
+
+		// 角色扩展接口（菜单授权 / 数据权限 / 分配用户 / 唯一性校验）
+		group.PUT("/role/menu", role.AssignMenus)
+		group.PUT("/role/data-scope", role.DataScope)
+		group.GET("/role/allocated-list", role.AllocatedList)
+		group.GET("/role/unallocated-list", role.UnallocatedList)
+		group.POST("/role/select-users", role.SelectAllUsers)
+		group.DELETE("/role/cancel-user", role.CancelUser)
+		group.DELETE("/role/cancel-users", role.CancelAllUsers)
+		group.GET("/role/check-name", role.CheckNameUnique)
+		group.GET("/role/check-key", role.CheckKeyUnique)
+
+		// 菜单扩展接口（菜单树 / 唯一性校验）
+		group.GET("/menu/tree", menu.TreeData)
+		group.GET("/menu/role-menu-tree", menu.RoleMenuTree)
+		group.GET("/menu/check-name", menu.CheckNameUnique)
+		group.GET("/menu/check-perms", menu.CheckPermsUnique)
+
+		// 字典类型扩展接口
+		group.GET("/dict-type/list-all", dictType.ListAll)
+		group.GET("/dict-type/get-by-type", dictType.GetByType)
+		group.GET("/dict-type/check-type", dictType.CheckTypeUnique)
+
+		// 字典数据扩展接口
+		group.GET("/dict-data/get-by-type", dictData.GetByType)
+		group.GET("/dict-data/check-label", dictData.CheckLabelUnique)
+
+		// 定时任务扩展接口（状态修改 / 唯一性校验）
+		group.PUT("/job/change-status", job.ChangeStatus)
+		group.GET("/job/check-name", job.CheckNameUnique)
+
+		// 操作日志扩展接口（清空）
+		group.DELETE("/operation-log/clear", operationLog.Clear)
+
+		// 在线用户接口
+		userOnline := UserOnline{}
+		group.GET("/user-online/list", userOnline.List)
+		group.DELETE("/user-online/delete", userOnline.Delete)
+		group.GET("/user-online/detail", userOnline.Detail)
+		group.DELETE("/user-online/force-logout", userOnline.ForceLogout)
+
 	}
 	//r.GET("/ping", func(c *gin.Context) {
 	//	c.JSON(200, gin.H{

@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type LoginLog struct{}
@@ -101,4 +101,26 @@ func (u *LoginLog) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 清空登录日志
+// @Description 清空登录日志，status 为空时清空全部
+// @Tags 登录日志
+// @Param status query uint false "登录状态（0成功 1失败）"
+// @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
+// @Router /system/login-log/clear [delete]
+// @Security
+func (u *LoginLog) Clear(c *gin.Context) {
+	var param struct {
+		Status *uint `form:"status"`
+	}
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := loginLog.Clear(param.Status); err != nil {
+		response.Fail(-1, "清空失败: "+err.Error(), c)
+		return
+	}
+	response.Success("清空成功", c)
 }

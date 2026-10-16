@@ -147,3 +147,9 @@ content-type: application/json
 {
   "ids": [1]
 }
+
+### check-name
+GET http://127.0.0.1:8080/system/post/check-name?name=董事长
+
+### check-code
+GET http://127.0.0.1:8080/system/post/check-code?code=ceo

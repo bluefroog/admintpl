@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/common/model/request"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -12,11 +12,11 @@ import (
 type Notice struct{}
 
 // GetCount 获取公告列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取公告列表数据数量
-//@param: searchParams *domain.NoticeSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取公告列表数据数量
+// @param: searchParams *domain.NoticeSearchRequest
+// @return: err error, total int64
 func (s Notice) GetCount(searchParams *domain.NoticeSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Notice{})
@@ -28,11 +28,11 @@ func (s Notice) GetCount(searchParams *domain.NoticeSearchRequest) (err error, t
 }
 
 // GetList 获取公告列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取公告列表数据
-//@param: searchParams *domain.NoticeSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取公告列表数据
+// @param: searchParams *domain.NoticeSearchRequest
+// @return: err error, list interface{}, total int64
 func (s Notice) GetList(searchParams *domain.NoticeSearchRequest) (err error, list []domain.Notice, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Notice{})
@@ -59,12 +59,12 @@ func (s Notice) GetList(searchParams *domain.NoticeSearchRequest) (err error, li
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 公告列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.NoticeSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 公告列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.NoticeSearchRequest
+// @return: *gorm.DB
 func (s Notice) parseFilter(db *gorm.DB, searchParams *domain.NoticeSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 公告编号
@@ -104,11 +104,11 @@ func (s Notice) parseFilter(db *gorm.DB, searchParams *domain.NoticeSearchReques
 }
 
 // Create 添加公告数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加公告数据
-//@param: data *domain.NoticeAddRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加公告数据
+// @param: data *domain.NoticeAddRequest
+// @return: error
 func (s Notice) Create(data *domain.NoticeCreateRequest) error {
 	// 判断公告title是否唯一
 	//if s.TileIsExist(data.Title, nil) {
@@ -132,11 +132,11 @@ func (s Notice) Create(data *domain.NoticeCreateRequest) error {
 }
 
 // Update 修改公告
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改公告
-//@param: data *model.NoticeEditRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改公告
+// @param: data *model.NoticeEditRequest
+// @return: err error
 func (s Notice) Update(data *domain.NoticeUpdateRequest) (err error) {
 	// 判断公告标题是否唯一
 	//if s.TitleIsExist(data.Title, &[]uint{data.ID}) {
@@ -157,12 +157,12 @@ func (s Notice) Update(data *domain.NoticeUpdateRequest) (err error) {
 }
 
 // UpdateByMap 更新指定ID的公告信息
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的公告信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的公告信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s Notice) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.Notice{}).Where("notice_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -171,11 +171,11 @@ func (s Notice) UpdateByMap(id uint, updateMap map[string]interface{}) (err erro
 }
 
 // Delete 删除公告
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除公告
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除公告
+// @param: ids []uint
+// @return: err error
 func (s Notice) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("notice_id in (?) ", ids).Unscoped().Delete(&domain.Notice{}).Error; err != nil {
 		return err
@@ -184,11 +184,11 @@ func (s Notice) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID公告详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID公告详情
-//@param: id uint
-//@return: *domain.Notice,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID公告详情
+// @param: id uint
+// @return: *domain.Notice,err error
 func (s Notice) Detail(id uint) (*domain.Notice, error) {
 	var detail domain.Notice
 	db := domain.DB.Where("notice_id = ?", id)
@@ -199,12 +199,12 @@ func (s Notice) Detail(id uint) (*domain.Notice, error) {
 }
 
 // TitleIsExist 判断公告标题是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: TitleIsExist
-//@description: 判断公告标题是否存在
-//@param: title string 公告标题
-//@param: excludeIds *[]uint 不包含的公告ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: TitleIsExist
+// @description: 判断公告标题是否存在
+// @param: title string 公告标题
+// @param: excludeIds *[]uint 不包含的公告ID
+// @return: err error
 func (s Notice) TitleIsExist(title string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.NoticeSearchRequest{

@@ -13,6 +13,7 @@
 - 新增表模型必须注册到 `app/system/domain/init.go` 的 `autoMigrate`；路由必须注册到 `app/system/controller/init.go`。
 - 路由统一 `/system/<表名>/<list|create|update|delete|detail>`：
   - 业务表：全量 5 个接口；日志表：仅 list/delete/detail；关系表（复合主键）：仅 list/create/delete。
+  - 扩展动作（`tree`、`check-*`、`roles`、`menu`、`data-scope`、`clear`、`force-logout` 等）见 `docs/开发规范.md` 1.3 节。
 - 响应：成功 `response.OK(data, c)` / `response.Success("提示", c)`；失败 `response.Fail(-1, "错误", c)`。
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
 - 新增 `.go`/`.md`/`.http` 文件使用 **CRLF** 行尾。

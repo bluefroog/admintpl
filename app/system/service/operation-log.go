@@ -1,8 +1,8 @@
 package service
 
 import (
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -10,11 +10,11 @@ import (
 type OperationLog struct{}
 
 // GetCount 获取操作日志列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取操作日志列表数据数量
-//@param: searchParams *domain.OperationLogSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取操作日志列表数据数量
+// @param: searchParams *domain.OperationLogSearchRequest
+// @return: err error, total int64
 func (s OperationLog) GetCount(searchParams *domain.OperationLogSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.OperationLog{})
@@ -26,11 +26,11 @@ func (s OperationLog) GetCount(searchParams *domain.OperationLogSearchRequest) (
 }
 
 // GetList 获取操作日志列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取操作日志列表数据
-//@param: searchParams *domain.OperationLogSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取操作日志列表数据
+// @param: searchParams *domain.OperationLogSearchRequest
+// @return: err error, list interface{}, total int64
 func (s OperationLog) GetList(searchParams *domain.OperationLogSearchRequest) (err error, list []domain.OperationLog, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.OperationLog{})
@@ -59,12 +59,12 @@ func (s OperationLog) GetList(searchParams *domain.OperationLogSearchRequest) (e
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 操作日志列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.OperationLogSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 操作日志列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.OperationLogSearchRequest
+// @return: *gorm.DB
 func (s OperationLog) parseFilter(db *gorm.DB, searchParams *domain.OperationLogSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 日志主键
@@ -109,11 +109,11 @@ func (s OperationLog) parseFilter(db *gorm.DB, searchParams *domain.OperationLog
 }
 
 // Create 添加操作日志数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加操作日志数据
-//@param: data *domain.OperationLogCreateRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加操作日志数据
+// @param: data *domain.OperationLogCreateRequest
+// @return: error
 func (s OperationLog) Create(data *domain.OperationLogCreateRequest) error {
 	operationLog := new(domain.OperationLog)
 	operationLog.Title = data.Title
@@ -137,11 +137,11 @@ func (s OperationLog) Create(data *domain.OperationLogCreateRequest) error {
 }
 
 // Delete 删除操作日志
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除操作日志
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除操作日志
+// @param: ids []uint
+// @return: err error
 func (s OperationLog) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("oper_id in (?) ", ids).Unscoped().Delete(&domain.OperationLog{}).Error; err != nil {
 		return err
@@ -150,11 +150,11 @@ func (s OperationLog) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID操作日志详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID操作日志详情
-//@param: id uint
-//@return: *domain.OperationLog,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID操作日志详情
+// @param: id uint
+// @return: *domain.OperationLog,err error
 func (s OperationLog) Detail(id uint) (*domain.OperationLog, error) {
 	var detail domain.OperationLog
 	db := domain.DB.Where("oper_id = ?", id)
@@ -162,4 +162,13 @@ func (s OperationLog) Detail(id uint) (*domain.OperationLog, error) {
 		return nil, err
 	}
 	return &detail, nil
+}
+
+// Clear 清空操作日志
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Clear
+// @description: 清空操作日志
+// @return: err error
+func (s OperationLog) Clear() (err error) {
+	return domain.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&domain.OperationLog{}).Error
 }

@@ -1,13 +1,13 @@
 package domain
 
 import (
+	"github.com/bluefroog/admintpl/common/config"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"os"
-	"github.com/bluefroog/admintpl/common/config"
 	"time"
 )
 
@@ -53,23 +53,24 @@ func InitDB(r *gin.Engine) {
 func autoMigrate(db *gorm.DB) {
 	// migrate model
 	err := db.AutoMigrate(
-		User{},       // 后台用户表
-		Department{}, // 部门表
-		Post{},       // 职位表
-		Notice{},     // 公告表
-		Config{},     // 参数表
-		LoginLog{},   // 文章日志表
-		Role{},       // 角色表
-		Menu{},       // 菜单表
-		DictType{},   // 字典类型表
-		DictData{},   // 字典数据表
-		Job{},        // 定时任务表
-		JobLog{},     // 定时任务日志表
+		User{},         // 后台用户表
+		Department{},   // 部门表
+		Post{},         // 职位表
+		Notice{},       // 公告表
+		Config{},       // 参数表
+		LoginLog{},     // 文章日志表
+		Role{},         // 角色表
+		Menu{},         // 菜单表
+		DictType{},     // 字典类型表
+		DictData{},     // 字典数据表
+		Job{},          // 定时任务表
+		JobLog{},       // 定时任务日志表
 		OperationLog{}, // 操作日志表
-		RoleDept{},   // 角色部门关联表
-		RoleMenu{},   // 角色菜单关联表
-		UserPost{},   // 用户岗位关联表
-		UserRole{},   // 用户角色关联表
+		RoleDept{},     // 角色部门关联表
+		RoleMenu{},     // 角色菜单关联表
+		UserPost{},     // 用户岗位关联表
+		UserRole{},     // 用户角色关联表
+		UserOnline{},   // 用户在线状态表
 	)
 	if err != nil {
 		log.Fatalf("migrate error: %v", err.Error())

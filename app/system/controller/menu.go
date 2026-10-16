@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type Menu struct{}
@@ -21,7 +21,7 @@ var (
 // @Description 菜单列表
 // @Tags 菜单管理
 // @Param data query domain.MenuSearchRequest true "data"
-// @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.Menu}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
+// @Success 0 {response.PageResult} response.Response{data=response.PageResult{list=[]domain.Menu}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
 // @Router /system/menu/list [get]
 // @Security
 func (u *Menu) List(c *gin.Context) {
@@ -164,4 +164,92 @@ func (u *Menu) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 获取菜单树
+// @Description 获取菜单树数据（返回扁平列表，由前端组装成树）
+// @Tags 菜单管理
+// @Param data query domain.MenuTreeRequest true "data"
+// @Success 0 {object} response.Response{data=[]domain.Ztree} "{"code": 0, "msg":"success","data": []}"
+// @Router /system/menu/tree [get]
+// @Security
+func (u *Menu) TreeData(c *gin.Context) {
+	var param domain.MenuTreeRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, list := menu.TreeData(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(list, c)
+}
+
+// @Summary 获取角色菜单树
+// @Description 根据角色ID获取菜单树（勾选已授权菜单）
+// @Tags 菜单管理
+// @Param data query domain.RoleMenuTreeRequest true "data"
+// @Success 0 {object} response.Response{data=[]domain.Ztree} "{"code": 0, "msg":"success","data": []}"
+// @Router /system/menu/role-menu-tree [get]
+// @Security
+func (u *Menu) RoleMenuTree(c *gin.Context) {
+	var param domain.RoleMenuTreeRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, list := menu.RoleMenuTreeData(param.RoleID)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(list, c)
+}
+
+// @Summary 校验菜单名称是否唯一
+// @Description 校验菜单名称是否唯一
+// @Tags 菜单管理
+// @Param data query domain.MenuCheckNameRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/menu/check-name [get]
+// @Security
+func (u *Menu) CheckNameUnique(c *gin.Context) {
+	var param domain.MenuCheckNameRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, unique := menu.CheckNameUnique(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
+}
+
+// @Summary 校验权限标识是否唯一
+// @Description 校验权限标识是否唯一
+// @Tags 菜单管理
+// @Param data query domain.MenuCheckPermsRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/menu/check-perms [get]
+// @Security
+func (u *Menu) CheckPermsUnique(c *gin.Context) {
+	var param domain.MenuCheckPermsRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, unique := menu.CheckPermsUnique(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
 }

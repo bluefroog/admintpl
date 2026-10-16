@@ -84,3 +84,85 @@ GET http://127.0.0.1:8080/system/user/list?pageSize=1&mobile=13212341235
 
 ###
 
+
+### reset-pwd
+PUT http://127.0.0.1:8080/system/user/reset-pwd
+content-type: application/json
+
+{
+  "id": 1,
+  "password": "123456"
+}
+
+### change-status
+PUT http://127.0.0.1:8080/system/user/change-status
+content-type: application/json
+
+{
+  "id": 1,
+  "status": 1
+}
+
+### assign roles
+PUT http://127.0.0.1:8080/system/user/roles
+content-type: application/json
+
+{
+  "id": 1,
+  "role_ids": [1, 2]
+}
+
+### get roles
+GET http://127.0.0.1:8080/system/user/roles?id=1
+
+### assign posts
+PUT http://127.0.0.1:8080/system/user/posts
+content-type: application/json
+
+{
+  "id": 1,
+  "post_ids": [1, 2]
+}
+
+### get posts
+GET http://127.0.0.1:8080/system/user/posts?id=1
+
+### check username unique
+GET http://127.0.0.1:8080/system/user/check-username?username=bluefrog
+
+### check mobile unique
+GET http://127.0.0.1:8080/system/user/check-mobile?mobile=13212341234
+
+### check email unique
+GET http://127.0.0.1:8080/system/user/check-email?email=bluefrog.wu@gmail.com
+
+### update profile
+PUT http://127.0.0.1:8080/system/user/profile
+content-type: application/json
+
+{
+  "id": 1,
+  "nickname": "bluefrog",
+  "email": "bluefrog.wu@gmail.com",
+  "mobile": "13212341234",
+  "gender": 1
+}
+
+### update password
+PUT http://127.0.0.1:8080/system/user/password
+content-type: application/json
+
+{
+  "id": 1,
+  "old_password": "123456",
+  "new_password": "1234567"
+}
+
+### update avatar
+PUT http://127.0.0.1:8080/system/user/avatar
+content-type: application/json
+
+{
+  "id": 1,
+  "avatar": "/uploads/avatar.png"
+}

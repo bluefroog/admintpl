@@ -72,3 +72,57 @@ type UserEditRequest struct {
 	request.GetById
 	UserBase
 }
+
+// UserResetPwdRequest 重置用户密码请求结构体
+type UserResetPwdRequest struct {
+	ID       uint   `json:"id" form:"id" validate:"required"`             // 用户ID
+	Password string `json:"password" form:"password" validate:"required"` // 新密码
+}
+
+// UserChangeStatusRequest 修改用户状态请求结构体
+type UserChangeStatusRequest struct {
+	ID     uint `json:"id" form:"id" validate:"required"` // 用户ID
+	Status uint `json:"status" form:"status"`             // 用户状态;0:禁用,1:正常,2:未验证
+}
+
+// UserAssignRoleRequest 用户分配角色请求结构体
+type UserAssignRoleRequest struct {
+	ID      uint   `json:"id" form:"id" validate:"required"` // 用户ID
+	RoleIDs []uint `json:"role_ids" form:"role_ids"`         // 角色ID列表
+}
+
+// UserAssignPostRequest 用户分配岗位请求结构体
+type UserAssignPostRequest struct {
+	ID      uint   `json:"id" form:"id" validate:"required"` // 用户ID
+	PostIDs []uint `json:"post_ids" form:"post_ids"`         // 岗位ID列表
+}
+
+// UserCheckUniqueRequest 用户字段唯一性校验请求结构体
+type UserCheckUniqueRequest struct {
+	ID       *uint  `json:"id" form:"id"`             // 用户ID（编辑时传入，排除自身）
+	Username string `json:"username" form:"username"` // 用户名
+	Mobile   string `json:"mobile" form:"mobile"`     // 手机号
+	Email    string `json:"email" form:"email"`       // 登录邮箱
+}
+
+// UserProfileUpdateRequest 用户个人资料修改请求结构体
+type UserProfileUpdateRequest struct {
+	ID       uint   `json:"id" form:"id" validate:"required"` // 用户ID
+	Nickname string `json:"nickname" form:"nickname"`         // 用户昵称
+	Email    string `json:"email" form:"email"`               // 登录邮箱
+	Mobile   string `json:"mobile" form:"mobile"`             // 手机号
+	Gender   uint   `json:"gender" form:"gender"`             // 性别;0:保密,1:男,2:女
+}
+
+// UserPasswordUpdateRequest 用户修改密码请求结构体
+type UserPasswordUpdateRequest struct {
+	ID          uint   `json:"id" form:"id" validate:"required"`                     // 用户ID
+	OldPassword string `json:"old_password" form:"old_password" validate:"required"` // 旧密码
+	NewPassword string `json:"new_password" form:"new_password" validate:"required"` // 新密码
+}
+
+// UserAvatarUpdateRequest 用户头像修改请求结构体
+type UserAvatarUpdateRequest struct {
+	ID     uint   `json:"id" form:"id" validate:"required"`         // 用户ID
+	Avatar string `json:"avatar" form:"avatar" validate:"required"` // 头像地址
+}

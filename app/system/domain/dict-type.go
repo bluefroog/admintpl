@@ -22,7 +22,7 @@ func (m *DictType) TableName() string {
 type DictTypeBase struct {
 	Name   string `json:"name" form:"name" validate:"required" gorm:"column:dict_name;type:varchar(100);not null;comment:字典名称"` // 字典名称
 	Type   string `json:"type" form:"type" validate:"required" gorm:"column:dict_type;type:varchar(100);not null;comment:字典类型"` // 字典类型
-	Status uint   `json:"status" form:"status" gorm:"column:status;type:char(1);default:0;comment:状态（0正常 1停用）"`                // 状态（0正常 1停用）
+	Status uint   `json:"status" form:"status" gorm:"column:status;type:char(1);default:0;comment:状态（0正常 1停用）"`                 // 状态（0正常 1停用）
 
 	core.RuoyiModel
 }
@@ -53,4 +53,10 @@ type DictTypeCreateRequest struct {
 type DictTypeUpdateRequest struct {
 	request.GetById
 	DictTypeBase
+}
+
+// DictTypeCheckRequest 字典类型唯一性校验请求结构体
+type DictTypeCheckRequest struct {
+	ID   *uint  `json:"id" form:"id"`     // 字典主键（编辑时传入，排除自身）
+	Type string `json:"type" form:"type"` // 字典类型
 }

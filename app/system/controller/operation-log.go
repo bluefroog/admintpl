@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type OperationLog struct{}
@@ -101,4 +101,18 @@ func (u *OperationLog) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 清空操作日志
+// @Description 清空操作日志
+// @Tags 操作日志
+// @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
+// @Router /system/operation-log/clear [delete]
+// @Security
+func (u *OperationLog) Clear(c *gin.Context) {
+	if err := operationLog.Clear(); err != nil {
+		response.Fail(-1, "清空失败: "+err.Error(), c)
+		return
+	}
+	response.Success("清空成功", c)
 }

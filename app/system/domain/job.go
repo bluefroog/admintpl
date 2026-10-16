@@ -20,16 +20,16 @@ func (m *Job) TableName() string {
 
 // JobBase 定时任务基础结构
 type JobBase struct {
-	Name           string `json:"name" form:"name" validate:"required" gorm:"column:job_name;type:varchar(64);not null;comment:任务名称"`                             // 任务名称
-	Group          string `json:"group" form:"group" gorm:"column:job_group;type:varchar(64);default:'default';comment:任务组名"`                                    // 任务组名
-	Executor       string `json:"executor" form:"executor" gorm:"column:job_executor;type:varchar(64);default:'default';comment:任务执行器"`                          // 任务执行器
-	InvokeTarget   string `json:"invoke_target" form:"invoke_target" validate:"required" gorm:"column:invoke_target;type:varchar(500);not null;comment:调用目标字符串"` // 调用目标字符串
-	JobArgs        string `json:"job_args" form:"job_args" gorm:"column:job_args;type:varchar(255);default:'';comment:位置参数"`                                    // 位置参数
-	JobKwargs      string `json:"job_kwargs" form:"job_kwargs" gorm:"column:job_kwargs;type:varchar(255);default:'';comment:关键字参数"`                            // 关键字参数
-	CronExpression string `json:"cron_expression" form:"cron_expression" gorm:"column:cron_expression;type:varchar(255);default:'';comment:cron执行表达式"`           // cron执行表达式
+	Name           string `json:"name" form:"name" validate:"required" gorm:"column:job_name;type:varchar(64);not null;comment:任务名称"`                                 // 任务名称
+	Group          string `json:"group" form:"group" gorm:"column:job_group;type:varchar(64);default:'default';comment:任务组名"`                                         // 任务组名
+	Executor       string `json:"executor" form:"executor" gorm:"column:job_executor;type:varchar(64);default:'default';comment:任务执行器"`                               // 任务执行器
+	InvokeTarget   string `json:"invoke_target" form:"invoke_target" validate:"required" gorm:"column:invoke_target;type:varchar(500);not null;comment:调用目标字符串"`      // 调用目标字符串
+	JobArgs        string `json:"job_args" form:"job_args" gorm:"column:job_args;type:varchar(255);default:'';comment:位置参数"`                                          // 位置参数
+	JobKwargs      string `json:"job_kwargs" form:"job_kwargs" gorm:"column:job_kwargs;type:varchar(255);default:'';comment:关键字参数"`                                   // 关键字参数
+	CronExpression string `json:"cron_expression" form:"cron_expression" gorm:"column:cron_expression;type:varchar(255);default:'';comment:cron执行表达式"`                // cron执行表达式
 	MisfirePolicy  string `json:"misfire_policy" form:"misfire_policy" gorm:"column:misfire_policy;type:varchar(20);default:'3';comment:计划执行错误策略（1立即执行 2执行一次 3放弃执行）"` // 计划执行错误策略（1立即执行 2执行一次 3放弃执行）
-	Concurrent     string `json:"concurrent" form:"concurrent" gorm:"column:concurrent;type:char(1);default:'1';comment:是否并发执行（0允许 1禁止）"`                      // 是否并发执行（0允许 1禁止）
-	Status         uint   `json:"status" form:"status" gorm:"column:status;type:char(1);default:0;comment:状态（0正常 1暂停）"`                                         // 状态（0正常 1暂停）
+	Concurrent     string `json:"concurrent" form:"concurrent" gorm:"column:concurrent;type:char(1);default:'1';comment:是否并发执行（0允许 1禁止）"`                             // 是否并发执行（0允许 1禁止）
+	Status         uint   `json:"status" form:"status" gorm:"column:status;type:char(1);default:0;comment:状态（0正常 1暂停）"`                                               // 状态（0正常 1暂停）
 
 	core.RuoyiModel
 }
@@ -62,4 +62,16 @@ type JobCreateRequest struct {
 type JobUpdateRequest struct {
 	request.GetById
 	JobBase
+}
+
+// JobChangeStatusRequest 定时任务状态修改请求结构体
+type JobChangeStatusRequest struct {
+	ID     uint `json:"id" form:"id" validate:"required"` // 任务ID
+	Status uint `json:"status" form:"status"`             // 状态（0正常 1暂停）
+}
+
+// JobCheckNameRequest 任务名称唯一性校验请求结构体
+type JobCheckNameRequest struct {
+	ID   *uint  `json:"id" form:"id"`     // 任务ID（编辑时传入，排除自身）
+	Name string `json:"name" form:"name"` // 任务名称
 }

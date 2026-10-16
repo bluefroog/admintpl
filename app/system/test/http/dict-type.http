@@ -147,3 +147,12 @@ content-type: application/json
 
 ### check delete
 GET http://127.0.0.1:8080/system/dict-type/detail?id=2
+
+### list-all
+GET http://127.0.0.1:8080/system/dict-type/list-all
+
+### get-by-type
+GET http://127.0.0.1:8080/system/dict-type/get-by-type?type=sys_user_sex
+
+### check-type
+GET http://127.0.0.1:8080/system/dict-type/check-type?type=sys_user_sex

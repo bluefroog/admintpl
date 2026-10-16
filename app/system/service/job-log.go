@@ -1,8 +1,8 @@
 package service
 
 import (
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -10,11 +10,11 @@ import (
 type JobLog struct{}
 
 // GetCount 获取定时任务日志列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取定时任务日志列表数据数量
-//@param: searchParams *domain.JobLogSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取定时任务日志列表数据数量
+// @param: searchParams *domain.JobLogSearchRequest
+// @return: err error, total int64
 func (s JobLog) GetCount(searchParams *domain.JobLogSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.JobLog{})
@@ -26,11 +26,11 @@ func (s JobLog) GetCount(searchParams *domain.JobLogSearchRequest) (err error, t
 }
 
 // GetList 获取定时任务日志列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取定时任务日志列表数据
-//@param: searchParams *domain.JobLogSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取定时任务日志列表数据
+// @param: searchParams *domain.JobLogSearchRequest
+// @return: err error, list interface{}, total int64
 func (s JobLog) GetList(searchParams *domain.JobLogSearchRequest) (err error, list []domain.JobLog, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.JobLog{})
@@ -59,12 +59,12 @@ func (s JobLog) GetList(searchParams *domain.JobLogSearchRequest) (err error, li
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 定时任务日志列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.JobLogSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 定时任务日志列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.JobLogSearchRequest
+// @return: *gorm.DB
 func (s JobLog) parseFilter(db *gorm.DB, searchParams *domain.JobLogSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 任务日志ID
@@ -103,11 +103,11 @@ func (s JobLog) parseFilter(db *gorm.DB, searchParams *domain.JobLogSearchReques
 }
 
 // Create 添加定时任务日志数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加定时任务日志数据
-//@param: data *domain.JobLogCreateRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加定时任务日志数据
+// @param: data *domain.JobLogCreateRequest
+// @return: error
 func (s JobLog) Create(data *domain.JobLogCreateRequest) error {
 	jobLog := new(domain.JobLog)
 	jobLog.JobName = data.JobName
@@ -126,11 +126,11 @@ func (s JobLog) Create(data *domain.JobLogCreateRequest) error {
 }
 
 // Delete 删除定时任务日志
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除定时任务日志
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除定时任务日志
+// @param: ids []uint
+// @return: err error
 func (s JobLog) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("job_log_id in (?) ", ids).Unscoped().Delete(&domain.JobLog{}).Error; err != nil {
 		return err
@@ -139,11 +139,11 @@ func (s JobLog) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID定时任务日志详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID定时任务日志详情
-//@param: id uint
-//@return: *domain.JobLog,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID定时任务日志详情
+// @param: id uint
+// @return: *domain.JobLog,err error
 func (s JobLog) Detail(id uint) (*domain.JobLog, error) {
 	var detail domain.JobLog
 	db := domain.DB.Where("job_log_id = ?", id)

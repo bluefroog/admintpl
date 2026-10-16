@@ -151,3 +151,15 @@ content-type: application/json
 
 ### check delete
 GET http://127.0.0.1:8080/system/job/detail?id=2
+
+### change-status
+PUT http://127.0.0.1:8080/system/job/change-status
+content-type: application/json
+
+{
+  "id": 1,
+  "status": 1
+}
+
+### check-name
+GET http://127.0.0.1:8080/system/job/check-name?name=ryTask

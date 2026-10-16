@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type Config struct{}
@@ -155,4 +155,54 @@ func (u *Config) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 根据参数键名获取参数值
+// @Description 根据参数键名获取参数值
+// @Tags 参数管理
+// @Param data query domain.ConfigKeyRequest true "data"
+// @Success 0 {object} response.Response{data=string} "{"code": 0, "msg":"success","data": ""}"
+// @Router /system/config/get-by-key [get]
+// @Security
+func (u *Config) GetByKey(c *gin.Context) {
+	var param domain.ConfigKeyRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, value := config.GetByKey(param.Key)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(value, c)
+}
+
+// @Summary 校验参数键名是否唯一
+// @Description 校验参数键名是否唯一
+// @Tags 参数管理
+// @Param data query domain.ConfigCheckKeyRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/config/check-key [get]
+// @Security
+func (u *Config) CheckKeyUnique(c *gin.Context) {
+	var param domain.ConfigCheckKeyRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, unique := config.CheckKeyUnique(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
 }

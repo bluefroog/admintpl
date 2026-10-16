@@ -148,3 +148,15 @@ content-type: application/json
 
 ### check delete
 GET http://127.0.0.1:8080/system/menu/detail?id=2
+
+### tree
+GET http://127.0.0.1:8080/system/menu/tree
+
+### role-menu-tree
+GET http://127.0.0.1:8080/system/menu/role-menu-tree?role_id=1
+
+### check-name
+GET http://127.0.0.1:8080/system/menu/check-name?name=系统管理&parent_id=0
+
+### check-perms
+GET http://127.0.0.1:8080/system/menu/check-perms?perms=system:user:list

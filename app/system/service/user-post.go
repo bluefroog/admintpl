@@ -1,18 +1,18 @@
 package service
 
 import (
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"gorm.io/gorm"
 )
 
 type UserPost struct{}
 
 // GetCount 获取用户岗位关联列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取用户岗位关联列表数据数量
-//@param: searchParams *domain.UserPostSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取用户岗位关联列表数据数量
+// @param: searchParams *domain.UserPostSearchRequest
+// @return: err error, total int64
 func (s UserPost) GetCount(searchParams *domain.UserPostSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.UserPost{})
@@ -24,11 +24,11 @@ func (s UserPost) GetCount(searchParams *domain.UserPostSearchRequest) (err erro
 }
 
 // GetList 获取用户岗位关联列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取用户岗位关联列表数据
-//@param: searchParams *domain.UserPostSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取用户岗位关联列表数据
+// @param: searchParams *domain.UserPostSearchRequest
+// @return: err error, list interface{}, total int64
 func (s UserPost) GetList(searchParams *domain.UserPostSearchRequest) (err error, list []domain.UserPost, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.UserPost{})
@@ -54,12 +54,12 @@ func (s UserPost) GetList(searchParams *domain.UserPostSearchRequest) (err error
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 用户岗位关联列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.UserPostSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 用户岗位关联列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.UserPostSearchRequest
+// @return: *gorm.DB
 func (s UserPost) parseFilter(db *gorm.DB, searchParams *domain.UserPostSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.UserID != nil { // 用户ID
@@ -78,11 +78,11 @@ func (s UserPost) parseFilter(db *gorm.DB, searchParams *domain.UserPostSearchRe
 }
 
 // Create 添加用户岗位关联
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加用户岗位关联
-//@param: data *domain.UserPostCreateRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加用户岗位关联
+// @param: data *domain.UserPostCreateRequest
+// @return: error
 func (s UserPost) Create(data *domain.UserPostCreateRequest) error {
 	userPost := new(domain.UserPost)
 	userPost.UserID = data.UserID
@@ -92,11 +92,11 @@ func (s UserPost) Create(data *domain.UserPostCreateRequest) error {
 }
 
 // Delete 删除用户岗位关联
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除用户岗位关联
-//@param: data *domain.UserPostDeleteRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除用户岗位关联
+// @param: data *domain.UserPostDeleteRequest
+// @return: err error
 func (s UserPost) Delete(data *domain.UserPostDeleteRequest) (err error) {
 	db := domain.DB.Model(&domain.UserPost{})
 	// 条件过滤

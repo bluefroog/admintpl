@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -11,11 +11,11 @@ import (
 type Config struct{}
 
 // GetCount 获取参数列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取参数列表数据数量
-//@param: searchParams *domain.ConfigSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取参数列表数据数量
+// @param: searchParams *domain.ConfigSearchRequest
+// @return: err error, total int64
 func (s Config) GetCount(searchParams *domain.ConfigSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Config{})
@@ -27,11 +27,11 @@ func (s Config) GetCount(searchParams *domain.ConfigSearchRequest) (err error, t
 }
 
 // GetList 获取参数列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取参数列表数据
-//@param: searchParams *domain.ConfigSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取参数列表数据
+// @param: searchParams *domain.ConfigSearchRequest
+// @return: err error, list interface{}, total int64
 func (s Config) GetList(searchParams *domain.ConfigSearchRequest) (err error, list []domain.Config, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Config{})
@@ -58,12 +58,12 @@ func (s Config) GetList(searchParams *domain.ConfigSearchRequest) (err error, li
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 参数列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.ConfigSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 参数列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.ConfigSearchRequest
+// @return: *gorm.DB
 func (s Config) parseFilter(db *gorm.DB, searchParams *domain.ConfigSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 参数编号
@@ -105,11 +105,11 @@ func (s Config) parseFilter(db *gorm.DB, searchParams *domain.ConfigSearchReques
 }
 
 // Create 添加参数数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加参数数据
-//@param: data *domain.ConfigAddRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加参数数据
+// @param: data *domain.ConfigAddRequest
+// @return: error
 func (s Config) Create(data *domain.ConfigCreateRequest) error {
 	// 判断参数名称是否唯一
 	if s.NameIsExist(data.Name, nil) {
@@ -135,11 +135,11 @@ func (s Config) Create(data *domain.ConfigCreateRequest) error {
 }
 
 // Update 修改参数
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改参数
-//@param: data *model.ConfigEditRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改参数
+// @param: data *model.ConfigEditRequest
+// @return: err error
 func (s Config) Update(data *domain.ConfigUpdateRequest) (err error) {
 	// 判断名字是否唯一
 	if s.NameIsExist(data.Name, &[]uint{data.ID}) {
@@ -162,12 +162,12 @@ func (s Config) Update(data *domain.ConfigUpdateRequest) (err error) {
 }
 
 // UpdateByMap 更新指定ID的参数信息
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的参数信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的参数信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s Config) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.Config{}).Where("config_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -176,11 +176,11 @@ func (s Config) UpdateByMap(id uint, updateMap map[string]interface{}) (err erro
 }
 
 // Delete 删除参数
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除参数
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除参数
+// @param: ids []uint
+// @return: err error
 func (s Config) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("config_id in (?) ", ids).Unscoped().Delete(&domain.Config{}).Error; err != nil {
 		return err
@@ -189,11 +189,11 @@ func (s Config) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID参数详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID参数详情
-//@param: id uint
-//@return: *domain.Config,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID参数详情
+// @param: id uint
+// @return: *domain.Config,err error
 func (s Config) Detail(id uint) (*domain.Config, error) {
 	var detail domain.Config
 	db := domain.DB.Where("config_id = ?", id)
@@ -204,12 +204,12 @@ func (s Config) Detail(id uint) (*domain.Config, error) {
 }
 
 // NameIsExist 判断参数名称是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: NameIsExist
-//@description: 判断参数名称是否存在
-//@param: name string 参数名称
-//@param: excludeIds *[]uint 不包含的参数ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: NameIsExist
+// @description: 判断参数名称是否存在
+// @param: name string 参数名称
+// @param: excludeIds *[]uint 不包含的参数ID
+// @return: err error
 func (s Config) NameIsExist(name string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.ConfigSearchRequest{
@@ -223,12 +223,12 @@ func (s Config) NameIsExist(name string, excludeIds *[]uint) bool {
 }
 
 // KeyIsExist 判断参数键名是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: KeyIsExist
-//@description: 判断参数键名是否存在
-//@param: key string 参数键名
-//@param: excludeIds *[]uint 不包含的区域类型ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: KeyIsExist
+// @description: 判断参数键名是否存在
+// @param: key string 参数键名
+// @param: excludeIds *[]uint 不包含的区域类型ID
+// @return: err error
 func (s Config) KeyIsExist(key string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.ConfigSearchRequest{
@@ -239,4 +239,39 @@ func (s Config) KeyIsExist(key string, excludeIds *[]uint) bool {
 	}
 	_, total := s.GetCount(filter)
 	return total > 0
+}
+
+// GetByKey 根据参数键名获取参数键值
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetByKey
+// @description: 根据参数键名获取参数键值
+// @param: key string 参数键名
+// @return: err error, value string
+func (s Config) GetByKey(key string) (err error, value string) {
+	var config domain.Config
+	if err = domain.DB.Where("config_key = ?", key).First(&config).Error; err != nil {
+		return err, ""
+	}
+	return nil, config.Value
+}
+
+// CheckKeyUnique 校验参数键名是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckKeyUnique
+// @description: 校验参数键名是否唯一
+// @param: req *domain.ConfigCheckKeyRequest
+// @return: err error, unique bool
+func (s Config) CheckKeyUnique(req *domain.ConfigCheckKeyRequest) (err error, unique bool) {
+	if req.Key == "" {
+		return nil, true
+	}
+	db := domain.DB.Model(&domain.Config{}).Where("config_key = ?", req.Key)
+	if req.ID != nil {
+		db = db.Where("config_id <> ?", *req.ID)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
 }

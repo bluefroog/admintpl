@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type DictData struct{}
@@ -155,4 +155,55 @@ func (u *DictData) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 根据字典类型查询字典数据
+// @Description 根据字典类型查询字典数据列表（前端下拉渲染使用）
+// @Tags 字典数据
+// @Param data query domain.DictDataByTypeRequest true "data"
+// @Success 0 {object} response.Response{data=[]domain.DictData} "{"code": 0, "msg":"success","data": []}"
+// @Router /system/dict-data/get-by-type [get]
+// @Security
+func (u *DictData) GetByType(c *gin.Context) {
+	var param domain.DictDataByTypeRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, list := dictData.GetByType(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(list, c)
+}
+
+// @Summary 校验字典标签是否唯一
+// @Description 校验同一字典类型下字典标签是否唯一
+// @Tags 字典数据
+// @Param data query domain.DictDataCheckLabelRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/dict-data/check-label [get]
+// @Security
+func (u *DictData) CheckLabelUnique(c *gin.Context) {
+	var param domain.DictDataCheckLabelRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	var excludeIds *[]uint
+	if param.ID != nil {
+		ids := []uint{*param.ID}
+		excludeIds = &ids
+	}
+	err, unique := dictData.CheckUniqueLabel(param.Type, param.Label, excludeIds)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
 }

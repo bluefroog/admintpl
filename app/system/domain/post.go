@@ -54,3 +54,10 @@ type PostUpdateRequest struct {
 	request.GetById
 	PostBase
 }
+
+// PostCheckUniqueRequest 岗位名称/编码唯一性校验请求结构体
+type PostCheckUniqueRequest struct {
+	ID   *uint  `json:"id" form:"id"`     // 岗位ID（编辑时传入，排除自身）
+	Name string `json:"name" form:"name"` // 岗位名称
+	Code string `json:"code" form:"code"` // 岗位编码
+}

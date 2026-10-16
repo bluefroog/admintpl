@@ -149,3 +149,61 @@ content-type: application/json
 
 ### check delete
 GET http://127.0.0.1:8080/system/role/detail?id=2
+
+### assign menus
+PUT http://127.0.0.1:8080/system/role/menu
+content-type: application/json
+
+{
+  "id": 2,
+  "menu_ids": [1, 2, 3]
+}
+
+### data scope
+PUT http://127.0.0.1:8080/system/role/data-scope
+content-type: application/json
+
+{
+  "id": 2,
+  "data_scope": 2,
+  "dept_ids": [100, 101]
+}
+
+### allocated list
+GET http://127.0.0.1:8080/system/role/allocated-list?role_id=2&pageSize=10
+
+### unallocated list
+GET http://127.0.0.1:8080/system/role/unallocated-list?role_id=2&pageSize=10
+
+### select users
+POST http://127.0.0.1:8080/system/role/select-users
+content-type: application/json
+
+{
+  "role_id": 2,
+  "user_ids": [1, 2]
+}
+
+### cancel user
+DELETE http://127.0.0.1:8080/system/role/cancel-user
+content-type: application/json
+
+{
+  "role_id": 2,
+  "user_id": 1
+}
+
+### cancel users
+DELETE http://127.0.0.1:8080/system/role/cancel-users
+content-type: application/json
+
+{
+  "role_id": 2,
+  "user_ids": [1, 2]
+}
+
+### check-name
+GET http://127.0.0.1:8080/system/role/check-name?name=普通角色
+
+### check-key
+GET http://127.0.0.1:8080/system/role/check-key?key=common

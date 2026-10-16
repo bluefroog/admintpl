@@ -2,20 +2,20 @@ package service
 
 import (
 	"fmt"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/common/lib"
+	"gorm.io/gorm"
 	"strings"
 )
 
 type LoginLog struct{}
 
 // GetCount 获取访问日志列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取访问日志列表数据数量
-//@param: searchParams *domain.LoginLogSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取访问日志列表数据数量
+// @param: searchParams *domain.LoginLogSearchRequest
+// @return: err error, total int64
 func (s LoginLog) GetCount(searchParams *domain.LoginLogSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.LoginLog{})
@@ -27,11 +27,11 @@ func (s LoginLog) GetCount(searchParams *domain.LoginLogSearchRequest) (err erro
 }
 
 // GetList 获取访问日志列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取访问日志列表数据
-//@param: searchParams *domain.LoginLogSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取访问日志列表数据
+// @param: searchParams *domain.LoginLogSearchRequest
+// @return: err error, list interface{}, total int64
 func (s LoginLog) GetList(searchParams *domain.LoginLogSearchRequest) (err error, list []domain.LoginLog, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.LoginLog{})
@@ -61,12 +61,12 @@ func (s LoginLog) GetList(searchParams *domain.LoginLogSearchRequest) (err error
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 访问日志列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.LoginLogSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 访问日志列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.LoginLogSearchRequest
+// @return: *gorm.DB
 func (s LoginLog) parseFilter(db *gorm.DB, searchParams *domain.LoginLogSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 访问日志编号
@@ -136,11 +136,11 @@ func (s LoginLog) parseFilter(db *gorm.DB, searchParams *domain.LoginLogSearchRe
 }
 
 // Create 添加访问日志数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加访问日志数据
-//@param: data *domain.LoginLogAddRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加访问日志数据
+// @param: data *domain.LoginLogAddRequest
+// @return: error
 func (s LoginLog) Create(data *domain.LoginLogCreateRequest) error {
 	config := new(domain.LoginLog)
 	config.IPAddress = data.IPAddress
@@ -156,11 +156,11 @@ func (s LoginLog) Create(data *domain.LoginLogCreateRequest) error {
 }
 
 // Update 修改访问日志
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改访问日志
-//@param: data *model.LoginLogEditRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改访问日志
+// @param: data *model.LoginLogEditRequest
+// @return: err error
 func (s LoginLog) Update(data *domain.LoginLogUpdateRequest) (err error) {
 	record := make(map[string]interface{})
 	record["Name"] = data.Name
@@ -176,12 +176,12 @@ func (s LoginLog) Update(data *domain.LoginLogUpdateRequest) (err error) {
 }
 
 // UpdateByMap 更新指定ID的访问日志信息
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的访问日志信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的访问日志信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s LoginLog) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.LoginLog{}).Where("info_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -190,11 +190,11 @@ func (s LoginLog) UpdateByMap(id uint, updateMap map[string]interface{}) (err er
 }
 
 // Delete 删除访问日志
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除访问日志
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除访问日志
+// @param: ids []uint
+// @return: err error
 func (s LoginLog) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("info_id in (?) ", ids).Unscoped().Delete(&domain.LoginLog{}).Error; err != nil {
 		return err
@@ -203,11 +203,11 @@ func (s LoginLog) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID访问日志详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID访问日志详情
-//@param: id uint
-//@return: *domain.LoginLog,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID访问日志详情
+// @param: id uint
+// @return: *domain.LoginLog,err error
 func (s LoginLog) Detail(id uint) (*domain.LoginLog, error) {
 	var detail domain.LoginLog
 	db := domain.DB.Where("info_id = ?", id)
@@ -215,4 +215,18 @@ func (s LoginLog) Detail(id uint) (*domain.LoginLog, error) {
 		return nil, err
 	}
 	return &detail, nil
+}
+
+// Clear 清空登录日志
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Clear
+// @description: 清空登录日志，status 为空时清空全部
+// @param: status *uint 登录状态（0成功 1失败）
+// @return: err error
+func (s LoginLog) Clear(status *uint) (err error) {
+	db := domain.DB.Session(&gorm.Session{AllowGlobalUpdate: true})
+	if status != nil {
+		db = db.Where("status = ?", status)
+	}
+	return db.Unscoped().Delete(&domain.LoginLog{}).Error
 }

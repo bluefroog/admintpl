@@ -62,3 +62,6 @@ content-type: application/json
 
 ### check delete
 GET http://127.0.0.1:8080/system/operation-log/detail?id=1
+
+### clear
+DELETE http://127.0.0.1:8080/system/operation-log/clear

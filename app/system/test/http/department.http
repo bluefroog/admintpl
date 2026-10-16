@@ -175,3 +175,15 @@ content-type: application/json
 ###
 
 
+
+### tree
+GET http://127.0.0.1:8080/system/department/tree
+
+### tree with params
+GET http://127.0.0.1:8080/system/department/tree?name=研发&status=0
+
+### role-dept-tree
+GET http://127.0.0.1:8080/system/department/role-dept-tree?role_id=1
+
+### check-name
+GET http://127.0.0.1:8080/system/department/check-name?name=研发部门&parent_id=0

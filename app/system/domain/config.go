@@ -63,3 +63,14 @@ type ConfigUpdateRequest struct {
 	request.GetById
 	ConfigBase
 }
+
+// ConfigKeyRequest 参数键名查询请求结构体
+type ConfigKeyRequest struct {
+	Key string `json:"key" form:"key" validate:"required"` // 参数键名
+}
+
+// ConfigCheckKeyRequest 参数键名唯一性校验请求结构体
+type ConfigCheckKeyRequest struct {
+	ID  *uint  `json:"id" form:"id"`                       // 参数主键（编辑时传入，排除自身）
+	Key string `json:"key" form:"key" validate:"required"` // 参数键名
+}

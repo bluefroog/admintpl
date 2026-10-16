@@ -161,3 +161,9 @@ content-type: application/json
 
 ### check delete
 GET http://127.0.0.1:8080/system/dict-data/detail?id=2
+
+### get-by-type
+GET http://127.0.0.1:8080/system/dict-data/get-by-type?type=sys_user_sex
+
+### check-label
+GET http://127.0.0.1:8080/system/dict-data/check-label?type=sys_user_sex&label=男

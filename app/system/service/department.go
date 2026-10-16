@@ -2,20 +2,20 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/common/model/request"
+	"gorm.io/gorm"
 	"strings"
 )
 
 type Department struct{}
 
 // GetList
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取部门列表数据
-//@param: searchParams *domain.DepartmentSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取部门列表数据
+// @param: searchParams *domain.DepartmentSearchRequest
+// @return: err error, list interface{}, total int64
 func (s Department) GetList(searchParams *domain.DepartmentSearchRequest) (err error, list []domain.Department, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Department{})
@@ -42,12 +42,12 @@ func (s Department) GetList(searchParams *domain.DepartmentSearchRequest) (err e
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 部门列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.DepartmentSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 部门列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.DepartmentSearchRequest
+// @return: *gorm.DB
 func (s Department) parseFilter(db *gorm.DB, searchParams *domain.DepartmentSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ParentID != nil { // 父部门ID
@@ -85,11 +85,11 @@ func (s Department) parseFilter(db *gorm.DB, searchParams *domain.DepartmentSear
 	return db
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加部门数据
-//@param: data *domain.DepartmentAddRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加部门数据
+// @param: data *domain.DepartmentAddRequest
+// @return: error
 func (s Department) Create(data *domain.DepartmentCreateRequest) error {
 	// 判断部门名称是否唯一
 	if s.IsExist(data.Name, nil) {
@@ -108,11 +108,11 @@ func (s Department) Create(data *domain.DepartmentCreateRequest) error {
 	return domain.DB.Create(&department).Error
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改区域
-//@param: data *model.DepartmentEditRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改区域
+// @param: data *model.DepartmentEditRequest
+// @return: err error
 func (s Department) Update(data *domain.DepartmentUpdateRequest) (err error) {
 	// 判断名字是否唯一
 	if s.IsExist(data.Name, &[]uint{data.ID}) {
@@ -130,12 +130,12 @@ func (s Department) Update(data *domain.DepartmentUpdateRequest) (err error) {
 	return s.UpdateByMap(data.ID, record)
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的部门信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的部门信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s Department) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.Department{}).Where("id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -143,11 +143,11 @@ func (s Department) UpdateByMap(id uint, updateMap map[string]interface{}) (err 
 	return err
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除部门
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除部门
+// @param: ids []uint
+// @return: err error
 func (s Department) Delete(ids []uint) (err error) {
 	// 删除区域
 	if err = domain.DB.Where("id in (?) ", ids).Unscoped().Delete(&domain.Department{}).Error; err != nil {
@@ -156,11 +156,11 @@ func (s Department) Delete(ids []uint) (err error) {
 	return nil
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID部门详情
-//@param: id uint
-//@return: *domain.Department,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID部门详情
+// @param: id uint
+// @return: *domain.Department,err error
 func (s Department) Detail(id uint) (*domain.Department, error) {
 	var detail domain.Department
 	db := domain.DB.Where("id = ?", id)
@@ -170,12 +170,12 @@ func (s Department) Detail(id uint) (*domain.Department, error) {
 	return &detail, nil
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: IsExistAreaType
-//@description: 判断区域类型是否存在
-//@param: name string 区域类型名称
-//@param: excludeIds *[]uint 不包含的区域类型ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: IsExistAreaType
+// @description: 判断区域类型是否存在
+// @param: name string 区域类型名称
+// @param: excludeIds *[]uint 不包含的区域类型ID
+// @return: err error
 func (s Department) IsExist(name string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.DepartmentSearchRequest{
@@ -187,4 +187,96 @@ func (s Department) IsExist(name string, excludeIds *[]uint) bool {
 	}
 	_, _, total := s.GetList(filter)
 	return total > 0
+}
+
+// TreeData 获取部门树数据（返回扁平列表，由前端 zTree 组装成树）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: TreeData
+// @description: 获取部门树数据
+// @param: searchParams *domain.DepartmentTreeRequest
+// @return: err error, list []domain.Ztree
+func (s Department) TreeData(searchParams *domain.DepartmentTreeRequest) (err error, list []domain.Ztree) {
+	db := domain.DB.Model(&domain.Department{})
+	if searchParams.ParentID != nil {
+		db = db.Where("parent_id = ?", searchParams.ParentID)
+	}
+	if searchParams.Name != "" {
+		db = db.Where("dept_name LIKE ?", "%"+searchParams.Name+"%")
+	}
+	if searchParams.Status != nil {
+		db = db.Where("status = ?", searchParams.Status)
+	}
+	var departments []domain.Department
+	if err = db.Order("order_num asc").Find(&departments).Error; err != nil {
+		return err, nil
+	}
+	return nil, deptListToZtree(departments, nil)
+}
+
+// RoleDeptTreeData 获取角色部门树数据（带勾选）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: RoleDeptTreeData
+// @description: 根据角色ID查询部门树（数据权限）
+// @param: roleId uint
+// @return: err error, list []domain.Ztree
+func (s Department) RoleDeptTreeData(roleId uint) (err error, list []domain.Ztree) {
+	var departments []domain.Department
+	if err = domain.DB.Order("order_num asc").Find(&departments).Error; err != nil {
+		return err, nil
+	}
+	var checkedIds []uint
+	if roleId > 0 {
+		if err = domain.DB.Model(&domain.RoleDept{}).Where("role_id = ?", roleId).Pluck("dept_id", &checkedIds).Error; err != nil {
+			return err, nil
+		}
+	}
+	return nil, deptListToZtree(departments, checkedIds)
+}
+
+// CheckNameUnique 校验部门名称是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckNameUnique
+// @description: 同一父部门下校验部门名称是否唯一
+// @param: req *domain.DepartmentCheckNameRequest
+// @return: err error, unique bool
+func (s Department) CheckNameUnique(req *domain.DepartmentCheckNameRequest) (err error, unique bool) {
+	db := domain.DB.Model(&domain.Department{}).
+		Where("dept_name = ?", req.Name).
+		Where("parent_id = ?", req.ParentID)
+	if req.ID != nil {
+		db = db.Where("id <> ?", *req.ID)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
+}
+
+// HasChild 判断部门是否存在子部门
+// @author: [bluefrog](https://github.com/freewu)
+// @function: HasChild
+// @description: 判断部门是否存在子部门
+// @param: deptId uint
+// @return: err error, has bool
+func (s Department) HasChild(deptId uint) (err error, has bool) {
+	var count int64
+	if err = domain.DB.Model(&domain.Department{}).Where("parent_id = ?", deptId).Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count > 0
+}
+
+// HasUser 判断部门下是否存在用户
+// @author: [bluefrog](https://github.com/freewu)
+// @function: HasUser
+// @description: 判断部门下是否存在用户
+// @param: deptId uint
+// @return: err error, has bool
+func (s Department) HasUser(deptId uint) (err error, has bool) {
+	var count int64
+	if err = domain.DB.Model(&domain.User{}).Where("department_id = ?", deptId).Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count > 0
 }

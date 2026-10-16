@@ -18,8 +18,8 @@ func init() {
 }
 
 // 注册自定义验证方法
-func RegisterValidation(tag string, fn Func,callValidationEvenIfNull ...bool) error {
-	return validate.RegisterValidation(tag, fn,callValidationEvenIfNull...)
+func RegisterValidation(tag string, fn Func, callValidationEvenIfNull ...bool) error {
+	return validate.RegisterValidation(tag, fn, callValidationEvenIfNull...)
 }
 
 // 结构体验证
@@ -54,7 +54,7 @@ func Uncapitalize(str string) string {
 		return strings.ToLower(str)
 	}
 	var str1 string
-	vv := []rune(str)   // 后文有介绍
+	vv := []rune(str) // 后文有介绍
 	for i := 0; i < len(vv); i++ {
 		if i == 0 {
 			if vv[i] >= 65 && vv[i] <= 90 {

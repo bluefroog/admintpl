@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type Post struct{}
@@ -155,4 +155,46 @@ func (u *Post) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 校验岗位名称是否唯一
+// @Description 校验岗位名称是否唯一
+// @Tags 岗位管理
+// @Param data query domain.PostCheckUniqueRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/post/check-name [get]
+// @Security
+func (u *Post) CheckNameUnique(c *gin.Context) {
+	var param domain.PostCheckUniqueRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, unique := post.CheckUniqueName(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
+}
+
+// @Summary 校验岗位编码是否唯一
+// @Description 校验岗位编码是否唯一
+// @Tags 岗位管理
+// @Param data query domain.PostCheckUniqueRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/post/check-code [get]
+// @Security
+func (u *Post) CheckCodeUnique(c *gin.Context) {
+	var param domain.PostCheckUniqueRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, unique := post.CheckUniqueCode(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
 }

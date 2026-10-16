@@ -1,9 +1,9 @@
 package bootstrap
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/swagger"
 	"github.com/bluefroog/admintpl/app/system"
+	"github.com/gin-gonic/gin"
 )
 
 func Bootstrap(r *gin.Engine) error {

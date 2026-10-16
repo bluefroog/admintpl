@@ -29,7 +29,7 @@ func init() {
 	v.SetConfigType("yaml")
 
 	// 加载配置文件
-	if err := v.ReadInConfig();err != nil {
+	if err := v.ReadInConfig(); err != nil {
 		fmt.Printf("config read err: %s\n", err)
 	}
 }

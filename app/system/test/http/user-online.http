@@ -1,0 +1,24 @@
+### list
+GET http://127.0.0.1:8080/system/user-online/list?pageSize=10
+
+### list search with keyword
+GET http://127.0.0.1:8080/system/user-online/list?pageSize=10&keyword=bluefrog
+
+### detail
+GET http://127.0.0.1:8080/system/user-online/detail?id=1
+
+### force-logout
+DELETE http://127.0.0.1:8080/system/user-online/force-logout
+content-type: application/json
+
+{
+  "token": "token-value"
+}
+
+### delete
+DELETE http://127.0.0.1:8080/system/user-online/delete
+content-type: application/json
+
+{
+  "ids": [1,2]
+}

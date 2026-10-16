@@ -196,3 +196,9 @@ content-type: application/json
 {
   "ids": [2]
 }
+
+### get-by-key
+GET http://127.0.0.1:8080/system/config/get-by-key?key=sys.user.initPassword
+
+### check-key
+GET http://127.0.0.1:8080/system/config/check-key?key=sys.user.initPassword

@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/common/model/request"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -12,11 +12,11 @@ import (
 type Post struct{}
 
 // GetCount 获取职位列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取职位列表数据数量
-//@param: searchParams *domain.PostSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取职位列表数据数量
+// @param: searchParams *domain.PostSearchRequest
+// @return: err error, total int64
 func (s Post) GetCount(searchParams *domain.PostSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Post{})
@@ -28,11 +28,11 @@ func (s Post) GetCount(searchParams *domain.PostSearchRequest) (err error, total
 }
 
 // GetList 获取职位列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取职位列表数据
-//@param: searchParams *domain.PostSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取职位列表数据
+// @param: searchParams *domain.PostSearchRequest
+// @return: err error, list interface{}, total int64
 func (s Post) GetList(searchParams *domain.PostSearchRequest) (err error, list []domain.Post, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Post{})
@@ -59,12 +59,12 @@ func (s Post) GetList(searchParams *domain.PostSearchRequest) (err error, list [
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 职位列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.PostSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 职位列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.PostSearchRequest
+// @return: *gorm.DB
 func (s Post) parseFilter(db *gorm.DB, searchParams *domain.PostSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 职位编号
@@ -101,11 +101,11 @@ func (s Post) parseFilter(db *gorm.DB, searchParams *domain.PostSearchRequest) *
 }
 
 // Create 添加职位数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加职位数据
-//@param: data *domain.PostAddRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加职位数据
+// @param: data *domain.PostAddRequest
+// @return: error
 func (s Post) Create(data *domain.PostCreateRequest) error {
 	// 判断职位名称是否唯一
 	if s.NameIsExist(data.Name, nil) {
@@ -130,11 +130,11 @@ func (s Post) Create(data *domain.PostCreateRequest) error {
 }
 
 // Update 修改职位
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改职位
-//@param: data *model.PostEditRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改职位
+// @param: data *model.PostEditRequest
+// @return: err error
 func (s Post) Update(data *domain.PostUpdateRequest) (err error) {
 	// 判断名字是否唯一
 	if s.NameIsExist(data.Name, &[]uint{data.ID}) {
@@ -156,12 +156,12 @@ func (s Post) Update(data *domain.PostUpdateRequest) (err error) {
 }
 
 // UpdateByMap 更新指定ID的职位信息
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的职位信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的职位信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s Post) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.Post{}).Where("post_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -170,11 +170,11 @@ func (s Post) UpdateByMap(id uint, updateMap map[string]interface{}) (err error)
 }
 
 // Delete 删除职位
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除职位
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除职位
+// @param: ids []uint
+// @return: err error
 func (s Post) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("post_id in (?) ", ids).Unscoped().Delete(&domain.Post{}).Error; err != nil {
 		return err
@@ -183,11 +183,11 @@ func (s Post) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID职位详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID职位详情
-//@param: id uint
-//@return: *domain.Post,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID职位详情
+// @param: id uint
+// @return: *domain.Post,err error
 func (s Post) Detail(id uint) (*domain.Post, error) {
 	var detail domain.Post
 	db := domain.DB.Where("post_id = ?", id)
@@ -198,12 +198,12 @@ func (s Post) Detail(id uint) (*domain.Post, error) {
 }
 
 // NameIsExist 判断职位名称是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: NameIsExist
-//@description: 判断职位名称是否存在
-//@param: name string 职位名称
-//@param: excludeIds *[]uint 不包含的职位ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: NameIsExist
+// @description: 判断职位名称是否存在
+// @param: name string 职位名称
+// @param: excludeIds *[]uint 不包含的职位ID
+// @return: err error
 func (s Post) NameIsExist(name string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.PostSearchRequest{
@@ -218,12 +218,12 @@ func (s Post) NameIsExist(name string, excludeIds *[]uint) bool {
 }
 
 // CodeIsExist 判断职位编号是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: CodeIsExist
-//@description: 判断职位编号是否存在
-//@param: code string 职位编号
-//@param: excludeIds *[]uint 不包含的区域类型ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CodeIsExist
+// @description: 判断职位编号是否存在
+// @param: code string 职位编号
+// @param: excludeIds *[]uint 不包含的区域类型ID
+// @return: err error
 func (s Post) CodeIsExist(code string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.PostSearchRequest{
@@ -235,4 +235,46 @@ func (s Post) CodeIsExist(code string, excludeIds *[]uint) bool {
 	}
 	_, total := s.GetCount(filter)
 	return total > 0
+}
+
+// CheckUniqueName 校验岗位名称是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckUniqueName
+// @description: 校验岗位名称是否唯一
+// @param: req *domain.PostCheckUniqueRequest
+// @return: err error, unique bool
+func (s Post) CheckUniqueName(req *domain.PostCheckUniqueRequest) (err error, unique bool) {
+	if req.Name == "" {
+		return nil, true
+	}
+	db := domain.DB.Model(&domain.Post{}).Where("post_name = ?", req.Name)
+	if req.ID != nil {
+		db = db.Where("post_id <> ?", *req.ID)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
+}
+
+// CheckUniqueCode 校验岗位编码是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckUniqueCode
+// @description: 校验岗位编码是否唯一
+// @param: req *domain.PostCheckUniqueRequest
+// @return: err error, unique bool
+func (s Post) CheckUniqueCode(req *domain.PostCheckUniqueRequest) (err error, unique bool) {
+	if req.Code == "" {
+		return nil, true
+	}
+	db := domain.DB.Model(&domain.Post{}).Where("post_code = ?", req.Code)
+	if req.ID != nil {
+		db = db.Where("post_id <> ?", *req.ID)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
 }

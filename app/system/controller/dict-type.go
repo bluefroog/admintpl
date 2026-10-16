@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type DictType struct{}
@@ -155,4 +155,65 @@ func (u *DictType) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 获取全部字典类型
+// @Description 获取全部字典类型（下拉选择使用）
+// @Tags 字典类型
+// @Success 0 {object} response.Response{data=[]domain.DictType} "{"code": 0, "msg":"success","data": []}"
+// @Router /system/dict-type/list-all [get]
+// @Security
+func (u *DictType) ListAll(c *gin.Context) {
+	err, list := dictType.GetListAll()
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(list, c)
+}
+
+// @Summary 根据字典类型查询字典类型详情
+// @Description 根据字典类型查询字典类型详情
+// @Tags 字典类型
+// @Param data query domain.DictDataByTypeRequest true "data"
+// @Success 0 {object} response.Response{data=domain.DictType} "{"code": 0, "msg":"success","data": {}}"
+// @Router /system/dict-type/get-by-type [get]
+// @Security
+func (u *DictType) GetByType(c *gin.Context) {
+	var param domain.DictDataByTypeRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, detail := dictType.GetByType(param.Type)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(detail, c)
+}
+
+// @Summary 校验字典类型是否唯一
+// @Description 校验字典类型是否唯一
+// @Tags 字典类型
+// @Param data query domain.DictTypeCheckRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/dict-type/check-type [get]
+// @Security
+func (u *DictType) CheckTypeUnique(c *gin.Context) {
+	var param domain.DictTypeCheckRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, unique := dictType.CheckUniqueType(&param)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
 }

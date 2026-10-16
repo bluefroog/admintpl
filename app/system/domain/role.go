@@ -63,3 +63,66 @@ type RoleUpdateRequest struct {
 	request.GetById
 	RoleBase
 }
+
+// RoleCheckNameRequest 角色名称唯一性校验请求结构体
+type RoleCheckNameRequest struct {
+	ID   *uint  `json:"id" form:"id"`                         // 角色ID（编辑时传入，排除自身）
+	Name string `json:"name" form:"name" validate:"required"` // 角色名称
+}
+
+// RoleCheckKeyRequest 角色权限字符串唯一性校验请求结构体
+type RoleCheckKeyRequest struct {
+	ID  *uint  `json:"id" form:"id"`                       // 角色ID（编辑时传入，排除自身）
+	Key string `json:"key" form:"key" validate:"required"` // 角色权限字符串
+}
+
+// RoleDeptTreeRequest 角色部门树请求结构体
+type RoleDeptTreeRequest struct {
+	RoleID uint `json:"role_id" form:"role_id"` // 角色ID，为空时返回全部未勾选的部门树
+}
+
+// RoleMenuTreeRequest 角色菜单树请求结构体
+type RoleMenuTreeRequest struct {
+	RoleID uint `json:"role_id" form:"role_id"` // 角色ID
+}
+
+// RoleDataScopeRequest 角色数据权限修改请求结构体
+type RoleDataScopeRequest struct {
+	ID        uint   `json:"id" form:"id" validate:"required"` // 角色ID
+	DataScope uint   `json:"data_scope" form:"data_scope"`     // 数据范围
+	DeptIDs   []uint `json:"dept_ids" form:"dept_ids"`         // 数据权限关联的部门ID列表
+}
+
+// RoleMenuAssignRequest 角色菜单授权请求结构体
+type RoleMenuAssignRequest struct {
+	ID      uint   `json:"id" form:"id" validate:"required"` // 角色ID
+	MenuIDs []uint `json:"menu_ids" form:"menu_ids"`         // 菜单ID列表
+}
+
+// RoleUserListRequest 角色用户查询请求结构体
+type RoleUserListRequest struct {
+	request.PageInfo
+	request.SortInfo
+
+	RoleID   uint   `json:"role_id" form:"role_id" validate:"required"` // 角色ID
+	Username string `json:"username" form:"username"`                   // 用户名
+	Mobile   string `json:"mobile" form:"mobile"`                       // 手机号
+}
+
+// RoleUserAssignRequest 角色批量选择用户授权请求结构体
+type RoleUserAssignRequest struct {
+	RoleID  uint   `json:"role_id" form:"role_id" validate:"required"` // 角色ID
+	UserIDs []uint `json:"user_ids" form:"user_ids"`                   // 用户ID列表
+}
+
+// RoleUserCancelRequest 角色取消用户授权请求结构体
+type RoleUserCancelRequest struct {
+	RoleID uint `json:"role_id" form:"role_id" validate:"required"` // 角色ID
+	UserID uint `json:"user_id" form:"user_id" validate:"required"` // 用户ID
+}
+
+// RoleUserCancelAllRequest 角色批量取消用户授权请求结构体
+type RoleUserCancelAllRequest struct {
+	RoleID  uint   `json:"role_id" form:"role_id" validate:"required"` // 角色ID
+	UserIDs []uint `json:"user_ids" form:"user_ids"`                   // 用户ID列表
+}

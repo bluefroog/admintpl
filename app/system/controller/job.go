@@ -1,13 +1,13 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
 	"github.com/bluefroog/admintpl/common/validate"
+	"github.com/gin-gonic/gin"
 )
 
 type Job struct{}
@@ -155,4 +155,54 @@ func (u *Job) Detail(c *gin.Context) {
 		return
 	}
 	response.OK(record, c)
+}
+
+// @Summary 修改任务状态
+// @Description 修改定时任务状态（0正常 1暂停）
+// @Tags 定时任务
+// @Param data body domain.JobChangeStatusRequest true "data"
+// @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
+// @Router /system/job/change-status [put]
+// @Security
+func (u *Job) ChangeStatus(c *gin.Context) {
+	var param domain.JobChangeStatusRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := job.ChangeStatus(&param); err != nil {
+		response.Fail(-1, "修改失败: "+err.Error(), c)
+		return
+	}
+	response.Success("修改成功", c)
+}
+
+// @Summary 校验任务名称是否唯一
+// @Description 校验任务名称是否唯一
+// @Tags 定时任务
+// @Param data query domain.JobCheckNameRequest true "data"
+// @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
+// @Router /system/job/check-name [get]
+// @Security
+func (u *Job) CheckNameUnique(c *gin.Context) {
+	var param domain.JobCheckNameRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	var excludeIds *[]uint
+	if param.ID != nil {
+		ids := []uint{*param.ID}
+		excludeIds = &ids
+	}
+	err, unique := job.CheckNameUnique(param.Name, excludeIds)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(unique, c)
 }

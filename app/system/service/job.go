@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"gorm.io/gorm"
 	"strings"
 	"time"
 )
@@ -11,11 +11,11 @@ import (
 type Job struct{}
 
 // GetCount 获取定时任务列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取定时任务列表数据数量
-//@param: searchParams *domain.JobSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取定时任务列表数据数量
+// @param: searchParams *domain.JobSearchRequest
+// @return: err error, total int64
 func (s Job) GetCount(searchParams *domain.JobSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Job{})
@@ -27,11 +27,11 @@ func (s Job) GetCount(searchParams *domain.JobSearchRequest) (err error, total i
 }
 
 // GetList 获取定时任务列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取定时任务列表数据
-//@param: searchParams *domain.JobSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取定时任务列表数据
+// @param: searchParams *domain.JobSearchRequest
+// @return: err error, list interface{}, total int64
 func (s Job) GetList(searchParams *domain.JobSearchRequest) (err error, list []domain.Job, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Job{})
@@ -57,12 +57,12 @@ func (s Job) GetList(searchParams *domain.JobSearchRequest) (err error, list []d
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 定时任务列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.JobSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 定时任务列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.JobSearchRequest
+// @return: *gorm.DB
 func (s Job) parseFilter(db *gorm.DB, searchParams *domain.JobSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.ID != nil { // 任务ID
@@ -104,11 +104,11 @@ func (s Job) parseFilter(db *gorm.DB, searchParams *domain.JobSearchRequest) *go
 }
 
 // Create 添加定时任务
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加定时任务
-//@param: data *domain.JobCreateRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加定时任务
+// @param: data *domain.JobCreateRequest
+// @return: error
 func (s Job) Create(data *domain.JobCreateRequest) error {
 	// 判断任务名称是否唯一
 	if s.NameIsExist(data.Name, nil) {
@@ -135,11 +135,11 @@ func (s Job) Create(data *domain.JobCreateRequest) error {
 }
 
 // Update 修改定时任务
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Update
-//@description: 修改定时任务
-//@param: data *domain.JobUpdateRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Update
+// @description: 修改定时任务
+// @param: data *domain.JobUpdateRequest
+// @return: err error
 func (s Job) Update(data *domain.JobUpdateRequest) (err error) {
 	// 判断任务名称是否唯一
 	if s.NameIsExist(data.Name, &[]uint{data.ID}) {
@@ -163,12 +163,12 @@ func (s Job) Update(data *domain.JobUpdateRequest) (err error) {
 }
 
 // UpdateByMap 更新指定ID的定时任务信息
-//@author: [bluefrog](https://github.com/freewu)
-//@function: UpdateByMap
-//@description: 更新指定ID的定时任务信息
-//@param: id uint
-//@param: updateMap map[string]interface{}
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: UpdateByMap
+// @description: 更新指定ID的定时任务信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
 func (s Job) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
 	if err := domain.DB.Model(&domain.Job{}).Where("job_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
@@ -177,11 +177,11 @@ func (s Job) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) 
 }
 
 // Delete 删除定时任务
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除定时任务
-//@param: ids []uint
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除定时任务
+// @param: ids []uint
+// @return: err error
 func (s Job) Delete(ids []uint) (err error) {
 	if err = domain.DB.Where("job_id in (?) ", ids).Unscoped().Delete(&domain.Job{}).Error; err != nil {
 		return err
@@ -190,11 +190,11 @@ func (s Job) Delete(ids []uint) (err error) {
 }
 
 // Detail 获取指定ID定时任务详情
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Detail
-//@description: 获取指定ID定时任务详情
-//@param: id uint
-//@return: *domain.Job,err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Detail
+// @description: 获取指定ID定时任务详情
+// @param: id uint
+// @return: *domain.Job,err error
 func (s Job) Detail(id uint) (*domain.Job, error) {
 	var detail domain.Job
 	db := domain.DB.Where("job_id = ?", id)
@@ -205,12 +205,12 @@ func (s Job) Detail(id uint) (*domain.Job, error) {
 }
 
 // NameIsExist 判断任务名称是否存在
-//@author: [bluefrog](https://github.com/freewu)
-//@function: NameIsExist
-//@description: 判断任务名称是否存在
-//@param: name string 任务名称
-//@param: excludeIds *[]uint 不包含的任务ID
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: NameIsExist
+// @description: 判断任务名称是否存在
+// @param: name string 任务名称
+// @param: excludeIds *[]uint 不包含的任务ID
+// @return: err error
 func (s Job) NameIsExist(name string, excludeIds *[]uint) bool {
 	// 判断名字是否唯一
 	var filter = &domain.JobSearchRequest{
@@ -221,4 +221,39 @@ func (s Job) NameIsExist(name string, excludeIds *[]uint) bool {
 	}
 	_, total := s.GetCount(filter)
 	return total > 0
+}
+
+// ChangeStatus 修改任务状态
+// @author: [bluefrog](https://github.com/freewu)
+// @function: ChangeStatus
+// @description: 修改定时任务状态（0正常 1暂停）
+// @param: req *domain.JobChangeStatusRequest
+// @return: err error
+func (s Job) ChangeStatus(req *domain.JobChangeStatusRequest) (err error) {
+	record := make(map[string]interface{})
+	record["Status"] = req.Status
+	record["UpdateTime"] = time.Now()
+	return s.UpdateByMap(req.ID, record)
+}
+
+// CheckNameUnique 校验任务名称是否唯一
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CheckNameUnique
+// @description: 校验任务名称是否唯一
+// @param: name string 任务名称
+// @param: excludeIds *[]uint 排除的任务ID
+// @return: err error, unique bool
+func (s Job) CheckNameUnique(name string, excludeIds *[]uint) (err error, unique bool) {
+	if name == "" {
+		return nil, true
+	}
+	db := domain.DB.Model(&domain.Job{}).Where("job_name = ?", name)
+	if excludeIds != nil && len(*excludeIds) > 0 {
+		db = db.Where("job_id NOT IN (?)", *excludeIds)
+	}
+	var count int64
+	if err = db.Count(&count).Error; err != nil {
+		return err, false
+	}
+	return nil, count == 0
 }

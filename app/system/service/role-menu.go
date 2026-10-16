@@ -1,18 +1,18 @@
 package service
 
 import (
-	"gorm.io/gorm"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"gorm.io/gorm"
 )
 
 type RoleMenu struct{}
 
 // GetCount 获取角色菜单关联列表数据数量
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetCount
-//@description: 获取角色菜单关联列表数据数量
-//@param: searchParams *domain.RoleMenuSearchRequest
-//@return: err error, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetCount
+// @description: 获取角色菜单关联列表数据数量
+// @param: searchParams *domain.RoleMenuSearchRequest
+// @return: err error, total int64
 func (s RoleMenu) GetCount(searchParams *domain.RoleMenuSearchRequest) (err error, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.RoleMenu{})
@@ -24,11 +24,11 @@ func (s RoleMenu) GetCount(searchParams *domain.RoleMenuSearchRequest) (err erro
 }
 
 // GetList 获取角色菜单关联列表数据
-//@author: [bluefrog](https://github.com/freewu)
-//@function: GetList
-//@description: 获取角色菜单关联列表数据
-//@param: searchParams *domain.RoleMenuSearchRequest
-//@return: err error, list interface{}, total int64
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetList
+// @description: 获取角色菜单关联列表数据
+// @param: searchParams *domain.RoleMenuSearchRequest
+// @return: err error, list interface{}, total int64
 func (s RoleMenu) GetList(searchParams *domain.RoleMenuSearchRequest) (err error, list []domain.RoleMenu, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.RoleMenu{})
@@ -54,12 +54,12 @@ func (s RoleMenu) GetList(searchParams *domain.RoleMenuSearchRequest) (err error
 	return err, list, total
 }
 
-//@author: [bluefrog](https://github.com/freewu)
-//@function: parseFilter
-//@description: 角色菜单关联列表搜索条件过滤
-//@param: db *gorm.DB
-//@param: searchParams *domain.RoleMenuSearchRequest
-//@return: *gorm.DB
+// @author: [bluefrog](https://github.com/freewu)
+// @function: parseFilter
+// @description: 角色菜单关联列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.RoleMenuSearchRequest
+// @return: *gorm.DB
 func (s RoleMenu) parseFilter(db *gorm.DB, searchParams *domain.RoleMenuSearchRequest) *gorm.DB {
 	// 条件过滤
 	if searchParams.RoleID != nil { // 角色ID
@@ -78,11 +78,11 @@ func (s RoleMenu) parseFilter(db *gorm.DB, searchParams *domain.RoleMenuSearchRe
 }
 
 // Create 添加角色菜单关联
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Create
-//@description: 添加角色菜单关联
-//@param: data *domain.RoleMenuCreateRequest
-//@return: error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Create
+// @description: 添加角色菜单关联
+// @param: data *domain.RoleMenuCreateRequest
+// @return: error
 func (s RoleMenu) Create(data *domain.RoleMenuCreateRequest) error {
 	roleMenu := new(domain.RoleMenu)
 	roleMenu.RoleID = data.RoleID
@@ -92,11 +92,11 @@ func (s RoleMenu) Create(data *domain.RoleMenuCreateRequest) error {
 }
 
 // Delete 删除角色菜单关联
-//@author: [bluefrog](https://github.com/freewu)
-//@function: Delete
-//@description: 删除角色菜单关联
-//@param: data *domain.RoleMenuDeleteRequest
-//@return: err error
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Delete
+// @description: 删除角色菜单关联
+// @param: data *domain.RoleMenuDeleteRequest
+// @return: err error
 func (s RoleMenu) Delete(data *domain.RoleMenuDeleteRequest) (err error) {
 	db := domain.DB.Model(&domain.RoleMenu{})
 	// 条件过滤
