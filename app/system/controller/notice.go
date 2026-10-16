@@ -55,7 +55,7 @@ func (u *Notice) List(c *gin.Context) {
 // @Tags 公告管理
 // @Param data body domain.NoticeCreateRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/notice/create [notice]
+// @Router /system/notice/create [post]
 // @Security
 func (u *Notice) Create(c *gin.Context) {
 	var data *domain.NoticeCreateRequest

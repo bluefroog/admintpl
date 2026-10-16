@@ -1,36 +1,157 @@
 basePath: /
 definitions:
+  domain.Config:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      key:
+        description: 参数键名
+        type: string
+      name:
+        description: 参数名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      type:
+        description: 是否系统内置（Y是 | N否）
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      value:
+        description: 参数键名
+        type: string
+    required:
+    - key
+    - name
+    type: object
+  domain.ConfigCreateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      key:
+        description: 参数键名
+        type: string
+      name:
+        description: 参数名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      type:
+        description: 是否系统内置（Y是 | N否）
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      value:
+        description: 参数键名
+        type: string
+    required:
+    - key
+    - name
+    type: object
+  domain.ConfigUpdateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      key:
+        description: 参数键名
+        type: string
+      name:
+        description: 参数名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      type:
+        description: 是否系统内置（Y是 | N否）
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      value:
+        description: 参数键名
+        type: string
+    required:
+    - id
+    - key
+    - name
+    type: object
   domain.Department:
     properties:
       ancestors:
         description: 祖级列表
         type: string
-      createBy:
+      create_by:
         description: 创建者
         type: string
-      createdAt:
+      create_time:
+        description: 创建时间
+        type: string
+      email:
+        description: 邮箱
         type: string
       id:
+        description: core.Model
         type: integer
+      leader:
+        description: 负责人
+        type: string
       name:
         description: 部门名称
         type: string
-      order:
-        description: 显示顺序
-        type: integer
-      parentID:
+      parent_id:
         description: 父部门ID
         type: integer
-      status:
-        description: "Leader\t\tuint\t`json:\"leader\" form:\"leader\" gorm:\"type:int(10);default:0;comment:负责人\"`
-          // 负责人 对应用户表中用户"
+      phone:
+        description: 联系电话
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
         type: integer
-      updateBy:
+      status:
+        description: 部门状态（0正常 1停用）
+        type: integer
+      update_by:
         description: 更新者
         type: string
-      updatedAt:
+      update_time:
+        description: 更新时间
         type: string
     required:
+    - ancestors
     - name
     type: object
   domain.DepartmentCreateRequest:
@@ -38,20 +159,44 @@ definitions:
       ancestors:
         description: 祖级列表
         type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      leader:
+        description: 负责人
+        type: string
       name:
         description: 部门名称
         type: string
-      order:
-        description: 显示顺序
-        type: integer
-      parentID:
+      parent_id:
         description: 父部门ID
         type: integer
-      status:
-        description: "Leader\t\tuint\t`json:\"leader\" form:\"leader\" gorm:\"type:int(10);default:0;comment:负责人\"`
-          // 负责人 对应用户表中用户"
+      phone:
+        description: 联系电话
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
         type: integer
+      status:
+        description: 部门状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
     required:
+    - ancestors
     - name
     type: object
   domain.DepartmentUpdateRequest:
@@ -59,25 +204,1262 @@ definitions:
       ancestors:
         description: 祖级列表
         type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      leader:
+        description: 负责人
+        type: string
+      name:
+        description: 部门名称
+        type: string
+      parent_id:
+        description: 父部门ID
+        type: integer
+      phone:
+        description: 联系电话
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 部门状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - ancestors
+    - id
+    - name
+    type: object
+  domain.DictData:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      css_class:
+        description: 样式属性（其他样式扩展）
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      is_default:
+        description: 是否默认（Y是 N否）
+        type: string
+      label:
+        description: 字典标签
+        type: string
+      list_class:
+        description: 表格回显样式
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 字典排序
+        type: integer
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      type:
+        description: 字典类型
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      value:
+        description: 字典键值
+        type: string
+    required:
+    - label
+    - type
+    - value
+    type: object
+  domain.DictDataCreateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      css_class:
+        description: 样式属性（其他样式扩展）
+        type: string
+      is_default:
+        description: 是否默认（Y是 N否）
+        type: string
+      label:
+        description: 字典标签
+        type: string
+      list_class:
+        description: 表格回显样式
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 字典排序
+        type: integer
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      type:
+        description: 字典类型
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      value:
+        description: 字典键值
+        type: string
+    required:
+    - label
+    - type
+    - value
+    type: object
+  domain.DictDataUpdateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      css_class:
+        description: 样式属性（其他样式扩展）
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      is_default:
+        description: 是否默认（Y是 N否）
+        type: string
+      label:
+        description: 字典标签
+        type: string
+      list_class:
+        description: 表格回显样式
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 字典排序
+        type: integer
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      type:
+        description: 字典类型
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      value:
+        description: 字典键值
+        type: string
+    required:
+    - id
+    - label
+    - type
+    - value
+    type: object
+  domain.DictType:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      name:
+        description: 字典名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      type:
+        description: 字典类型
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  domain.DictTypeCreateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      name:
+        description: 字典名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      type:
+        description: 字典类型
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  domain.DictTypeUpdateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
       id:
         description: 主键ID
         type: integer
       name:
-        description: 部门名称
+        description: 字典名称
         type: string
-      order:
-        description: 显示顺序
-        type: integer
-      parentID:
-        description: 父部门ID
-        type: integer
+      remark:
+        description: 备注
+        type: string
       status:
-        description: "Leader\t\tuint\t`json:\"leader\" form:\"leader\" gorm:\"type:int(10);default:0;comment:负责人\"`
-          // 负责人 对应用户表中用户"
+        description: 状态（0正常 1停用）
         type: integer
+      type:
+        description: 字典类型
+        type: string
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
     required:
     - id
     - name
+    - type
+    type: object
+  domain.Job:
+    properties:
+      concurrent:
+        description: 是否并发执行（0允许 1禁止）
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      cron_expression:
+        description: cron执行表达式
+        type: string
+      executor:
+        description: 任务执行器
+        type: string
+      group:
+        description: 任务组名
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      invoke_target:
+        description: 调用目标字符串
+        type: string
+      job_args:
+        description: 位置参数
+        type: string
+      job_kwargs:
+        description: 关键字参数
+        type: string
+      misfire_policy:
+        description: 计划执行错误策略（1立即执行 2执行一次 3放弃执行）
+        type: string
+      name:
+        description: 任务名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 状态（0正常 1暂停）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - invoke_target
+    - name
+    type: object
+  domain.JobChangeStatusRequest:
+    properties:
+      id:
+        description: 任务ID
+        type: integer
+      status:
+        description: 状态（0正常 1暂停）
+        type: integer
+    required:
+    - id
+    type: object
+  domain.JobCreateRequest:
+    properties:
+      concurrent:
+        description: 是否并发执行（0允许 1禁止）
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      cron_expression:
+        description: cron执行表达式
+        type: string
+      executor:
+        description: 任务执行器
+        type: string
+      group:
+        description: 任务组名
+        type: string
+      invoke_target:
+        description: 调用目标字符串
+        type: string
+      job_args:
+        description: 位置参数
+        type: string
+      job_kwargs:
+        description: 关键字参数
+        type: string
+      misfire_policy:
+        description: 计划执行错误策略（1立即执行 2执行一次 3放弃执行）
+        type: string
+      name:
+        description: 任务名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 状态（0正常 1暂停）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - invoke_target
+    - name
+    type: object
+  domain.JobLog:
+    properties:
+      create_time:
+        description: 创建时间
+        type: string
+      exception_info:
+        description: 异常信息
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      invoke_target:
+        description: 调用目标字符串
+        type: string
+      job_args:
+        description: 位置参数
+        type: string
+      job_executor:
+        description: 任务执行器
+        type: string
+      job_group:
+        description: 任务组名
+        type: string
+      job_kwargs:
+        description: 关键字参数
+        type: string
+      job_message:
+        description: 日志信息
+        type: string
+      job_name:
+        description: 任务名称
+        type: string
+      job_trigger:
+        description: 任务触发器
+        type: string
+      status:
+        description: 执行状态（0正常 1失败）
+        type: integer
+    type: object
+  domain.JobUpdateRequest:
+    properties:
+      concurrent:
+        description: 是否并发执行（0允许 1禁止）
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      cron_expression:
+        description: cron执行表达式
+        type: string
+      executor:
+        description: 任务执行器
+        type: string
+      group:
+        description: 任务组名
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      invoke_target:
+        description: 调用目标字符串
+        type: string
+      job_args:
+        description: 位置参数
+        type: string
+      job_kwargs:
+        description: 关键字参数
+        type: string
+      misfire_policy:
+        description: 计划执行错误策略（1立即执行 2执行一次 3放弃执行）
+        type: string
+      name:
+        description: 任务名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 状态（0正常 1暂停）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - id
+    - invoke_target
+    - name
+    type: object
+  domain.LoginLog:
+    properties:
+      browser:
+        description: 浏览器类型
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      ipaddr:
+        description: 登录IP地址
+        type: string
+      login_location:
+        description: 登录地点
+        type: string
+      login_name:
+        description: 登录账号
+        type: string
+      login_time:
+        description: 访问时间
+        type: string
+      module:
+        description: 登录模块
+        type: string
+      msg:
+        description: 提示消息
+        type: string
+      os:
+        description: 操作系统
+        type: string
+      status:
+        description: 登录状态（0成功 1失败）
+        type: integer
+    type: object
+  domain.Menu:
+    properties:
+      component:
+        description: 组件路径
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      icon:
+        description: 菜单图标
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      is_cache:
+        description: 是否缓存（0缓存 1不缓存）
+        type: integer
+      is_frame:
+        description: 是否为外链（0是 1否）
+        type: integer
+      menu_type:
+        description: 菜单类型（M目录 C菜单 F按钮）
+        type: string
+      name:
+        description: 菜单名称
+        type: string
+      parent_id:
+        description: 父菜单ID
+        type: integer
+      path:
+        description: 路由地址
+        type: string
+      perms:
+        description: 权限标识
+        type: string
+      query:
+        description: 路由参数
+        type: string
+      remark:
+        description: 备注
+        type: string
+      route_name:
+        description: 路由名称
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 菜单状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      visible:
+        description: 菜单状态（0显示 1隐藏）
+        type: string
+    required:
+    - name
+    type: object
+  domain.MenuCreateRequest:
+    properties:
+      component:
+        description: 组件路径
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      icon:
+        description: 菜单图标
+        type: string
+      is_cache:
+        description: 是否缓存（0缓存 1不缓存）
+        type: integer
+      is_frame:
+        description: 是否为外链（0是 1否）
+        type: integer
+      menu_type:
+        description: 菜单类型（M目录 C菜单 F按钮）
+        type: string
+      name:
+        description: 菜单名称
+        type: string
+      parent_id:
+        description: 父菜单ID
+        type: integer
+      path:
+        description: 路由地址
+        type: string
+      perms:
+        description: 权限标识
+        type: string
+      query:
+        description: 路由参数
+        type: string
+      remark:
+        description: 备注
+        type: string
+      route_name:
+        description: 路由名称
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 菜单状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      visible:
+        description: 菜单状态（0显示 1隐藏）
+        type: string
+    required:
+    - name
+    type: object
+  domain.MenuUpdateRequest:
+    properties:
+      component:
+        description: 组件路径
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      icon:
+        description: 菜单图标
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      is_cache:
+        description: 是否缓存（0缓存 1不缓存）
+        type: integer
+      is_frame:
+        description: 是否为外链（0是 1否）
+        type: integer
+      menu_type:
+        description: 菜单类型（M目录 C菜单 F按钮）
+        type: string
+      name:
+        description: 菜单名称
+        type: string
+      parent_id:
+        description: 父菜单ID
+        type: integer
+      path:
+        description: 路由地址
+        type: string
+      perms:
+        description: 权限标识
+        type: string
+      query:
+        description: 路由参数
+        type: string
+      remark:
+        description: 备注
+        type: string
+      route_name:
+        description: 路由名称
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 菜单状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+      visible:
+        description: 菜单状态（0显示 1隐藏）
+        type: string
+    required:
+    - id
+    - name
+    type: object
+  domain.Notice:
+    properties:
+      content:
+        description: 公告内容
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 公告状态（0正常 1关闭）
+        type: integer
+      title:
+        description: 公告标题
+        type: string
+      type:
+        description: 公告类型（1通知 2公告）                         // 显示顺序
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  domain.NoticeCreateRequest:
+    properties:
+      content:
+        description: 公告内容
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 公告状态（0正常 1关闭）
+        type: integer
+      title:
+        description: 公告标题
+        type: string
+      type:
+        description: 公告类型（1通知 2公告）                         // 显示顺序
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  domain.NoticeUpdateRequest:
+    properties:
+      content:
+        description: 公告内容
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      remark:
+        description: 备注
+        type: string
+      status:
+        description: 公告状态（0正常 1关闭）
+        type: integer
+      title:
+        description: 公告标题
+        type: string
+      type:
+        description: 公告类型（1通知 2公告）                         // 显示顺序
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - content
+    - id
+    - title
+    type: object
+  domain.OperationLog:
+    properties:
+      business_type:
+        description: 业务类型（0其它 1新增 2修改 3删除）
+        type: integer
+      cost_time:
+        description: 消耗时间
+        type: integer
+      dept_name:
+        description: 部门名称
+        type: string
+      error_msg:
+        description: 错误消息
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      json_result:
+        description: 返回参数
+        type: string
+      method:
+        description: 方法名称
+        type: string
+      oper_ip:
+        description: 主机地址
+        type: string
+      oper_location:
+        description: 操作地点
+        type: string
+      oper_name:
+        description: 操作人员
+        type: string
+      oper_param:
+        description: 请求参数
+        type: string
+      oper_time:
+        description: 操作时间
+        type: string
+      oper_url:
+        description: 请求URL
+        type: string
+      operator_type:
+        description: 操作类别（0其它 1后台用户 2手机端用户）
+        type: integer
+      request_method:
+        description: 请求方式
+        type: string
+      status:
+        description: 操作状态（0正常 1异常）
+        type: integer
+      title:
+        description: 模块标题
+        type: string
+    type: object
+  domain.Post:
+    properties:
+      code:
+        description: 岗位编码
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      id:
+        description: core.Model
+        type: integer
+      name:
+        description: 岗位名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  domain.PostCreateRequest:
+    properties:
+      code:
+        description: 岗位编码
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      name:
+        description: 岗位名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  domain.PostUpdateRequest:
+    properties:
+      code:
+        description: 岗位编码
+        type: string
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      name:
+        description: 岗位名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - code
+    - id
+    - name
+    type: object
+  domain.Role:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      data_scope:
+        description: 数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+        type: integer
+      del_flag:
+        description: 删除标志（0代表存在 2代表删除）
+        type: integer
+      dept_check_strictly:
+        description: 部门树选择项是否关联显示（0否 1是）
+        type: integer
+      id:
+        description: core.Model
+        type: integer
+      key:
+        description: 角色权限字符串
+        type: string
+      menu_check_strictly:
+        description: 菜单树选择项是否关联显示（0否 1是）
+        type: integer
+      name:
+        description: 角色名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 角色状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - key
+    - name
+    type: object
+  domain.RoleCreateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      data_scope:
+        description: 数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+        type: integer
+      del_flag:
+        description: 删除标志（0代表存在 2代表删除）
+        type: integer
+      dept_check_strictly:
+        description: 部门树选择项是否关联显示（0否 1是）
+        type: integer
+      key:
+        description: 角色权限字符串
+        type: string
+      menu_check_strictly:
+        description: 菜单树选择项是否关联显示（0否 1是）
+        type: integer
+      name:
+        description: 角色名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 角色状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - key
+    - name
+    type: object
+  domain.RoleDataScopeRequest:
+    properties:
+      data_scope:
+        description: 数据范围
+        type: integer
+      dept_ids:
+        description: 数据权限关联的部门ID列表
+        items:
+          type: integer
+        type: array
+      id:
+        description: 角色ID
+        type: integer
+    required:
+    - id
+    type: object
+  domain.RoleDept:
+    properties:
+      dept_id:
+        description: 部门ID
+        type: integer
+      role_id:
+        description: 角色ID
+        type: integer
+    type: object
+  domain.RoleDeptCreateRequest:
+    properties:
+      dept_id:
+        description: 部门ID
+        type: integer
+      role_id:
+        description: 角色ID
+        type: integer
+    required:
+    - dept_id
+    - role_id
+    type: object
+  domain.RoleDeptDeleteRequest:
+    properties:
+      dept_id:
+        description: 部门ID
+        type: integer
+      role_id:
+        description: 角色ID
+        type: integer
+    type: object
+  domain.RoleMenu:
+    properties:
+      menu_id:
+        description: 菜单ID
+        type: integer
+      role_id:
+        description: 角色ID
+        type: integer
+    type: object
+  domain.RoleMenuAssignRequest:
+    properties:
+      id:
+        description: 角色ID
+        type: integer
+      menu_ids:
+        description: 菜单ID列表
+        items:
+          type: integer
+        type: array
+    required:
+    - id
+    type: object
+  domain.RoleMenuCreateRequest:
+    properties:
+      menu_id:
+        description: 菜单ID
+        type: integer
+      role_id:
+        description: 角色ID
+        type: integer
+    required:
+    - menu_id
+    - role_id
+    type: object
+  domain.RoleMenuDeleteRequest:
+    properties:
+      menu_id:
+        description: 菜单ID
+        type: integer
+      role_id:
+        description: 角色ID
+        type: integer
+    type: object
+  domain.RoleUpdateRequest:
+    properties:
+      create_by:
+        description: 创建者
+        type: string
+      create_time:
+        description: 创建时间
+        type: string
+      data_scope:
+        description: 数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+        type: integer
+      del_flag:
+        description: 删除标志（0代表存在 2代表删除）
+        type: integer
+      dept_check_strictly:
+        description: 部门树选择项是否关联显示（0否 1是）
+        type: integer
+      id:
+        description: 主键ID
+        type: integer
+      key:
+        description: 角色权限字符串
+        type: string
+      menu_check_strictly:
+        description: 菜单树选择项是否关联显示（0否 1是）
+        type: integer
+      name:
+        description: 角色名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 显示顺序
+        type: integer
+      status:
+        description: 角色状态（0正常 1停用）
+        type: integer
+      update_by:
+        description: 更新者
+        type: string
+      update_time:
+        description: 更新时间
+        type: string
+    required:
+    - id
+    - key
+    - name
+    type: object
+  domain.RoleUserAssignRequest:
+    properties:
+      role_id:
+        description: 角色ID
+        type: integer
+      user_ids:
+        description: 用户ID列表
+        items:
+          type: integer
+        type: array
+    required:
+    - role_id
+    type: object
+  domain.RoleUserCancelAllRequest:
+    properties:
+      role_id:
+        description: 角色ID
+        type: integer
+      user_ids:
+        description: 用户ID列表
+        items:
+          type: integer
+        type: array
+    required:
+    - role_id
+    type: object
+  domain.RoleUserCancelRequest:
+    properties:
+      role_id:
+        description: 角色ID
+        type: integer
+      user_id:
+        description: 用户ID
+        type: integer
+    required:
+    - role_id
+    - user_id
     type: object
   domain.User:
     properties:
@@ -178,6 +1560,55 @@ definitions:
     - nickname
     - username
     type: object
+  domain.UserAssignPostRequest:
+    properties:
+      id:
+        description: 用户ID
+        type: integer
+      post_ids:
+        description: 岗位ID列表
+        items:
+          type: integer
+        type: array
+    required:
+    - id
+    type: object
+  domain.UserAssignRoleRequest:
+    properties:
+      id:
+        description: 用户ID
+        type: integer
+      role_ids:
+        description: 角色ID列表
+        items:
+          type: integer
+        type: array
+    required:
+    - id
+    type: object
+  domain.UserAvatarUpdateRequest:
+    properties:
+      avatar:
+        description: 头像地址
+        type: string
+      id:
+        description: 用户ID
+        type: integer
+    required:
+    - avatar
+    - id
+    type: object
+  domain.UserChangeStatusRequest:
+    properties:
+      id:
+        description: 用户ID
+        type: integer
+      status:
+        description: 用户状态;0:禁用,1:正常,2:未验证
+        type: integer
+    required:
+    - id
+    type: object
   domain.UserEditRequest:
     properties:
       avatar:
@@ -224,6 +1655,173 @@ definitions:
     - nickname
     - username
     type: object
+  domain.UserOnline:
+    properties:
+      create_time:
+        description: 登录时间（13位时间戳）
+        type: integer
+      explorer:
+        description: 浏览器
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      ip:
+        description: 登录ip
+        type: string
+      os:
+        description: 操作系统
+        type: string
+      token:
+        description: 用户token
+        type: string
+      user_name:
+        description: 用户名
+        type: string
+      uuid:
+        description: 用户标识
+        type: string
+    type: object
+  domain.UserOnlineForceLogoutRequest:
+    properties:
+      token:
+        description: 用户token
+        type: string
+    required:
+    - token
+    type: object
+  domain.UserPasswordUpdateRequest:
+    properties:
+      id:
+        description: 用户ID
+        type: integer
+      new_password:
+        description: 新密码
+        type: string
+      old_password:
+        description: 旧密码
+        type: string
+    required:
+    - id
+    - new_password
+    - old_password
+    type: object
+  domain.UserPost:
+    properties:
+      post_id:
+        description: 岗位ID
+        type: integer
+      user_id:
+        description: 用户ID
+        type: integer
+    type: object
+  domain.UserPostCreateRequest:
+    properties:
+      post_id:
+        description: 岗位ID
+        type: integer
+      user_id:
+        description: 用户ID
+        type: integer
+    required:
+    - post_id
+    - user_id
+    type: object
+  domain.UserPostDeleteRequest:
+    properties:
+      post_id:
+        description: 岗位ID
+        type: integer
+      user_id:
+        description: 用户ID
+        type: integer
+    type: object
+  domain.UserProfileUpdateRequest:
+    properties:
+      email:
+        description: 登录邮箱
+        type: string
+      gender:
+        description: 性别;0:保密,1:男,2:女
+        type: integer
+      id:
+        description: 用户ID
+        type: integer
+      mobile:
+        description: 手机号
+        type: string
+      nickname:
+        description: 用户昵称
+        type: string
+    required:
+    - id
+    type: object
+  domain.UserResetPwdRequest:
+    properties:
+      id:
+        description: 用户ID
+        type: integer
+      password:
+        description: 新密码
+        type: string
+    required:
+    - id
+    - password
+    type: object
+  domain.UserRole:
+    properties:
+      role_id:
+        description: 角色ID
+        type: integer
+      user_id:
+        description: 用户ID
+        type: integer
+    type: object
+  domain.UserRoleCreateRequest:
+    properties:
+      role_id:
+        description: 角色ID
+        type: integer
+      user_id:
+        description: 用户ID
+        type: integer
+    required:
+    - role_id
+    - user_id
+    type: object
+  domain.UserRoleDeleteRequest:
+    properties:
+      role_id:
+        description: 角色ID
+        type: integer
+      user_id:
+        description: 用户ID
+        type: integer
+    type: object
+  domain.Ztree:
+    properties:
+      checked:
+        description: 是否勾选
+        type: boolean
+      id:
+        description: 节点ID
+        type: integer
+      name:
+        description: 节点名称
+        type: string
+      nocheck:
+        description: 是否允许勾选
+        type: boolean
+      open:
+        description: 是否展开
+        type: boolean
+      pId:
+        description: 节点父ID
+        type: integer
+      title:
+        description: 节点标题
+        type: string
+    type: object
   request.IdsRequest:
     properties:
       ids:
@@ -258,10 +1856,253 @@ definitions:
 host: localhost
 info:
   contact: {}
-  description: admintpl 在线API文档
-  title: admintpl API文档
+  description: github.com/bluefroog/admintpl 在线API文档
+  title: github.com/bluefroog/admintpl API文档
   version: "1.0"
 paths:
+  /system/config/check-key:
+    get:
+      description: 校验参数键名是否唯一
+      parameters:
+      - description: 参数主键（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 参数键名
+        in: query
+        name: key
+        required: true
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验参数键名是否唯一
+      tags:
+      - 参数管理
+  /system/config/create:
+    post:
+      description: 添加系统参数
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ConfigCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加系统参数
+      tags:
+      - 系统参数管理
+  /system/config/delete:
+    delete:
+      description: 删除系统参数
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除系统参数
+      tags:
+      - 系统参数管理
+  /system/config/detail:
+    get:
+      description: 获取指定ID的系统参数详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Config'
+              type: object
+      security: []
+      summary: 获取指定ID的系统参数详情
+      tags:
+      - 系统参数管理
+  /system/config/get-by-key:
+    get:
+      description: 根据参数键名获取参数值
+      parameters:
+      - description: 参数键名
+        in: query
+        name: key
+        required: true
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": ""}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security: []
+      summary: 根据参数键名获取参数值
+      tags:
+      - 参数管理
+  /system/config/list:
+    get:
+      description: 系统参数列表
+      parameters:
+      - in: query
+        name: create_by
+        type: string
+      - description: 参数编号
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 参数键名
+        in: query
+        name: key
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 参数名称
+        in: query
+        name: name
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 是否系统内置（Y是 | N否）
+        in: query
+        name: type
+        type: string
+      - in: query
+        name: update_by
+        type: string
+      - description: 参数键值
+        in: query
+        name: value
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Config'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取系统参数列表
+      tags:
+      - 系统参数管理
+  /system/config/update:
+    put:
+      description: 修改系统参数
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ConfigUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改系统参数
+      tags:
+      - 系统参数管理
+  /system/department/check-name:
+    get:
+      description: 校验部门名称是否唯一
+      parameters:
+      - description: 部门ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 部门名称
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: 父部门ID
+        in: query
+        name: parent_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验部门名称是否唯一
+      tags:
+      - 部门管理
   /system/department/create:
     post:
       description: 添加部门
@@ -277,8 +2118,7 @@ paths:
           description: '{"code": 0, "msg":"success","data": null}'
           schema:
             $ref: '#/definitions/response.Response'
-      security:
-      - "": []
+      security: []
       summary: 添加部门
       tags:
       - 部门管理
@@ -297,8 +2137,7 @@ paths:
           description: '{"code": 0, "msg":"success","data": null}'
           schema:
             $ref: '#/definitions/response.Response'
-      security:
-      - "": []
+      security: []
       summary: 删除部门
       tags:
       - 部门管理
@@ -321,8 +2160,7 @@ paths:
                 data:
                   $ref: '#/definitions/domain.Department'
               type: object
-      security:
-      - "": []
+      security: []
       summary: 获取指定ID的部门详情
       tags:
       - 部门管理
@@ -337,6 +2175,10 @@ paths:
       - description: 创建者
         in: query
         name: createBy
+        type: string
+      - description: 邮箱
+        in: query
+        name: email
         type: string
       - collectionFormat: csv
         in: query
@@ -353,6 +2195,10 @@ paths:
       - description: 关键字
         in: query
         name: keyword
+        type: string
+      - description: 负责人
+        in: query
+        name: leader
         type: string
       - description: 部门名称
         in: query
@@ -380,6 +2226,10 @@ paths:
           type: integer
         name: parentIDIn
         type: array
+      - description: 联系电话
+        in: query
+        name: phone
+        type: string
       - description: 部门状态（0正常 1停用）
         in: query
         name: status
@@ -406,9 +2256,64 @@ paths:
                         type: array
                     type: object
               type: object
-      security:
-      - "": []
+      security: []
       summary: 获取部门列表
+      tags:
+      - 部门管理
+  /system/department/role-dept-tree:
+    get:
+      description: 根据角色ID获取部门树（数据权限勾选）
+      parameters:
+      - description: 角色ID，为空时返回全部未勾选的部门树
+        in: query
+        name: role_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Ztree'
+                  type: array
+              type: object
+      security: []
+      summary: 获取角色部门树
+      tags:
+      - 部门管理
+  /system/department/tree:
+    get:
+      description: 获取部门树数据（返回扁平列表，由前端组装成树）
+      parameters:
+      - description: 部门名称
+        in: query
+        name: name
+        type: string
+      - description: 父部门ID
+        in: query
+        name: parent_id
+        type: integer
+      - description: 部门状态（0正常 1停用）
+        in: query
+        name: status
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Ztree'
+                  type: array
+              type: object
+      security: []
+      summary: 获取部门树
       tags:
       - 部门管理
   /system/department/update:
@@ -426,11 +2331,2867 @@ paths:
           description: '{"code": 0, "msg":"success","data": null}'
           schema:
             $ref: '#/definitions/response.Response'
-      security:
-      - "": []
+      security: []
       summary: 修改部门
       tags:
       - 部门管理
+  /system/dict-data/check-label:
+    get:
+      description: 校验同一字典类型下字典标签是否唯一
+      parameters:
+      - description: 字典编码（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 字典标签
+        in: query
+        name: label
+        type: string
+      - description: 字典类型
+        in: query
+        name: type
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验字典标签是否唯一
+      tags:
+      - 字典数据
+  /system/dict-data/create:
+    post:
+      description: 添加字典数据
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DictDataCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加字典数据
+      tags:
+      - 字典数据管理
+  /system/dict-data/delete:
+    delete:
+      description: 删除字典数据
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除字典数据
+      tags:
+      - 字典数据管理
+  /system/dict-data/detail:
+    get:
+      description: 获取指定ID的字典数据详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.DictData'
+              type: object
+      security: []
+      summary: 获取指定ID的字典数据详情
+      tags:
+      - 字典数据管理
+  /system/dict-data/get-by-type:
+    get:
+      description: 根据字典类型查询字典数据列表（前端下拉渲染使用）
+      parameters:
+      - description: 字典类型
+        in: query
+        name: type
+        required: true
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.DictData'
+                  type: array
+              type: object
+      security: []
+      summary: 根据字典类型查询字典数据
+      tags:
+      - 字典数据
+  /system/dict-data/list:
+    get:
+      description: 字典数据列表
+      parameters:
+      - in: query
+        name: create_by
+        type: string
+      - description: 字典编码
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 字典标签
+        in: query
+        name: label
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 状态（0正常 1停用）
+        in: query
+        name: status
+        type: integer
+      - description: 字典类型
+        in: query
+        name: type
+        type: string
+      - in: query
+        name: update_by
+        type: string
+      - description: 字典键值
+        in: query
+        name: value
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.DictData'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取字典数据列表
+      tags:
+      - 字典数据管理
+  /system/dict-data/update:
+    put:
+      description: 修改字典数据
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DictDataUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改字典数据
+      tags:
+      - 字典数据管理
+  /system/dict-type/check-type:
+    get:
+      description: 校验字典类型是否唯一
+      parameters:
+      - description: 字典主键（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 字典类型
+        in: query
+        name: type
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验字典类型是否唯一
+      tags:
+      - 字典类型
+  /system/dict-type/create:
+    post:
+      description: 添加字典类型
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DictTypeCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加字典类型
+      tags:
+      - 字典类型管理
+  /system/dict-type/delete:
+    delete:
+      description: 删除字典类型
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除字典类型
+      tags:
+      - 字典类型管理
+  /system/dict-type/detail:
+    get:
+      description: 获取指定ID的字典类型详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.DictType'
+              type: object
+      security: []
+      summary: 获取指定ID的字典类型详情
+      tags:
+      - 字典类型管理
+  /system/dict-type/get-by-type:
+    get:
+      description: 根据字典类型查询字典类型详情
+      parameters:
+      - description: 字典类型
+        in: query
+        name: type
+        required: true
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.DictType'
+              type: object
+      security: []
+      summary: 根据字典类型查询字典类型详情
+      tags:
+      - 字典类型
+  /system/dict-type/list:
+    get:
+      description: 字典类型列表
+      parameters:
+      - in: query
+        name: create_by
+        type: string
+      - description: 字典主键
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 字典名称
+        in: query
+        name: name
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 状态（0正常 1停用）
+        in: query
+        name: status
+        type: integer
+      - description: 字典类型
+        in: query
+        name: type
+        type: string
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.DictType'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取字典类型列表
+      tags:
+      - 字典类型管理
+  /system/dict-type/list-all:
+    get:
+      description: 获取全部字典类型（下拉选择使用）
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.DictType'
+                  type: array
+              type: object
+      security: []
+      summary: 获取全部字典类型
+      tags:
+      - 字典类型
+  /system/dict-type/update:
+    put:
+      description: 修改字典类型
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.DictTypeUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改字典类型
+      tags:
+      - 字典类型管理
+  /system/job-log/delete:
+    delete:
+      description: 删除定时任务日志
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除定时任务日志
+      tags:
+      - 定时任务日志管理
+  /system/job-log/detail:
+    get:
+      description: 获取指定ID的定时任务日志详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.JobLog'
+              type: object
+      security: []
+      summary: 获取指定ID的定时任务日志详情
+      tags:
+      - 定时任务日志管理
+  /system/job-log/list:
+    get:
+      description: 定时任务日志列表
+      parameters:
+      - description: 任务日志ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 调用目标字符串
+        in: query
+        name: invoke_target
+        type: string
+      - description: 任务执行器
+        in: query
+        name: job_executor
+        type: string
+      - description: 任务组名
+        in: query
+        name: job_group
+        type: string
+      - description: 任务名称
+        in: query
+        name: job_name
+        type: string
+      - description: 任务触发器
+        in: query
+        name: job_trigger
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 执行状态（0正常 1失败）
+        in: query
+        name: status
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.JobLog'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取定时任务日志列表
+      tags:
+      - 定时任务日志管理
+  /system/job/change-status:
+    put:
+      description: 修改定时任务状态（0正常 1暂停）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.JobChangeStatusRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改任务状态
+      tags:
+      - 定时任务
+  /system/job/check-name:
+    get:
+      description: 校验任务名称是否唯一
+      parameters:
+      - description: 任务ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 任务名称
+        in: query
+        name: name
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验任务名称是否唯一
+      tags:
+      - 定时任务
+  /system/job/create:
+    post:
+      description: 添加定时任务
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.JobCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加定时任务
+      tags:
+      - 定时任务管理
+  /system/job/delete:
+    delete:
+      description: 删除定时任务
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除定时任务
+      tags:
+      - 定时任务管理
+  /system/job/detail:
+    get:
+      description: 获取指定ID的定时任务详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Job'
+              type: object
+      security: []
+      summary: 获取指定ID的定时任务详情
+      tags:
+      - 定时任务管理
+  /system/job/list:
+    get:
+      description: 定时任务列表
+      parameters:
+      - in: query
+        name: create_by
+        type: string
+      - description: 任务执行器
+        in: query
+        name: executor
+        type: string
+      - description: 任务组名
+        in: query
+        name: group
+        type: string
+      - description: 任务ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 调用目标字符串
+        in: query
+        name: invoke_target
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 任务名称
+        in: query
+        name: name
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 状态（0正常 1暂停）
+        in: query
+        name: status
+        type: integer
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Job'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取定时任务列表
+      tags:
+      - 定时任务管理
+  /system/job/update:
+    put:
+      description: 修改定时任务
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.JobUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改定时任务
+      tags:
+      - 定时任务管理
+  /system/login-log/clear:
+    delete:
+      description: 清空登录日志，status 为空时清空全部
+      parameters:
+      - description: 登录状态（0成功 1失败）
+        in: query
+        name: status
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 清空登录日志
+      tags:
+      - 登录日志
+  /system/login-log/delete:
+    delete:
+      description: 删除访问日志
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除访问日志
+      tags:
+      - 访问日志管理
+  /system/login-log/detail:
+    get:
+      description: 获取指定ID的访问日志详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.LoginLog'
+              type: object
+      security: []
+      summary: 获取指定ID的访问日志详情
+      tags:
+      - 访问日志管理
+  /system/login-log/list:
+    get:
+      description: 访问日志列表
+      parameters:
+      - description: 开始时间
+        in: query
+        name: begin_date
+        type: string
+      - description: 浏览器类型
+        in: query
+        name: browser
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_date
+        type: string
+      - description: 访问ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 登录IP地址
+        in: query
+        name: ipaddr
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 登录地点
+        in: query
+        name: login_location
+        type: string
+      - description: 登录账号
+        in: query
+        name: login_name
+        type: string
+      - description: 登录模块
+        in: query
+        name: module
+        type: string
+      - description: 提示消息
+        in: query
+        name: msg
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 操作系统
+        in: query
+        name: os
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 登录状态（0成功 1失败）
+        in: query
+        name: status
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.LoginLog'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取访问日志列表
+      tags:
+      - 访问日志管理
+  /system/menu/check-name:
+    get:
+      description: 校验菜单名称是否唯一
+      parameters:
+      - description: 菜单ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 菜单名称
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: 父菜单ID
+        in: query
+        name: parent_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验菜单名称是否唯一
+      tags:
+      - 菜单管理
+  /system/menu/check-perms:
+    get:
+      description: 校验权限标识是否唯一
+      parameters:
+      - description: 菜单ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 权限标识
+        in: query
+        name: perms
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验权限标识是否唯一
+      tags:
+      - 菜单管理
+  /system/menu/create:
+    post:
+      description: 添加菜单
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.MenuCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加菜单
+      tags:
+      - 菜单管理
+  /system/menu/delete:
+    delete:
+      description: 删除菜单
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除菜单
+      tags:
+      - 菜单管理
+  /system/menu/detail:
+    get:
+      description: 获取指定ID的菜单详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Menu'
+              type: object
+      security: []
+      summary: 获取指定ID的菜单详情
+      tags:
+      - 菜单管理
+  /system/menu/list:
+    get:
+      description: 菜单列表
+      parameters:
+      - in: query
+        name: create_by
+        type: string
+      - description: 菜单ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 菜单类型（M目录 C菜单 F按钮）
+        in: query
+        name: menu_type
+        type: string
+      - description: 菜单名称
+        in: query
+        name: name
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - collectionFormat: csv
+        description: 父菜单ID 数组
+        in: query
+        items:
+          type: integer
+        name: parentIDIn
+        type: array
+      - description: 父菜单ID
+        in: query
+        name: parent_id
+        type: integer
+      - description: 路由地址
+        in: query
+        name: path
+        type: string
+      - description: 权限标识
+        in: query
+        name: perms
+        type: string
+      - description: 菜单状态（0正常 1停用）
+        in: query
+        name: status
+        type: integer
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Menu'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取菜单列表
+      tags:
+      - 菜单管理
+  /system/menu/role-menu-tree:
+    get:
+      description: 根据角色ID获取菜单树（勾选已授权菜单）
+      parameters:
+      - description: 角色ID
+        in: query
+        name: role_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Ztree'
+                  type: array
+              type: object
+      security: []
+      summary: 获取角色菜单树
+      tags:
+      - 菜单管理
+  /system/menu/tree:
+    get:
+      description: 获取菜单树数据（返回扁平列表，由前端组装成树）
+      parameters:
+      - description: 菜单类型（M目录 C菜单 F按钮）
+        in: query
+        name: menu_type
+        type: string
+      - description: 菜单名称
+        in: query
+        name: name
+        type: string
+      - description: 菜单状态（0正常 1停用）
+        in: query
+        name: status
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Ztree'
+                  type: array
+              type: object
+      security: []
+      summary: 获取菜单树
+      tags:
+      - 菜单管理
+  /system/menu/update:
+    put:
+      description: 修改菜单
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.MenuUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改菜单
+      tags:
+      - 菜单管理
+  /system/notice/create:
+    post:
+      description: 添加公告
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.NoticeCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加公告
+      tags:
+      - 公告管理
+  /system/notice/delete:
+    delete:
+      description: 删除公告
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除公告
+      tags:
+      - 公告管理
+  /system/notice/detail:
+    get:
+      description: 获取指定ID的公告详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Notice'
+              type: object
+      security: []
+      summary: 获取指定ID的公告详情
+      tags:
+      - 公告管理
+  /system/notice/list:
+    get:
+      description: 公告列表
+      parameters:
+      - description: 公告内容
+        in: query
+        name: content
+        type: string
+      - in: query
+        name: create_by
+        type: string
+      - description: 公告编号
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 公告状态（0正常 1关闭）
+        in: query
+        name: status
+        type: integer
+      - description: 公告标题
+        in: query
+        name: title
+        type: string
+      - description: 公告类型（1通知 2公告）
+        in: query
+        name: type
+        type: integer
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Notice'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取公告列表
+      tags:
+      - 公告管理
+  /system/notice/update:
+    put:
+      description: 修改公告
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.NoticeUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改公告
+      tags:
+      - 公告管理
+  /system/operation-log/clear:
+    delete:
+      description: 清空操作日志
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 清空操作日志
+      tags:
+      - 操作日志
+  /system/operation-log/delete:
+    delete:
+      description: 删除操作日志
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除操作日志
+      tags:
+      - 操作日志管理
+  /system/operation-log/detail:
+    get:
+      description: 获取指定ID的操作日志详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.OperationLog'
+              type: object
+      security: []
+      summary: 获取指定ID的操作日志详情
+      tags:
+      - 操作日志管理
+  /system/operation-log/list:
+    get:
+      description: 操作日志列表
+      parameters:
+      - description: 业务类型（0其它 1新增 2修改 3删除）
+        in: query
+        name: business_type
+        type: integer
+      - description: 部门名称
+        in: query
+        name: dept_name
+        type: string
+      - description: 日志主键
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 主机地址
+        in: query
+        name: oper_ip
+        type: string
+      - description: 操作人员
+        in: query
+        name: oper_name
+        type: string
+      - description: 请求URL
+        in: query
+        name: oper_url
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 请求方式
+        in: query
+        name: request_method
+        type: string
+      - description: 操作状态（0正常 1异常）
+        in: query
+        name: status
+        type: integer
+      - description: 模块标题
+        in: query
+        name: title
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.OperationLog'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取操作日志列表
+      tags:
+      - 操作日志管理
+  /system/post/check-code:
+    get:
+      description: 校验岗位编码是否唯一
+      parameters:
+      - description: 岗位编码
+        in: query
+        name: code
+        type: string
+      - description: 岗位ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 岗位名称
+        in: query
+        name: name
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验岗位编码是否唯一
+      tags:
+      - 岗位管理
+  /system/post/check-name:
+    get:
+      description: 校验岗位名称是否唯一
+      parameters:
+      - description: 岗位编码
+        in: query
+        name: code
+        type: string
+      - description: 岗位ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 岗位名称
+        in: query
+        name: name
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验岗位名称是否唯一
+      tags:
+      - 岗位管理
+  /system/post/create:
+    post:
+      description: 添加职位
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PostCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加职位
+      tags:
+      - 职位管理
+  /system/post/delete:
+    delete:
+      description: 删除职位
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除职位
+      tags:
+      - 职位管理
+  /system/post/detail:
+    get:
+      description: 获取指定ID的职位详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Post'
+              type: object
+      security: []
+      summary: 获取指定ID的职位详情
+      tags:
+      - 职位管理
+  /system/post/list:
+    get:
+      description: 职位列表
+      parameters:
+      - description: 岗位编码
+        in: query
+        name: code
+        type: string
+      - in: query
+        name: create_by
+        type: string
+      - description: 岗位编号
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 岗位编码
+        in: query
+        name: name
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 状态
+        in: query
+        name: status
+        type: integer
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Post'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取职位列表
+      tags:
+      - 职位管理
+  /system/post/update:
+    put:
+      description: 修改职位
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PostUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改职位
+      tags:
+      - 职位管理
+  /system/role-dept/create:
+    post:
+      description: 添加角色部门关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleDeptCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加角色部门关联
+      tags:
+      - 角色部门关联管理
+  /system/role-dept/delete:
+    delete:
+      description: 删除角色部门关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleDeptDeleteRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除角色部门关联
+      tags:
+      - 角色部门关联管理
+  /system/role-dept/list:
+    get:
+      description: 角色部门关联列表
+      parameters:
+      - collectionFormat: csv
+        description: 部门ID 数组
+        in: query
+        items:
+          type: integer
+        name: deptIDIn
+        type: array
+      - description: 部门ID
+        in: query
+        name: dept_id
+        type: integer
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - collectionFormat: csv
+        description: 角色ID 数组
+        in: query
+        items:
+          type: integer
+        name: roleIDIn
+        type: array
+      - description: 角色ID
+        in: query
+        name: role_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.RoleDept'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取角色部门关联列表
+      tags:
+      - 角色部门关联管理
+  /system/role-menu/create:
+    post:
+      description: 添加角色菜单关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleMenuCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加角色菜单关联
+      tags:
+      - 角色菜单关联管理
+  /system/role-menu/delete:
+    delete:
+      description: 删除角色菜单关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleMenuDeleteRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除角色菜单关联
+      tags:
+      - 角色菜单关联管理
+  /system/role-menu/list:
+    get:
+      description: 角色菜单关联列表
+      parameters:
+      - collectionFormat: csv
+        description: 菜单ID 数组
+        in: query
+        items:
+          type: integer
+        name: menuIDIn
+        type: array
+      - description: 菜单ID
+        in: query
+        name: menu_id
+        type: integer
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - collectionFormat: csv
+        description: 角色ID 数组
+        in: query
+        items:
+          type: integer
+        name: roleIDIn
+        type: array
+      - description: 角色ID
+        in: query
+        name: role_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.RoleMenu'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取角色菜单关联列表
+      tags:
+      - 角色菜单关联管理
+  /system/role/allocated-list:
+    get:
+      description: 查询角色已分配的用户列表
+      parameters:
+      - description: 手机号
+        in: query
+        name: mobile
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 角色ID
+        in: query
+        name: role_id
+        required: true
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.User'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 查询角色已分配用户
+      tags:
+      - 角色管理
+  /system/role/cancel-user:
+    delete:
+      description: 取消单个用户的角色授权
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleUserCancelRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 取消用户授权
+      tags:
+      - 角色管理
+  /system/role/cancel-users:
+    delete:
+      description: 批量取消用户的角色授权
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleUserCancelAllRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 批量取消用户授权
+      tags:
+      - 角色管理
+  /system/role/check-key:
+    get:
+      description: 校验角色权限字符串是否唯一
+      parameters:
+      - description: 角色ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 角色权限字符串
+        in: query
+        name: key
+        required: true
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验角色权限字符串是否唯一
+      tags:
+      - 角色管理
+  /system/role/check-name:
+    get:
+      description: 校验角色名称是否唯一
+      parameters:
+      - description: 角色ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 角色名称
+        in: query
+        name: name
+        required: true
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验角色名称是否唯一
+      tags:
+      - 角色管理
+  /system/role/create:
+    post:
+      description: 添加角色
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加角色
+      tags:
+      - 角色管理
+  /system/role/data-scope:
+    put:
+      description: 修改角色数据权限（数据范围 + 自定义部门）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleDataScopeRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改角色数据权限
+      tags:
+      - 角色管理
+  /system/role/delete:
+    delete:
+      description: 删除角色
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除角色
+      tags:
+      - 角色管理
+  /system/role/detail:
+    get:
+      description: 获取指定ID的角色详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Role'
+              type: object
+      security: []
+      summary: 获取指定ID的角色详情
+      tags:
+      - 角色管理
+  /system/role/list:
+    get:
+      description: 角色列表
+      parameters:
+      - in: query
+        name: create_by
+        type: string
+      - description: 数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+        in: query
+        name: data_scope
+        type: integer
+      - description: 删除标志（0代表存在 2代表删除）
+        in: query
+        name: del_flag
+        type: integer
+      - description: 部门树选择项是否关联显示（0否 1是）
+        in: query
+        name: dept_check_strictly
+        type: integer
+      - description: 角色编号
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 角色权限字符串
+        in: query
+        name: key
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 菜单树选择项是否关联显示（0否 1是）
+        in: query
+        name: menu_check_strictly
+        type: integer
+      - description: 角色名称
+        in: query
+        name: name
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 角色状态（0正常 1停用）
+        in: query
+        name: status
+        type: integer
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Role'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取角色列表
+      tags:
+      - 角色管理
+  /system/role/menu:
+    put:
+      description: 给角色分配菜单权限
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleMenuAssignRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 角色菜单授权
+      tags:
+      - 角色管理
+  /system/role/select-users:
+    post:
+      description: 批量选择用户授予角色
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleUserAssignRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 批量选择用户授权
+      tags:
+      - 角色管理
+  /system/role/unallocated-list:
+    get:
+      description: 查询角色未分配的用户列表
+      parameters:
+      - description: 手机号
+        in: query
+        name: mobile
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 角色ID
+        in: query
+        name: role_id
+        required: true
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.User'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 查询角色未分配用户
+      tags:
+      - 角色管理
+  /system/role/update:
+    put:
+      description: 修改角色
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RoleUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改角色
+      tags:
+      - 角色管理
+  /system/user-online/delete:
+    delete:
+      description: 删除在线用户记录
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除在线用户
+      tags:
+      - 在线用户
+  /system/user-online/detail:
+    get:
+      description: 获取指定ID的在线用户详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.UserOnline'
+              type: object
+      security: []
+      summary: 获取指定ID的在线用户详情
+      tags:
+      - 在线用户
+  /system/user-online/force-logout:
+    delete:
+      description: 根据用户token强退在线用户
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserOnlineForceLogoutRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 强退在线用户
+      tags:
+      - 在线用户
+  /system/user-online/list:
+    get:
+      description: 在线用户列表
+      parameters:
+      - description: 浏览器
+        in: query
+        name: explorer
+        type: string
+      - description: 主键ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 登录ip
+        in: query
+        name: ip
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 操作系统
+        in: query
+        name: os
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 用户token
+        in: query
+        name: token
+        type: string
+      - description: 用户名
+        in: query
+        name: user_name
+        type: string
+      - description: 用户标识
+        in: query
+        name: uuid
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.UserOnline'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取在线用户列表
+      tags:
+      - 在线用户
+  /system/user-post/create:
+    post:
+      description: 添加用户岗位关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserPostCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加用户岗位关联
+      tags:
+      - 用户岗位关联管理
+  /system/user-post/delete:
+    delete:
+      description: 删除用户岗位关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserPostDeleteRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除用户岗位关联
+      tags:
+      - 用户岗位关联管理
+  /system/user-post/list:
+    get:
+      description: 用户岗位关联列表
+      parameters:
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - collectionFormat: csv
+        description: 岗位ID 数组
+        in: query
+        items:
+          type: integer
+        name: postIDIn
+        type: array
+      - description: 岗位ID
+        in: query
+        name: post_id
+        type: integer
+      - collectionFormat: csv
+        description: 用户ID 数组
+        in: query
+        items:
+          type: integer
+        name: userIDIn
+        type: array
+      - description: 用户ID
+        in: query
+        name: user_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.UserPost'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取用户岗位关联列表
+      tags:
+      - 用户岗位关联管理
+  /system/user-role/create:
+    post:
+      description: 添加用户角色关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserRoleCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加用户角色关联
+      tags:
+      - 用户角色关联管理
+  /system/user-role/delete:
+    delete:
+      description: 删除用户角色关联
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserRoleDeleteRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除用户角色关联
+      tags:
+      - 用户角色关联管理
+  /system/user-role/list:
+    get:
+      description: 用户角色关联列表
+      parameters:
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - collectionFormat: csv
+        description: 角色ID 数组
+        in: query
+        items:
+          type: integer
+        name: roleIDIn
+        type: array
+      - description: 角色ID
+        in: query
+        name: role_id
+        type: integer
+      - collectionFormat: csv
+        description: 用户ID 数组
+        in: query
+        items:
+          type: integer
+        name: userIDIn
+        type: array
+      - description: 用户ID
+        in: query
+        name: user_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.UserRole'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取用户角色关联列表
+      tags:
+      - 用户角色关联管理
+  /system/user/avatar:
+    put:
+      description: 修改用户头像
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserAvatarUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改头像
+      tags:
+      - 用户管理
+  /system/user/change-status:
+    put:
+      description: 修改用户状态（0:禁用,1:正常,2:未验证）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserChangeStatusRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改用户状态
+      tags:
+      - 用户管理
+  /system/user/check-email:
+    get:
+      description: 校验邮箱是否唯一
+      parameters:
+      - description: 登录邮箱
+        in: query
+        name: email
+        type: string
+      - description: 用户ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 手机号
+        in: query
+        name: mobile
+        type: string
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验邮箱是否唯一
+      tags:
+      - 用户管理
+  /system/user/check-mobile:
+    get:
+      description: 校验手机号是否唯一
+      parameters:
+      - description: 登录邮箱
+        in: query
+        name: email
+        type: string
+      - description: 用户ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 手机号
+        in: query
+        name: mobile
+        type: string
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验手机号是否唯一
+      tags:
+      - 用户管理
+  /system/user/check-username:
+    get:
+      description: 校验用户名是否唯一
+      parameters:
+      - description: 登录邮箱
+        in: query
+        name: email
+        type: string
+      - description: 用户ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 手机号
+        in: query
+        name: mobile
+        type: string
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验用户名是否唯一
+      tags:
+      - 用户管理
   /system/user/create:
     post:
       description: 添加用户
@@ -446,8 +5207,7 @@ paths:
           description: '{"code": 0, "msg":"Success","data": null}'
           schema:
             $ref: '#/definitions/response.Response'
-      security:
-      - "": []
+      security: []
       summary: 添加用户
       tags:
       - 用户管理
@@ -466,8 +5226,7 @@ paths:
           description: '{"code": 0, "msg":"Success","data": null}'
           schema:
             $ref: '#/definitions/response.Response'
-      security:
-      - "": []
+      security: []
       summary: 删除用户
       tags:
       - 用户管理
@@ -490,8 +5249,7 @@ paths:
                 data:
                   $ref: '#/definitions/domain.User'
               type: object
-      security:
-      - "": []
+      security: []
       summary: 获取指定ID的用户详情
       tags:
       - 用户管理
@@ -585,9 +5343,151 @@ paths:
                         type: array
                     type: object
               type: object
-      security:
-      - "": []
+      security: []
       summary: 获取用户列表
+      tags:
+      - 用户管理
+  /system/user/password:
+    put:
+      description: 用户修改密码（校验旧密码）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserPasswordUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改密码
+      tags:
+      - 用户管理
+  /system/user/posts:
+    get:
+      description: 获取用户已分配的岗位ID列表
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    type: integer
+                  type: array
+              type: object
+      security: []
+      summary: 获取用户已分配岗位
+      tags:
+      - 用户管理
+    put:
+      description: 给用户分配岗位
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserAssignPostRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 分配用户岗位
+      tags:
+      - 用户管理
+  /system/user/profile:
+    put:
+      description: 修改用户个人资料
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserProfileUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改个人资料
+      tags:
+      - 用户管理
+  /system/user/reset-pwd:
+    put:
+      description: 重置指定用户密码
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserResetPwdRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 重置用户密码
+      tags:
+      - 用户管理
+  /system/user/roles:
+    get:
+      description: 获取用户已分配的角色ID列表
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": []}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    type: integer
+                  type: array
+              type: object
+      security: []
+      summary: 获取用户已分配角色
+      tags:
+      - 用户管理
+    put:
+      description: 给用户分配角色
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserAssignRoleRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 分配用户角色
       tags:
       - 用户管理
   /system/user/update:
@@ -605,8 +5505,7 @@ paths:
           description: '{"code": 0, "msg":"Success","data": null}'
           schema:
             $ref: '#/definitions/response.Response'
-      security:
-      - "": []
+      security: []
       summary: 修改用户
       tags:
       - 用户管理

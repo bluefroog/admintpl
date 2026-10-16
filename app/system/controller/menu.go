@@ -21,7 +21,7 @@ var (
 // @Description 菜单列表
 // @Tags 菜单管理
 // @Param data query domain.MenuSearchRequest true "data"
-// @Success 0 {response.PageResult} response.Response{data=response.PageResult{list=[]domain.Menu}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
+// @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.Menu}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
 // @Router /system/menu/list [get]
 // @Security
 func (u *Menu) List(c *gin.Context) {

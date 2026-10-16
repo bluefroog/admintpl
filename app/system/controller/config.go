@@ -55,7 +55,7 @@ func (u *Config) List(c *gin.Context) {
 // @Tags 系统参数管理
 // @Param data body domain.ConfigCreateRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/config/create [config]
+// @Router /system/config/create [post]
 // @Security
 func (u *Config) Create(c *gin.Context) {
 	var data *domain.ConfigCreateRequest
