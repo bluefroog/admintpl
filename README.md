@@ -19,9 +19,25 @@
 
 # 项目初始化
 ```bash
-# 初始化（下载依赖）
-go mod tidy
+# 初始化（检查依赖 + 下载依赖）
+just init
 ```
+
+# 配置与环境切换
+
+配置项统一放在根目录 `.env`，`config/config.yaml` 只保留结构并通过 `${KEY}` / `${KEY:-默认值}` 引用：
+
+```bash
+# 切换到开发环境（.env.dev  -> .env）
+just env dev
+
+# 切换到生产环境（.env.pro -> .env）
+just env pro
+```
+
+- 优先级：**系统环境变量 > `.env` 文件 > `config.yaml` 默认值**
+- `.env` 不入库；环境模板 `.env.dev`、`.env.pro` 入库，按需增删变量
+- 可用 `ENV_FILE` 指定其它 env 文件，用 `CONFIG_NAME` 指定其它配置文件
 
 # 项目开发 / 测试 / 打包 / 发布（使用 just）
 ```bash
@@ -30,6 +46,9 @@ just --list
 
 # 初始化：检查项目依赖（有则绿勾 ✔，缺失自动安装）
 just init
+
+# 环境切换：dev / pro
+just env dev
 
 # 开发：启动项目（默认监听 :8080）
 just dev

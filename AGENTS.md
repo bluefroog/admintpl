@@ -26,11 +26,18 @@
   - `just dev` — 开发：启动项目（`go run main.go`）
   - `just test` — 测试：`go test ./...`
   - `just vet` — 检查：`go vet ./...`
+  - `just env dev` / `just env pro` — 环境切换：将 `.env.dev` / `.env.pro` 复制为 `.env`
   - `just build` — 打包：编译静态二进制 `rouyi-go-service`
   - `just release` — 发布：构建 Docker 镜像并推送远程仓库
   - `just docs` — 生成 swagger 文档
   - `just` / `just --list` — 查看全部命令
 - 开发前先 `just vet` + `just test`，开发完成打包用 `just build`，发布用 `just release`。
+
+### 配置约定（环境变量优先）
+
+- `config/config.yaml` **只保留配置结构**，具体值写在根目录 `.env`；yaml 中用 `${KEY}` / `${KEY:-默认值}` 引用。
+- 优先级：**系统环境变量 > `.env` > `config.yaml` 默认值**；`.env` 不入库，环境模板 `.env.dev`、`.env.pro` 入库。
+- 新增配置项：先在 `config/config.yaml` 加占位符，再在 `.env.dev` / `.env.pro` 补同名变量，不要在 yaml 里写死具体值。
 
 ## 3. 开发完成流程（每次开发完成后必须执行）
 

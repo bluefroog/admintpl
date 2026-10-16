@@ -9,6 +9,9 @@ srv := "rouyi-go-service"
 version := "latest"
 image := srv + ":" + version
 
+# 将 recipe 参数以位置参数（$1、$2...）传给 shell，避免消息中的 $ 被 shell 展开
+set positional-arguments
+
 # 默认：列出所有可用命令
 default:
     @just --list
@@ -30,8 +33,19 @@ init:
     go mod tidy
     @echo "== 初始化完成 ✔ =="
 
+# 环境切换：将 .env.<环境> 复制为 .env（可选 dev / pro）
+# 用法：just env dev / just env pro
+env env_name="dev":
+    @if [ ! -f ".env.{{ env_name }}" ]; then echo "✘ 环境文件 .env.{{ env_name }} 不存在（可选：dev / pro）"; exit 1; fi
+    @cp -f ".env.{{ env_name }}" .env
+    @echo "== 已切换到 {{ env_name }} 环境：.env.{{ env_name }} -> .env =="
+
+# 内部：确保 .env 存在（缺失时默认按 dev 初始化）
+_ensure-env:
+    @if [ ! -f .env ]; then cp -f .env.dev .env; echo "== 未找到 .env，已按 dev 环境初始化（just env pro 可切换生产）=="; fi
+
 # 开发：启动项目（默认监听 :8080）
-dev:
+dev: _ensure-env
     go run main.go
 
 # 测试：运行全部单元测试
@@ -50,7 +64,7 @@ build:
     go env -w CGO_ENABLED=1
 
 # 发布：构建 Docker 镜像并推送到远程仓库
-release:
+release: _ensure-env
     docker login
     docker build . -t {{ image }}
     docker push {{ image }}
@@ -65,7 +79,7 @@ docs:
 # 不带参数则打开编辑器（自动载入 .gitmessage 模板）
 commit message="":
     git add -A
-    @if [ -n "{{ message }}" ]; then git commit -m "{{ message }}"; else git commit; fi
+    @if [ -n "$1" ]; then printf '%s' "$1" | git commit -F -; else git commit; fi
 
 # 推送：推送到远程仓库
 push:
