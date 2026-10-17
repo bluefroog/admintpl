@@ -64,6 +64,29 @@ just build
 
 # 发布：构建 Docker 镜像并推送远程仓库
 just release
+
+# 容器运行：本地以容器方式启动（用 .env 注入配置）
+just docker-run
+```
+
+# 容器部署
+
+镜像只包含二进制与 `config/`（配置结构），配置值通过环境变量注入，优先级：
+**容器环境变量 > `.env` > `config/config.yaml` 默认值**。
+
+```bash
+just build
+just env pro          # 选好生产配置
+just release          # 构建并推送镜像
+
+# 方式一：指定 env 文件
+docker run -d --name admintpl -p 8080:8080 --env-file .env rouyi-go-service:latest
+
+# 方式二：直接注入环境变量
+docker run -d --name admintpl -p 8080:8080 \
+  -e DB_DSN='root:123456@tcp(10.0.0.5:3306)/ruoyi?charset=utf8mb4&parseTime=True&loc=Local' \
+  -e SERVICE_DEBUG=false \
+  rouyi-go-service:latest
 ```
 
 # 接口文档生成

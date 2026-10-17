@@ -70,6 +70,10 @@ release: _ensure-env
     docker push {{ image }}
     rm -f ./{{ srv }}
 
+# 容器运行：本地以容器方式启动（用 .env 注入环境变量，监听 :8080）
+docker-run: _ensure-env
+    docker run --rm -it -p 8080:8080 --env-file .env {{ image }}
+
 # 文档：生成 swagger 接口文档
 docs:
     swag init -o ./app/swagger

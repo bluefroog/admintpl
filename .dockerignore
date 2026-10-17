@@ -1,0 +1,14 @@
+# 构建上下文裁剪：运行镜像只需要 rouyi-go-service 与 config/
+.git
+.gitignore
+.gitattributes
+.gitmessage
+.idea
+.env
+.env.dev
+.env.pro
+docs
+*.md
+justfile
+Makefile
+LICENSE
