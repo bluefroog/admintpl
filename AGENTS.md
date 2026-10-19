@@ -12,6 +12,7 @@
 | 系统管理 | `app/system` | `/system/...` | 用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证 |
 | 系统监控 | `app/monitor` | `/monitor/...` | 在线用户/登录日志/操作日志/服务监控/缓存监控 |
 | 定时任务 | `app/cron` | `/monitor/job...`、`/monitor/jobLog/...` | 任务配置/调度器/任务日志/内置调用目标 |
+| 代码生成 | `app/gen` | `/tool/gen/...` | 表结构导入/生成配置/同步数据库表结构 |
 
 每个模块包含 `domain/`（实体 + 请求结构体）、`service/`（业务逻辑）、`controller/`（HTTP 控制器）、`initialize.go`（初始化入口，负责注册路由与模块级启动逻辑）、`test/http/`（接口测试文件）。
 
@@ -31,7 +32,7 @@
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
 - 删除接口必须同步清理关联表（用户：`sys_user_role`/`sys_user_post`；角色：`sys_role_menu`/`sys_role_dept`/`sys_user_role`），与若依一致，避免孤儿数据。
 - 新增 `.go`/`.md`/`.http` 文件使用 **CRLF** 行尾。
-- 其它模块未迁移的业务（如代码生成）按同一模块划分方式新建 `app/<模块>`，不要塞进 `app/system`。
+- 其它模块（工具类，如 `app/gen` 的代码生成、`/tool/build` 表单构建、`/tool/swagger` 系统接口）按同一模块划分方式新建 `app/<模块>`，不要塞进 `app/system`。
 
 ## 2. 开发工具：just（开发 / 测试 / 打包 / 发布）
 
@@ -42,6 +43,7 @@
   - `just test` — 测试：`go test ./...`
   - `just vet` — 检查：`go vet ./...`
   - `just smoke [BASE_URL]` — 冒烟：对已启动实例跑读接口 + 全模块 CRUD 回归（默认 `http://127.0.0.1:8080`，脚本 `scripts/smoke.sh`）
+  - `just gen-check [BASE_URL] [MYSQL_CMD]` — 代码生成深度校验：建临时表 → 导入 → 校验列配置推导 → 同步数据库 → 清理（脚本 `scripts/gen-check.sh`）
   - `just env dev` / `just env pro` — 环境切换：将 `.env.dev` / `.env.pro` 复制为 `.env`
   - `just build` — 打包：编译供镜像使用的 linux/amd64 静态二进制 `rouyi-go-service`
   - `just release` — 发布：构建 Docker 镜像并推送远程仓库
@@ -137,7 +139,24 @@
 - **排查**：`system.cache.enabled`（`CACHE_ENABLED`）置 false 时全部查询回源数据库；
   缓存内容可在「缓存监控 / 缓存列表」按 `sys_config` / `sys_dict` 过滤查看。
 
-## 9. 服务监控 / 缓存监控约定
+## 9. 代码生成（app/gen）约定
+
+- **模块位置**：代码生成属于系统工具（`/tool/**`），独立成 `app/gen` 模块（与 `app/system`、`app/monitor`、`app/cron` 平级），
+  按「一表一套文件」建立 `domain/gen-table.go`、`domain/gen-table-column.go`、`service/table.go`、`controller/table.go`，
+  模型在 `app/gen/domain/init.go` 的 `Models()` 中声明（`bootstrap` 汇总迁移，新增模块无需改迁移逻辑）。
+- **接口**：`/tool/gen/list`、`/tool/gen/db-list`、`/tool/gen/column-list`、`/tool/gen/detail`、`/tool/gen/import`、
+  `/tool/gen/update`、`/tool/gen/synch-db`、`/tool/gen/delete`；`gen_table` 只能由导入接口写入，**不提供 create 接口**。
+- **表结构读取**：一律通过 `information_schema.tables` / `information_schema.columns` 原始查询（GORM `Table(...)`），
+  不要引入第三方元数据表；已导入表用子查询排除，`qrtz_%`、`gen_%` 前缀表不参与导入。
+- **默认配置推导**：字段类型/必填/编辑/列表/查询/显示类型的推导集中在 `app/gen/service/field.go`
+  （`InitTable`/`InitColumnField`/`SetPkColumn`），保持与若依一致；修改推导规则必须同步补 `field_test.go` 用例。
+- **命名冲突**：`domain.Table` 已有 GORM 需要的 `TableName()` 方法，因此表名字段命名为 `Name`（JSON 仍为 `table_name`），
+  不要再添加同名方法/字段。
+- **事务与清理**：导入、修改、同步、删除都在事务内完成；删除与同步必须同时维护 `gen_table_column`（不留孤儿字段配置）。
+- **配置项**：包路径/模块名/作者/表前缀去掉规则来自 `system.gen.*`（`GEN_PACKAGE_NAME`、`GEN_MODULE_NAME`、`GEN_AUTHOR`、
+  `GEN_AUTO_REMOVE_PRE`、`GEN_TABLE_PREFIX`），禁止在代码里写死。
+
+## 10. 服务监控 / 缓存监控约定
 
 - **服务监控** `/monitor/server`（权限 `monitor:server:list`）：采集逻辑在 `common/sysinfo`，**只用标准库**（Linux 读 `/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts` + `syscall.Statfs`），
   禁止引入 `gopsutil`；平台相关代码用构建标签拆分（`sysinfo_linux.go` / `sysinfo_other.go`），字符串解析逻辑放在平台无关文件以便单测；

@@ -567,5 +567,134 @@ else
 fi
 
 echo
+echo "===== 代码生成（表结构导入 / 配置修改 / 同步数据库）====="
+T="$BASE_URL/tool"
+
+# 代码生成接口断言（与 req 相同，但使用 /tool 前缀）
+treq() {
+  local m=$1 p=$2 out
+  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$T$p")
+  if echo "$out" | grep -q '"code":0'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "tool$p"
+  elif echo "$out" | grep -qE '1054|Unknown column'; then
+    sqlbad=$((sqlbad+1)); printf '\033[31mSQLERR\033[0m %-44s %s\n' "tool$p" "$(echo "$out" | head -c 170)"
+  elif echo "$out" | grep -q 'record not found'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s （空表，无记录，符合预期）\n' "tool$p"
+  else
+    bad=$((bad+1)); printf '\033[33mWARN\033[0m  %-44s %s\n' "tool$p" "$(echo "$out" | head -c 170)"
+  fi
+}
+
+treq GET '/gen/list?pageSize=3'
+
+# 未导入的数据库表列表（取第一张表用于导入测试）
+db_list=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/db-list?pageSize=5")
+imp_table=$(echo "$db_list" | grep -o '"table_name":"[^"]*"' | head -1 | cut -d'"' -f4)
+if [ -n "$imp_table" ]; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' '数据库表列表返回可导入表' "$imp_table"
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '数据库表列表返回可导入表' "$(echo "$db_list" | head -c 170)"
+fi
+
+# 空表名导入被拒绝（参数校验）
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/import" -H 'Content-Type: application/json' -d '{"tables":[]}')
+if echo "$out" | grep -q '"code":-1'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '导入表结构（空表名被拒绝）'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '导入表结构（空表名被拒绝）' "$(echo "$out" | head -c 170)"
+fi
+
+if [ -n "$imp_table" ]; then
+  # 导入表结构
+  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/import" -H 'Content-Type: application/json' -d "{\"tables\":[\"$imp_table\"]}")
+  if echo "$out" | grep -q '"imported":1'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' '导入表结构' "$imp_table"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '导入表结构' "$(echo "$out" | head -c 170)"
+  fi
+
+  # 重复导入被拒绝
+  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/import" -H 'Content-Type: application/json' -d "{\"tables\":[\"$imp_table\"]}")
+  if echo "$out" | grep -q '"code":-1'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '重复导入同表被拒绝'
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '重复导入同表被拒绝' "$(echo "$out" | head -c 170)"
+  fi
+
+  # 导入后按表名查询取编号
+  gen_list=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/list?table_name=$imp_table&pageSize=1")
+  gen_id=$(pick_id "$gen_list")
+  if [ -n "$gen_id" ]; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s id=%s\n' '代码生成表列表查询' "$gen_id"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '代码生成表列表查询' "$(echo "$gen_list" | head -c 170)"
+  fi
+
+  if [ -n "$gen_id" ]; then
+    # 详情：列信息 + 主键列 + 类名（sys_ 前缀已按配置去除）
+    gen_detail=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/detail?id=$gen_id")
+    if echo "$gen_detail" | grep -q '"columns"' && echo "$gen_detail" | grep -q '"pk_column"'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '代码生成表详情返回列与主键列'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '代码生成表详情返回列与主键列' "$(echo "$gen_detail" | head -c 170)"
+    fi
+    if echo "$gen_detail" | grep -q '"go_type"'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '列信息包含推导的 GO 类型'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '列信息包含推导的 GO 类型' "$(echo "$gen_detail" | head -c 170)"
+    fi
+
+    # 字段列表接口
+    treq GET "/gen/column-list?table_id=$gen_id"
+    # 缺少表编号时被拒绝
+    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/column-list")
+    if echo "$out" | grep -q '"code":-1'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '字段列表缺少表编号被拒绝'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '字段列表缺少表编号被拒绝' "$(echo "$out" | head -c 170)"
+    fi
+
+    # 修改生成配置
+    out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$T/gen/update" -H 'Content-Type: application/json' \
+      -d "{\"id\":$gen_id,\"table_name\":\"$imp_table\",\"table_comment\":\"冒烟测试表\",\"class_name\":\"SmokeGen\",\"tpl_category\":\"crud\",\"package_name\":\"github.com/bluefroog/admintpl\",\"module_name\":\"system\",\"business_name\":\"smoke\",\"function_name\":\"冒烟测试\",\"function_author\":\"smoke\",\"gen_type\":\"0\",\"tree_code\":\"id\",\"remark\":\"smoke\"}")
+    if echo "$out" | grep -q '"code":0'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '修改代码生成配置'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '修改代码生成配置' "$(echo "$out" | head -c 170)"
+    fi
+    # 修改结果与树表参数落库校验
+    gen_detail=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/detail?id=$gen_id")
+    if echo "$gen_detail" | grep -q '"class_name":"SmokeGen"' && echo "$gen_detail" | grep -q '"tree_code":"id"'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '配置修改与树表参数已落库'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '配置修改与树表参数已落库' "$(echo "$gen_detail" | head -c 170)"
+    fi
+
+    # 同步数据库表结构
+    out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/synch-db" -H 'Content-Type: application/json' -d "{\"id\":$gen_id}")
+    if echo "$out" | grep -q '"code":0'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '同步数据库表结构'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '同步数据库表结构' "$(echo "$out" | head -c 170)"
+    fi
+
+    # 删除导入记录（同时清理列信息）
+    out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$T/gen/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$gen_id]}")
+    if echo "$out" | grep -q '"code":0'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除代码生成配置'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '删除代码生成配置' "$(echo "$out" | head -c 170)"
+    fi
+    # 删除后列信息一并清理
+    col_left=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/column-list?table_id=$gen_id")
+    if echo "$col_left" | grep -q '"total":0'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除后列信息已清理'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '删除后列信息已清理' "$(echo "$col_left" | head -c 170)"
+    fi
+  fi
+fi
+
+echo
 printf '===== 汇总：通过=%s  SQL列名错误=%s  其他失败=%s =====\n' "$ok" "$sqlbad" "$bad"
 [ "$sqlbad" -eq 0 ] && [ "$bad" -eq 0 ] || exit 1

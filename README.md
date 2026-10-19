@@ -19,7 +19,8 @@
 * [已实现]服务监控：监视当前系统 CPU、内存、磁盘、Go 运行时等信息。
 * [已实现]数据权限：按角色划分数据范围（全部/自定义/本部门/本部门及以下/仅本人），作用于用户、部门、角色列表。
 * [已实现]定时任务：任务配置（增删改查/启停/立即执行一次）+ 调度执行 + 任务日志；cron 表达式与调用目标均为若依（Quartz）语义。
-* [待实现]代码生成：前后端代码的生成。
+* [已实现]代码生成：数据库表结构导入、生成配置维护（表配置/字段配置/树表参数）、同步数据库表结构。
+* [待实现]代码生成模板渲染：按生成配置渲染各层代码并预览/下载（zip）。
 
 # 项目初始化
 ```bash
@@ -184,12 +185,41 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 * **启动预热**：服务启动时把参数表与字典数据全量加载进缓存（`CACHE_ENABLED=true`），并打印预热条目数；
 * **排查手段**：`CACHE_ENABLED=false` 时全部查询直接回源数据库；缓存内容可在「缓存监控 / 缓存列表」页面查看（按 `sys_config` / `sys_dict` 名称过滤）。
 
+# 代码生成
+
+| 接口 | 方法 | 说明 |
+| ---- | ---- | ---- |
+| `/tool/gen/list` | GET | 代码生成表列表：支持 `table_name`、`table_comment`、`begin_time`、`end_time` 过滤 |
+| `/tool/gen/db-list` | GET | 数据库表列表：`information_schema.tables` 中尚未导入的表（已排除 `qrtz_%`、`gen_%` 与已导入表） |
+| `/tool/gen/import` | POST | 导入表结构：`tables` 支持 JSON 数组或逗号分隔，已导入的表自动跳过，全为已导入时返回错误 |
+| `/tool/gen/detail` | GET | 代码生成表详情：表配置 + `columns`（字段配置）+ `pk_column`（主键列）+ 树表参数 |
+| `/tool/gen/column-list` | GET | 字段配置列表：按 `table_id` 查询 |
+| `/tool/gen/update` | PUT | 修改生成配置：表配置与字段配置（`columns` 可省略），树表参数写入 `options` |
+| `/tool/gen/synch-db` | POST | 同步数据库表结构：新增列、删除已移除列、列类型变化时重置列配置 |
+| `/tool/gen/delete` | DELETE | 删除生成配置：同一事务内清理 `gen_table_column` |
+
+* **表结构来源**：字段名称/类型/主键/自增/必填全部来自 `information_schema.columns`（按 `ordinal_position` 排序），表描述来自 `information_schema.tables`，不依赖任何第三方元数据表；
+* **默认配置推导（与若依一致）**：字符串 -> `string`（`text` 系列或长度 >= 500 为 `textarea`，否则 `input`）、时间 -> `Time`/`datetime`、数字 -> `int`/`int64`/`float64`；列名含 `name`/`status` 默认必填，`status` 列默认 `radio`，`type`/`sex` 结尾的列默认 `select`，`*name` 列默认 `LIKE` 查询；`id`/`create_by`/`create_time`/`del_flag`/`update_by`/`update_time` 默认不参与编辑、列表（`remark` 不参与查询）；
+* **类名与包名来自配置**：`system.gen.auto-remove-pre` + `system.gen.table-prefix` 决定实体类名（`sys_notice` -> `Notice`），`system.gen.package-name`/`module-name`/`author` 决定包路径、模块名与作者；
+* **主键列**：优先取 `is_pk=1` 的列，表无主键时取第一列（避免生成代码时主键为空）；
+* **删除/同步均在事务内完成**，同步不会丢失用户已配置的显示类型（列类型未变化时只同步列名、描述与排序列）；
+* `gen_table` 只能通过导入接口写入，因此没有独立的 `create` 接口（避免出现与实际表结构不一致的脏配置）。
+
+| 变量 | 默认值 | 说明 |
+| ---- | ------ | ---- |
+| `GEN_PACKAGE_NAME` | github.com/bluefroog/admintpl | 生成代码的包路径（Go module 前缀） |
+| `GEN_MODULE_NAME` | system | 生成代码所属模块（`app/<module>`） |
+| `GEN_AUTHOR` | bluefrog | 生成功能作者 |
+| `GEN_AUTO_REMOVE_PRE` | true | 表名生成实体类名时是否去掉表前缀 |
+| `GEN_TABLE_PREFIX` | sys_ | 表前缀，多个以英文逗号分隔 |
+
 # 模块划分
 
 ```
 app/system    系统管理（用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证）
 app/monitor   系统监控（在线用户/登录日志/操作日志/服务监控/缓存监控）
 app/cron      定时任务（任务配置/调度器/任务日志/内置调用目标）
+app/gen       代码生成（表结构导入/生成配置/同步数据库表结构）
 common/database  数据库初始化与迁移（DB/InitDB/AutoMigrateAll/TableEmpty）
 common/sysinfo   服务器指标采集（标准库 /proc 实现）
 common/cache     进程内内存缓存（含监控统计与注册表）
@@ -239,6 +269,7 @@ just vet
 # 冒烟：对已启动的实例跑认证 + 读接口 + 全模块 CRUD 回归（自动登录携带令牌）
 just smoke
 just smoke http://192.168.122.129:8080
+just gen-check http://192.168.122.129:8080   # 代码生成深度校验（需 mysql 客户端）
 SMOKE_USER=admin SMOKE_PASS=admin123 just smoke    # 自定义登录账号
 
 # 打包：编译 linux/amd64 静态二进制（镜像内运行）

@@ -43,6 +43,13 @@ system:
   # 参数 / 字典缓存（sys_config 与 sys_dict 缓存在进程内，变更后失效，支持 /system/*/refresh-cache 手动刷新）
   cache:
     enabled: "${CACHE_ENABLED:-true}" # 是否启用参数与字典缓存（关闭后每次查询直接回源数据库，仅建议排查问题时使用）
+  # 代码生成（导入数据库表 -> 维护生成配置 -> 生成代码）
+  gen:
+    package-name: "${GEN_PACKAGE_NAME:-github.com/bluefroog/admintpl}" # 生成代码的包路径（Go module 前缀）
+    module-name: "${GEN_MODULE_NAME:-system}" # 生成代码所属模块（app/<module>）
+    author: "${GEN_AUTHOR:-bluefrog}" # 生成功能作者
+    auto-remove-pre: "${GEN_AUTO_REMOVE_PRE:-true}" # 表名生成实体类名时是否去掉表前缀
+    table-prefix: "${GEN_TABLE_PREFIX:-sys_}" # 表前缀，多个以英文逗号分隔
 
 # 环境变量清单（.env / 容器环境变量 / 系统环境变量均可注入，优先级从高到低）：
 #   SERVICE_PORT SERVICE_DEBUG
@@ -52,3 +59,4 @@ system:
 #   SEED_ENABLED
 #   JOB_ENABLED JOB_LOG_RETAIN_DAYS
 #   DATA_SCOPE_ENABLED CACHE_ENABLED
+#   GEN_PACKAGE_NAME GEN_MODULE_NAME GEN_AUTHOR GEN_AUTO_REMOVE_PRE GEN_TABLE_PREFIX

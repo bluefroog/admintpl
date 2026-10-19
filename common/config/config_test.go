@@ -134,6 +134,8 @@ func TestConfigFileExpansion(t *testing.T) {
 		"system.job.enabled", "system.job.log-retain-days",
 		"system.data-scope.enabled",
 		"system.cache.enabled",
+		"system.gen.package-name", "system.gen.module-name", "system.gen.author",
+		"system.gen.auto-remove-pre", "system.gen.table-prefix",
 	}
 	for _, key := range required {
 		if !conf.IsSet(key) {
@@ -154,6 +156,7 @@ func TestConfigFileExpansion(t *testing.T) {
 		"service.debug", "database.admin.debug", "system.auth.enabled",
 		"system.auth.permission-enabled", "system.captcha.enabled", "system.seed.enabled",
 		"system.job.enabled", "system.data-scope.enabled", "system.cache.enabled",
+		"system.gen.auto-remove-pre",
 	}
 	for _, key := range bools {
 		value := strings.ToLower(conf.GetString(key))

@@ -61,6 +61,12 @@ vet:
 smoke base_url="http://127.0.0.1:8080":
     bash ./scripts/smoke.sh {{ base_url }}
 
+# 代码生成深度校验：建临时表 -> 导入 -> 校验列配置 -> 同步数据库 -> 清理
+# 用法：just gen-check 或 just gen-check http://192.168.122.129:8080
+#      第二个参数为 mysql 客户端命令（默认走本机 docker exec mysql）
+gen-check base_url="http://127.0.0.1:8080" mysql_cmd="docker exec mysql mysql -uroot -p123456 --batch --skip-column-names ruoyi -e":
+    bash ./scripts/gen-check.sh {{ base_url }} "{{ mysql_cmd }}"
+
 # 打包：编译 linux/amd64 静态二进制（Docker 镜像内运行，勿用本机平台二进制）
 build:
     rm -f ./{{ srv }}

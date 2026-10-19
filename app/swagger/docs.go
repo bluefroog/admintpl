@@ -6275,6 +6275,438 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tool/gen/column-list": {
+            "get": {
+                "security": [],
+                "description": "获取指定代码生成表的字段配置列表",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取代码生成表字段列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "列名称",
+                        "name": "column_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "编号",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "归属表编号",
+                        "name": "table_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.TableColumn"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/db-list": {
+            "get": {
+                "security": [],
+                "description": "查询 information_schema.tables，返回尚未导入代码生成的数据库表",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取数据库表列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "开始时间",
+                        "name": "begin_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表描述",
+                        "name": "table_comment",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表名称",
+                        "name": "table_name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.DbTable"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除代码生成业务，同时清理其字段配置",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "删除代码生成业务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/detail": {
+            "get": {
+                "security": [],
+                "description": "获取代码生成表详情，包含字段配置、主键列与树表参数",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取代码生成表详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": {} }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.Table"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/import": {
+            "post": {
+                "security": [],
+                "description": "按表名导入数据库表结构到代码生成业务表（已导入的表自动跳过）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "导入表结构",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.TableImportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/list": {
+            "get": {
+                "security": [],
+                "description": "已导入 gen_table 的代码生成业务表列表",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取代码生成表列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "开始时间",
+                        "name": "begin_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "create_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "编号",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表描述",
+                        "name": "table_comment",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表名称",
+                        "name": "table_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "update_by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.Table"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/synch-db": {
+            "post": {
+                "security": [],
+                "description": "按数据库最新结构同步代码生成业务表（新增列 / 删除已移除列 / 列类型变化重置列配置）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "同步数据库表结构",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.TableSynchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/update": {
+            "put": {
+                "security": [],
+                "description": "修改代码生成业务配置（表信息 + 字段配置）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "修改代码生成业务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.TableUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -6544,6 +6976,27 @@ const docTemplate = `{
                 },
                 "value": {
                     "description": "参数键名",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.DbTable": {
+            "type": "object",
+            "properties": {
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "table_comment": {
+                    "description": "表描述",
+                    "type": "string"
+                },
+                "table_name": {
+                    "description": "表名称",
+                    "type": "string"
+                },
+                "update_time": {
+                    "description": "更新时间",
                     "type": "string"
                 }
             }
@@ -8690,6 +9143,390 @@ const docTemplate = `{
                 },
                 "sysOsName": {
                     "description": "操作系统",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.Table": {
+            "type": "object",
+            "required": [
+                "table_name"
+            ],
+            "properties": {
+                "business_name": {
+                    "description": "生成业务名",
+                    "type": "string"
+                },
+                "class_name": {
+                    "description": "实体类名称",
+                    "type": "string"
+                },
+                "columns": {
+                    "description": "表列信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.TableColumn"
+                    }
+                },
+                "create_by": {
+                    "description": "创建者",
+                    "type": "string"
+                },
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "function_author": {
+                    "description": "生成功能作者",
+                    "type": "string"
+                },
+                "function_name": {
+                    "description": "生成功能名",
+                    "type": "string"
+                },
+                "gen_path": {
+                    "description": "生成路径（不填默认项目路径）",
+                    "type": "string"
+                },
+                "gen_type": {
+                    "description": "生成代码方式（0zip压缩包 1自定义路径）",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "编号",
+                    "type": "integer"
+                },
+                "module_name": {
+                    "description": "生成模块名",
+                    "type": "string"
+                },
+                "options": {
+                    "description": "其它生成选项（树表模板参数等 JSON）",
+                    "type": "string"
+                },
+                "package_name": {
+                    "description": "生成包路径",
+                    "type": "string"
+                },
+                "pk_column": {
+                    "description": "主键列信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.TableColumn"
+                        }
+                    ]
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "table_comment": {
+                    "description": "表描述",
+                    "type": "string"
+                },
+                "table_name": {
+                    "description": "表名称（表名与 GORM 的 TableName() 方法同名会冲突，故字段名用 Name）",
+                    "type": "string"
+                },
+                "tpl_category": {
+                    "description": "使用的模板（crud单表操作 tree树表操作）",
+                    "type": "string"
+                },
+                "tree_code": {
+                    "description": "以下字段不落库：由 options 解析或查询列信息后回填",
+                    "type": "string"
+                },
+                "tree_name": {
+                    "description": "树名称字段",
+                    "type": "string"
+                },
+                "tree_parent_code": {
+                    "description": "树父编码字段",
+                    "type": "string"
+                },
+                "update_by": {
+                    "description": "更新者",
+                    "type": "string"
+                },
+                "update_time": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.TableColumn": {
+            "type": "object",
+            "properties": {
+                "column_comment": {
+                    "description": "列描述",
+                    "type": "string"
+                },
+                "column_name": {
+                    "description": "列名称",
+                    "type": "string"
+                },
+                "column_type": {
+                    "description": "列类型",
+                    "type": "string"
+                },
+                "create_by": {
+                    "description": "创建者",
+                    "type": "string"
+                },
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "dict_type": {
+                    "description": "字典类型",
+                    "type": "string"
+                },
+                "go_field": {
+                    "description": "GO 字段名",
+                    "type": "string"
+                },
+                "go_type": {
+                    "description": "GO 类型",
+                    "type": "string"
+                },
+                "html_field": {
+                    "description": "html 字段名",
+                    "type": "string"
+                },
+                "html_type": {
+                    "description": "显示类型",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "编号",
+                    "type": "integer"
+                },
+                "is_edit": {
+                    "description": "是否编辑字段（1是）",
+                    "type": "string"
+                },
+                "is_increment": {
+                    "description": "是否自增（1是）",
+                    "type": "string"
+                },
+                "is_insert": {
+                    "description": "是否为插入字段（1是）",
+                    "type": "string"
+                },
+                "is_list": {
+                    "description": "是否列表字段（1是）",
+                    "type": "string"
+                },
+                "is_pk": {
+                    "description": "是否主键（1是）",
+                    "type": "string"
+                },
+                "is_query": {
+                    "description": "是否查询字段（1是）",
+                    "type": "string"
+                },
+                "is_required": {
+                    "description": "是否必填（1是）",
+                    "type": "string"
+                },
+                "query_type": {
+                    "description": "查询方式",
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "sort": {
+                    "description": "排序",
+                    "type": "integer"
+                },
+                "table_id": {
+                    "description": "归属表编号",
+                    "type": "integer"
+                },
+                "update_by": {
+                    "description": "更新者",
+                    "type": "string"
+                },
+                "update_time": {
+                    "description": "更新时间",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.TableColumnUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "column_comment": {
+                    "description": "列描述",
+                    "type": "string"
+                },
+                "dict_type": {
+                    "description": "字典类型",
+                    "type": "string"
+                },
+                "go_field": {
+                    "description": "GO 字段名",
+                    "type": "string"
+                },
+                "go_type": {
+                    "description": "GO 类型",
+                    "type": "string"
+                },
+                "html_field": {
+                    "description": "html 字段名",
+                    "type": "string"
+                },
+                "html_type": {
+                    "description": "显示类型",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "编号",
+                    "type": "integer"
+                },
+                "is_edit": {
+                    "description": "是否编辑字段（1是）",
+                    "type": "string"
+                },
+                "is_insert": {
+                    "description": "是否为插入字段（1是）",
+                    "type": "string"
+                },
+                "is_list": {
+                    "description": "是否列表字段（1是）",
+                    "type": "string"
+                },
+                "is_query": {
+                    "description": "是否查询字段（1是）",
+                    "type": "string"
+                },
+                "is_required": {
+                    "description": "是否必填（1是）",
+                    "type": "string"
+                },
+                "query_type": {
+                    "description": "查询方式",
+                    "type": "string"
+                },
+                "sort": {
+                    "description": "排序",
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.TableImportRequest": {
+            "type": "object",
+            "required": [
+                "tables"
+            ],
+            "properties": {
+                "tables": {
+                    "description": "待导入的表名列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "domain.TableSynchRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "主键ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.TableUpdateRequest": {
+            "type": "object",
+            "required": [
+                "class_name",
+                "id",
+                "table_name"
+            ],
+            "properties": {
+                "business_name": {
+                    "description": "生成业务名",
+                    "type": "string"
+                },
+                "class_name": {
+                    "description": "实体类名称",
+                    "type": "string"
+                },
+                "columns": {
+                    "description": "列信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.TableColumnUpdateRequest"
+                    }
+                },
+                "function_author": {
+                    "description": "生成功能作者",
+                    "type": "string"
+                },
+                "function_name": {
+                    "description": "生成功能名",
+                    "type": "string"
+                },
+                "gen_path": {
+                    "description": "生成路径",
+                    "type": "string"
+                },
+                "gen_type": {
+                    "description": "生成代码方式（0zip压缩包 1自定义路径）",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键ID",
+                    "type": "integer"
+                },
+                "module_name": {
+                    "description": "生成模块名",
+                    "type": "string"
+                },
+                "options": {
+                    "description": "其它生成选项（JSON 字符串）",
+                    "type": "string"
+                },
+                "package_name": {
+                    "description": "生成包路径",
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "table_comment": {
+                    "description": "表描述",
+                    "type": "string"
+                },
+                "table_name": {
+                    "description": "表名称",
+                    "type": "string"
+                },
+                "tpl_category": {
+                    "description": "使用的模板（crud单表操作 tree树表操作）",
+                    "type": "string"
+                },
+                "tree_code": {
+                    "description": "树表模板参数（同时传入时会覆盖 options 中的同名项）",
+                    "type": "string"
+                },
+                "tree_name": {
+                    "description": "树名称字段",
+                    "type": "string"
+                },
+                "tree_parent_code": {
+                    "description": "树父编码字段",
                     "type": "string"
                 }
             }

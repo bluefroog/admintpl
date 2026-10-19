@@ -56,4 +56,4 @@ Authorization: Bearer {{token}}
 #
 # 说明：
 # - 本项目使用进程内内存缓存（common/cache），与若依基于 Redis 的实现不同，因此统计的是各内存缓存实例
-# - 已注册的缓存：default（默认缓存）、captcha（图形验证码）
+# - 已注册的缓存：default（默认缓存）、captcha（图形验证码）、sys_config（参数缓存）、sys_dict（字典缓存）

@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"github.com/bluefroog/admintpl/app/cron"
 	crondomain "github.com/bluefroog/admintpl/app/cron/domain"
+	"github.com/bluefroog/admintpl/app/gen"
+	gendomain "github.com/bluefroog/admintpl/app/gen/domain"
 	"github.com/bluefroog/admintpl/app/monitor"
 	monitordomain "github.com/bluefroog/admintpl/app/monitor/domain"
 	"github.com/bluefroog/admintpl/app/swagger"
@@ -21,12 +23,14 @@ func Bootstrap(r *gin.Engine) error {
 		systemdomain.Models(),  // 系统管理
 		monitordomain.Models(), // 系统监控
 		crondomain.Models(),    // 定时任务
+		gendomain.Models(),     // 代码生成
 	)
 
 	// todo 后期可以做成配置反射调用
 	system.Initialize(r)  // 系统管理服务（含登录认证）
 	monitor.Initialize(r) // 系统监控服务
 	cron.Initialize(r)    // 定时任务服务
+	gen.Initialize(r)     // 代码生成服务
 	swagger.Initialize(r) // swagger 服务
 	return nil
 }

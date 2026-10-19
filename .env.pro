@@ -40,3 +40,10 @@ JOB_LOG_RETAIN_DAYS=30
 DATA_SCOPE_ENABLED=true
 # 参数 / 字典缓存（关闭后每次查询回源数据库，仅建议排查问题时使用）
 CACHE_ENABLED=true
+
+# ---- 代码生成 ----
+GEN_PACKAGE_NAME=github.com/bluefroog/admintpl
+GEN_MODULE_NAME=system
+GEN_AUTHOR=bluefrog
+GEN_AUTO_REMOVE_PRE=true
+GEN_TABLE_PREFIX=sys_
