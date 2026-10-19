@@ -77,4 +77,17 @@
 - **基础数据初始化**：`app/system/service/seed.go` 仅在对应表为空时写入（幂等、事务内），入口开关 `SEED_ENABLED`；
   修改种子数据后需清空对应表并重启服务验证，或直接改库核对。
 - **自检**：开发完成后本地跑 `just vet` + `just test`，对已启动实例跑 `just smoke <BASE_URL>`
-  （脚本会自动登录携带令牌，并校验零值字段落库、SQL 列名错配等回归项）。
+  （脚本会自动登录携带令牌，并校验零值字段落库、SQL 列名错配、定时任务调度等回归项）。
+
+## 6. 定时任务约定
+
+- **cron 表达式**：统一使用 `common/cron`（若依/Quartz 语义，6~7 段 `秒 分 时 日 月 周 [年]`），
+  禁止再引入 Quartz/gcron/cron 第三方库；日与周都指定时取「或」关系，周字段 `1~7` 为周日~周六（兼容 `0` 表示周日）。
+- **调用目标**：`bean.method(args)` 形式，只能调用在 `app/system/task/task.go` 中通过 `task.Register(...)` 显式注册的方法；
+  新增任务目标 = 注册目标方法 + 建任务并启用，未注册的目标会在新增/修改时被拒绝（等价于若依的调用目标白名单）。
+- **调度器**：`app/system/service/job-scheduler.go`（按表命名规范之外的模块级文件），按秒扫描、独立协程执行、
+  并发策略与错过执行补偿按 `sys_job.concurrent` / `sys_job.misfire_policy` 生效，执行结果写入 `sys_job_log`；
+  开关 `system.job.enabled`（`JOB_ENABLED`）。
+- **任务变更必须联动调度器**：新增/修改/启停后调用 `JobScheduler{}.Refresh(id)`，删除调用 `Remove(id)`
+  （`service/job.go` 已内置）；新任务表的 Create 同样使用 map 写入（`concurrent`/`status`/`misfire_policy` 有默认值）。
+- **任务日志写入**：使用 map 写入（`status=0`、`exception_info=''` 是零值）；日志清理天数由 `JOB_LOG_RETAIN_DAYS` 控制。

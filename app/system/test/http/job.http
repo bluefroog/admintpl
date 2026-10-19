@@ -31,7 +31,7 @@ POST http://127.0.0.1:8080/system/job/create
 content-type: application/json
 
 {
-  "invoke_target": "task.target",
+  "invoke_target": "ryTask.ryNoParams()",
   "name": ""
 }
 
@@ -50,7 +50,7 @@ content-type: application/json
 
 {
   "name": "job-name-1",
-  "invoke_target": "task.target"
+  "invoke_target": "ryTask.ryNoParams()"
 }
 
 ### create success 1
@@ -60,7 +60,7 @@ content-type: application/json
 {
   "name": "job-name-2",
   "group": "default",
-  "invoke_target": "task.target2",
+  "invoke_target": "ryTask.ryParams('ry')",
   "cron_expression": "0/5 * * * * ?",
   "status": 1
 }
@@ -71,7 +71,7 @@ content-type: application/json
 
 {
   "name": "job-name-1",
-  "invoke_target": "task.target3"
+  "invoke_target": "ryTask.ryMultipleParams('ry', true, 2000, 1.0)"
 }
 
 ### update empty
@@ -88,7 +88,7 @@ content-type: application/json
 {
   "id": 0,
   "name": "定时任务",
-  "invoke_target": "task.target"
+  "invoke_target": "ryTask.ryNoParams()"
 }
 
 ### update empty name
@@ -97,7 +97,7 @@ content-type: application/json
 
 {
   "id": 1,
-  "invoke_target": "task.target",
+  "invoke_target": "ryTask.ryNoParams()",
   "name": ""
 }
 
@@ -109,7 +109,7 @@ content-type: application/json
   "id": 1,
   "name": "job-name-111",
   "group": "default",
-  "invoke_target": "task.target",
+  "invoke_target": "ryTask.ryNoParams()",
   "cron_expression": "0/10 * * * * ?",
   "status": 0
 }
@@ -163,3 +163,100 @@ content-type: application/json
 
 ### check-name
 GET http://127.0.0.1:8080/system/job/check-name?name=ryTask
+
+### ===== 定时任务调度 =====
+# 说明：以下用例需先在本文件中执行上面的 login 用例获取令牌（AUTH_ENABLED=true 时）
+
+### 登录获取令牌（本文件内使用）
+# @name jobLogin
+POST http://127.0.0.1:8080/login
+content-type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 新增任务：销毁性 cron 非法（预期 cron 表达式错误）
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+Authorization: Bearer {{jobLogin.response.body.$.data.token}}
+
+{
+  "name": "非法cron任务",
+  "group": "default",
+  "executor": "default",
+  "invoke_target": "ryTask.ryNoParams()",
+  "cron_expression": "0 0 0 * *",
+  "misfire_policy": "3",
+  "concurrent": "1",
+  "status": 1
+}
+
+### 新增任务：调用目标未注册（预期调用目标字符串错误）
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+Authorization: Bearer {{jobLogin.response.body.$.data.token}}
+
+{
+  "name": "非法调用目标任务",
+  "group": "default",
+  "executor": "default",
+  "invoke_target": "evil.exec('rm -rf /')",
+  "cron_expression": "0 0 1 * * ?",
+  "misfire_policy": "3",
+  "concurrent": "1",
+  "status": 1
+}
+
+### 新增任务：每 2 秒执行一次（状态 0 正常，创建后即参与调度）
+POST http://127.0.0.1:8080/system/job/create
+content-type: application/json
+Authorization: Bearer {{jobLogin.response.body.$.data.token}}
+
+{
+  "name": "调度演示任务",
+  "group": "default",
+  "executor": "default",
+  "invoke_target": "ryTask.ryMultipleParams('ry', true, 2000, 1.0)",
+  "job_args": "hello|2000",
+  "job_kwargs": "",
+  "cron_expression": "*/2 * * * * ?",
+  "misfire_policy": "1",
+  "concurrent": "1",
+  "status": 0,
+  "remark": "每 2 秒执行一次，演示自动调度"
+}
+
+### 立即执行一次（状态为暂停的任务同样可以执行）
+PUT http://127.0.0.1:8080/system/job/run
+content-type: application/json
+Authorization: Bearer {{jobLogin.response.body.$.data.token}}
+
+{
+  "id": 4
+}
+
+### 暂停任务（状态 1 暂停后不再自动触发）
+PUT http://127.0.0.1:8080/system/job/change-status
+content-type: application/json
+Authorization: Bearer {{jobLogin.response.body.$.data.token}}
+
+{
+  "id": 4,
+  "status": 1
+}
+
+### 启用任务（状态 0 正常，重新参与调度）
+PUT http://127.0.0.1:8080/system/job/change-status
+content-type: application/json
+Authorization: Bearer {{jobLogin.response.body.$.data.token}}
+
+{
+  "id": 4,
+  "status": 0
+}
+
+### 任务执行日志（验证 sys_job_log 是否写入）
+GET http://127.0.0.1:8080/system/job-log/list?pageSize=10&job_name=调度演示任务
+Authorization: Bearer {{jobLogin.response.body.$.data.token}}

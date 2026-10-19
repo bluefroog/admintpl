@@ -70,6 +70,13 @@ type JobChangeStatusRequest struct {
 	Status uint `json:"status" form:"status"`             // 状态（0正常 1暂停）
 }
 
+// JobRunRequest 定时任务立即执行一次请求结构体
+//
+// 与若依「执行一次」接口一致：状态为暂停的任务同样可以手动执行一次。
+type JobRunRequest struct {
+	ID uint `json:"id" form:"id" validate:"required"` // 任务ID
+}
+
 // JobCheckNameRequest 任务名称唯一性校验请求结构体
 type JobCheckNameRequest struct {
 	ID   *uint  `json:"id" form:"id"`     // 任务ID（编辑时传入，排除自身）

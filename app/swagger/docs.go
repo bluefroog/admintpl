@@ -2171,6 +2171,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/system/job/run": {
+            "put": {
+                "security": [],
+                "description": "立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "立即执行一次定时任务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobRunRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/job/update": {
             "put": {
                 "security": [],
@@ -6901,6 +6930,18 @@ const docTemplate = `{
                 },
                 "status": {
                     "description": "执行状态（0正常 1失败）",
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.JobRunRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "任务ID",
                     "type": "integer"
                 }
             }

@@ -31,6 +31,43 @@ type menuSeed struct {
 	visible   string // 0显示 1隐藏
 }
 
+// jobSeed 定时任务种子数据
+type jobSeed struct {
+	name           string
+	group          string
+	executor       string
+	invokeTarget   string
+	jobArgs        string
+	cronExpression string
+	misfirePolicy  string
+	concurrent     string
+	status         uint
+}
+
+// jobSeeds 若依内置示例任务（默认「暂停」，不会自动执行；可在定时任务页面启用或立即执行一次）
+var jobSeeds = []jobSeed{
+	{
+		name: "系统默认（无参）", group: "default", executor: "default",
+		invokeTarget: "ryTask.ryNoParams()", cronExpression: "0/10 * * * * ?",
+		misfirePolicy: JobMisfireDoNothing, concurrent: JobConcurrentRefuse, status: JobStatusPaused,
+	},
+	{
+		name: "系统默认（有参）", group: "default", executor: "default",
+		invokeTarget: "ryTask.ryParams('ry')", cronExpression: "0/15 * * * * ?",
+		misfirePolicy: JobMisfireDoNothing, concurrent: JobConcurrentRefuse, status: JobStatusPaused,
+	},
+	{
+		name: "系统默认（多参）", group: "default", executor: "default",
+		invokeTarget: "ryTask.ryMultipleParams('ry', true, 2000, 1.0)", cronExpression: "0/20 * * * * ?",
+		misfirePolicy: JobMisfireDoNothing, concurrent: JobConcurrentRefuse, status: JobStatusPaused,
+	},
+	{
+		name: "示例任务（无参，job_args 传参）", group: "default", executor: "default",
+		invokeTarget: "testTask.test1()", jobArgs: "hello|2000", cronExpression: "0 0/5 * * * ?",
+		misfirePolicy: JobMisfireDoNothing, concurrent: JobConcurrentAllow, status: JobStatusPaused,
+	},
+}
+
 // menuSeeds 若依标准菜单（目录 + 菜单 + 按钮）
 var menuSeeds = []menuSeed{
 	// ---- 目录 ----
@@ -208,17 +245,6 @@ var dictTypeSeeds = []struct {
 // @description: 按表判断并补齐部门/岗位/角色/用户/菜单/参数/字典等基础数据，已存在的数据不会重复写入
 // @return: err error
 func (s Seed) Ensure() error {
-	var count int64
-	if err := domain.DB.Model(&domain.User{}).Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		var menuCount int64
-		if err := domain.DB.Model(&domain.Menu{}).Count(&menuCount).Error; err == nil && menuCount > 0 {
-			log.Info("基础数据已存在，跳过初始化")
-			return nil
-		}
-	}
 	log.Info("开始初始化基础数据……")
 	err := domain.DB.Transaction(func(tx *gorm.DB) error {
 		for _, step := range []func(*gorm.DB) error{
@@ -232,6 +258,7 @@ func (s Seed) Ensure() error {
 			s.seedConfigs,
 			s.seedDictTypes,
 			s.seedDictData,
+			s.seedJobs,
 		} {
 			if err := step(tx); err != nil {
 				return err
@@ -549,6 +576,39 @@ func (s Seed) seedConfigs(tx *gorm.DB) error {
 		})
 	}
 	return tx.Create(&rows).Error
+}
+
+// seedJobs 初始化定时任务示例数据
+func (s Seed) seedJobs(tx *gorm.DB) error {
+	empty, err := s.empty(tx, &domain.Job{})
+	if err != nil || !empty {
+		return err
+	}
+	now := time.Now()
+	for _, item := range jobSeeds {
+		// 使用 map 写入：status=0/concurrent="0" 等零值会被 GORM 的 default 标签忽略
+		record := map[string]interface{}{
+			"Name":           item.name,
+			"Group":          item.group,
+			"Executor":       item.executor,
+			"InvokeTarget":   item.invokeTarget,
+			"JobArgs":        item.jobArgs,
+			"JobKwargs":      "",
+			"CronExpression": item.cronExpression,
+			"MisfirePolicy":  item.misfirePolicy,
+			"Concurrent":     item.concurrent,
+			"Status":         item.status,
+			"Remark":         "系统内置任务",
+			"CreateBy":       "system",
+			"CreateTime":     now,
+			"UpdateBy":       "system",
+			"UpdateTime":     now,
+		}
+		if err := tx.Model(&domain.Job{}).Create(record).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // seedDictTypes 初始化字典类型

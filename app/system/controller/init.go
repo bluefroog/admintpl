@@ -199,8 +199,9 @@ func InitRouter(r *gin.Engine) {
 		group.GET("/dict-data/get-by-type", dictData.GetByType)
 		group.GET("/dict-data/check-label", dictData.CheckLabelUnique)
 
-		// 定时任务扩展接口（状态修改 / 唯一性校验）
+		// 定时任务扩展接口（状态修改 / 立即执行一次 / 唯一性校验）
 		group.PUT("/job/change-status", job.ChangeStatus)
+		group.PUT("/job/run", job.Run)
 		group.GET("/job/check-name", job.CheckNameUnique)
 
 		// 操作日志扩展接口（清空）

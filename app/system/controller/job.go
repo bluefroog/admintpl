@@ -181,6 +181,31 @@ func (u *Job) ChangeStatus(c *gin.Context) {
 	response.Success("修改成功", c)
 }
 
+// Run 立即执行一次定时任务
+// @Summary 立即执行一次定时任务
+// @Description 立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志
+// @Tags 定时任务管理
+// @Param data body domain.JobRunRequest true "data"
+// @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
+// @Router /system/job/run [put]
+// @Security
+func (u *Job) Run(c *gin.Context) {
+	var param domain.JobRunRequest
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := job.Run(param.ID); err != nil {
+		response.Fail(-1, "执行失败: "+err.Error(), c)
+		return
+	}
+	response.Success("执行成功", c)
+}
+
 // @Summary 校验任务名称是否唯一
 // @Description 校验任务名称是否唯一
 // @Tags 定时任务

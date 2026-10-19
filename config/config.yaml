@@ -31,8 +31,12 @@ system:
     length: "${CAPTCHA_LENGTH:-4}" # 验证码位数
     expire: "${CAPTCHA_EXPIRE:-120}" # 验证码有效期（秒）
   seed:
-    # 基础数据初始化（部门/角色/用户/菜单/字典等，仅当对应表为空时写入）
+    # 基础数据初始化（部门/角色/用户/菜单/字典/定时任务等，仅当对应表为空时写入）
     enabled: "${SEED_ENABLED:-false}"
+  # 定时任务调度
+  job:
+    enabled: "${JOB_ENABLED:-true}" # 是否启动定时任务调度器（关闭后任务不再自动触发，手动「执行一次」仍可用）
+    log-retain-days: "${JOB_LOG_RETAIN_DAYS:-30}" # 定时任务日志保留天数（启动时清理，<=0 表示不清理）
 
 # 环境变量清单（.env / 容器环境变量 / 系统环境变量均可注入，优先级从高到低）：
 #   SERVICE_PORT SERVICE_DEBUG
@@ -40,3 +44,4 @@ system:
 #   AUTH_ENABLED AUTH_TOKEN_EXPIRE AUTH_MAX_RETRY AUTH_LOCK_TIME AUTH_PERMISSION_ENABLED
 #   CAPTCHA_ENABLED CAPTCHA_LENGTH CAPTCHA_EXPIRE
 #   SEED_ENABLED
+#   JOB_ENABLED JOB_LOG_RETAIN_DAYS

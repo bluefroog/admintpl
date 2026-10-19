@@ -176,12 +176,86 @@ crud config     "name=冒烟参数$S"  "{\"name\":\"冒烟参数$S\",\"key\":\"s
 crud department "name=冒烟部门$S"  "{\"parent_id\":0,\"name\":\"冒烟部门$S\",\"ancestors\":\"0\",\"sort\":1,\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"parent_id\":0,\"name\":\"冒烟部门$S改\",\"ancestors\":\"0\",\"sort\":2,\"status\":0,\"remark\":\"备注2\"}"
 crud dict-type  "name=冒烟字典$S"  "{\"name\":\"冒烟字典$S\",\"type\":\"smoke_type_$S\",\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"name\":\"冒烟字典$S改\",\"type\":\"smoke_type_$S\",\"status\":0,\"remark\":\"备注2\"}"
 crud dict-data  "type=smoke_type_$S" "{\"sort\":1,\"label\":\"冒烟标签$S\",\"value\":\"1\",\"type\":\"smoke_type_$S\",\"css_class\":\"\",\"list_class\":\"\",\"is_default\":\"0\",\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"sort\":2,\"label\":\"冒烟标签$S改\",\"value\":\"2\",\"type\":\"smoke_type_$S\",\"css_class\":\"\",\"list_class\":\"\",\"is_default\":\"0\",\"status\":0,\"remark\":\"备注2\"}"
-crud job        "name=冒烟任务$S"  "{\"name\":\"冒烟任务$S\",\"group\":\"DEFAULT\",\"executor\":\"default\",\"invoke_target\":\"smoke.run\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"1\",\"concurrent\":\"0\",\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"name\":\"冒烟任务$S改\",\"group\":\"DEFAULT\",\"executor\":\"default\",\"invoke_target\":\"smoke.run\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"1\",\"concurrent\":\"0\",\"status\":0,\"remark\":\"备注2\"}"
+crud job        "name=冒烟任务$S"  "{\"name\":\"冒烟任务$S\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryNoParams()\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"0\",\"status\":1,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"name\":\"冒烟任务$S改\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryParams('ry')\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"0\",\"status\":1,\"remark\":\"备注2\"}"
 crud menu       "name=冒烟菜单$S"  "{\"name\":\"冒烟菜单$S\",\"parent_id\":0,\"sort\":1,\"path\":\"/smoke$S\",\"component\":\"\",\"query\":\"\",\"route_name\":\"\",\"is_frame\":1,\"is_cache\":0,\"menu_type\":\"M\",\"visible\":\"0\",\"status\":0,\"perms\":\"smoke:list$S\",\"icon\":\"#\"}"  "{\"id\":%ID%,\"name\":\"冒烟菜单$S改\",\"parent_id\":0,\"sort\":2,\"path\":\"/smoke$S\",\"component\":\"\",\"query\":\"\",\"route_name\":\"\",\"is_frame\":1,\"is_cache\":0,\"menu_type\":\"M\",\"visible\":\"0\",\"status\":0,\"perms\":\"smoke:list$S\",\"icon\":\"#\"}"
 crud notice     "title=冒烟公告$S" "{\"title\":\"冒烟公告$S\",\"content\":\"公告内容\",\"type\":1,\"status\":0}"  "{\"id\":%ID%,\"title\":\"冒烟公告$S改\",\"content\":\"公告内容2\",\"type\":1,\"status\":0}"
 crud post       "name=冒烟岗位$S"  "{\"code\":\"smoke_post_$S\",\"name\":\"冒烟岗位$S\",\"sort\":9,\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"code\":\"smoke_post_$S\",\"name\":\"冒烟岗位$S改\",\"sort\":8,\"status\":0,\"remark\":\"备注2\"}"
 crud role       "name=冒烟角色$S"  "{\"key\":\"smoke_role_$S\",\"name\":\"冒烟角色$S\",\"sort\":9,\"status\":0,\"menu_check_strictly\":1,\"dept_check_strictly\":1,\"data_scope\":1,\"del_flag\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"key\":\"smoke_role_$S\",\"name\":\"冒烟角色$S改\",\"sort\":8,\"status\":0,\"menu_check_strictly\":1,\"dept_check_strictly\":1,\"data_scope\":1,\"del_flag\":0,\"remark\":\"备注2\"}"
 crud user       "username=smoke$S" "{\"username\":\"smoke$S\",\"mobile\":\"139$S\",\"nickname\":\"冒烟用户$S\",\"status\":1,\"email\":\"smoke$S@test.com\",\"gender\":1,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"备注1\",\"isAdmin\":false}"  "{\"id\":%ID%,\"username\":\"smoke$S\",\"mobile\":\"139$S\",\"nickname\":\"冒烟用户$S改\",\"status\":1,\"email\":\"smoke$S@test.com\",\"gender\":1,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"备注2\",\"isAdmin\":false}"
+
+echo
+echo "===== 定时任务调度（cron 解析 / 自动触发 / 立即执行 / 启停 / 日志）====="
+JOBN="smokejob$S"
+# 非法 cron 表达式应当被拒绝
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/job/create" -H 'Content-Type: application/json' \
+  -d "{\"name\":\"${JOBN}bad\",\"invoke_target\":\"ryTask.ryNoParams()\",\"cron_expression\":\"0 0 0 * *\",\"status\":1}")
+if echo "$out" | grep -q 'Cron 表达式不正确'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '非法 cron 表达式被拒绝'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '非法 cron 表达式被拒绝' "$(echo "$out" | head -c 170)"
+fi
+# 未注册的调用目标应当被拒绝
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/job/create" -H 'Content-Type: application/json' \
+  -d "{\"name\":\"${JOBN}bad2\",\"invoke_target\":\"evil.exec('rm -rf /')\",\"cron_expression\":\"0 0 1 * * ?\",\"status\":1}")
+if echo "$out" | grep -q '调用目标字符串错误'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '未注册的调用目标被拒绝'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '未注册的调用目标被拒绝' "$(echo "$out" | head -c 170)"
+fi
+
+# 任务日志条数（按任务名称统计）
+job_logs() {
+  curl -s -m 10 "${auth_header[@]}" "$B/job-log/list?pageSize=200&job_name=$1" | grep -o '"job_name"' | wc -l | tr -d ' '
+}
+# 每 2 秒执行一次、禁止并发、错过执行放弃
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/job/create" -H 'Content-Type: application/json' \
+  -d "{\"name\":\"$JOBN\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryNoParams()\",\"cron_expression\":\"*/2 * * * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"1\",\"status\":0}")
+if echo "$out" | grep -q '"code":0'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '创建并启用定时任务'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '创建并启用定时任务' "$(echo "$out" | head -c 170)"
+fi
+JID=$(pick_id "$(curl -s -m 10 "${auth_header[@]}" "$B/job/list?pageSize=1&name=$JOBN")")
+if [ -n "$JID" ]; then
+  sleep 6
+  c1=$(job_logs "$JOBN")
+  if [ "${c1:-0}" -ge 1 ]; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s 已产生 %s 条执行日志\n' '任务按 cron 自动触发' "$c1"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 未产生执行日志\n' '任务按 cron 自动触发'
+  fi
+  # 暂停后不应再自动触发
+  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$B/job/change-status" -H 'Content-Type: application/json' -d "{\"id\":$JID,\"status\":1}")
+  echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '暂停定时任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '暂停定时任务' "$out"; }
+  sleep 6
+  c2=$(job_logs "$JOBN")
+  if [ "${c2:-0}" = "${c1:-0}" ]; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s 日志条数保持 %s\n' '暂停后不再自动触发' "$c2"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 暂停前 %s 条、暂停后 %s 条\n' '暂停后不再自动触发' "$c1" "$c2"
+  fi
+  # 立即执行一次（暂停状态同样可执行）
+  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$B/job/run" -H 'Content-Type: application/json' -d "{\"id\":$JID}")
+  echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '立即执行一次任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '立即执行一次任务' "$out"; }
+  sleep 2
+  c3=$(job_logs "$JOBN")
+  if [ "${c3:-0}" -gt "${c2:-0}" ]; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s -> %s 条\n' '执行日志写入 sys_job_log' "$c2" "$c3"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 日志未增加（%s）\n' '执行日志写入 sys_job_log' "$c3"
+  fi
+  # 删除任务应同时清理其执行日志（与若依一致）
+  out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/job/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$JID]}")
+  echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除定时任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '删除定时任务' "$out"; }
+  c4=$(job_logs "$JOBN")
+  if [ "${c4:-1}" = "0" ]; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除任务同时清理执行日志'
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 仍残留 %s 条日志\n' '删除任务同时清理执行日志' "$c4"
+  fi
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 未取到任务ID\n' '定时任务调度'
+fi
 
 echo
 echo "===== 字段零值落库校验（GORM default 标签陷阱）====="

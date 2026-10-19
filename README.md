@@ -14,7 +14,7 @@
 * [已实现]操作日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
 * [已实现]登录日志：系统登录日志记录查询包含登录异常。
 * [已实现]在线用户：当前系统中活跃用户状态监控，支持强退。
-* [待实现]定时任务：任务配置已实现（增删改查/启停/日志），调度执行未实现。
+* [已实现]定时任务：任务配置（增删改查/启停/立即执行一次）+ 调度执行 + 任务日志；cron 表达式与调用目标均为若依（Quartz）语义。
 * [待实现]代码生成：前后端代码的生成。
 * [待实现]服务监控：监视当前系统CPU、内存、磁盘、堆栈等相关信息。
 
@@ -60,7 +60,7 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 | `AUTH_PERMISSION_ENABLED` | false | 开启后按请求路径推导权限标识（如 `system/user/list` -> `system:user:list`）做角色权限校验 |
 | `CAPTCHA_ENABLED` | dev=false / pro=true | 是否开启登录图形验证码 |
 | `CAPTCHA_LENGTH` / `CAPTCHA_EXPIRE` | 4 / 120 | 验证码位数 / 有效期（秒） |
-| `SEED_ENABLED` | dev=true / pro=false | 空库时自动初始化基础数据（部门/岗位/角色/用户/菜单/字典/参数） |
+| `SEED_ENABLED` | dev=true / pro=false | 空库时自动初始化基础数据（部门/岗位/角色/用户/菜单/字典/参数/定时任务） |
 
 基础数据默认账号（`SEED_ENABLED=true` 且对应表为空时写入，幂等）：
 
@@ -70,8 +70,61 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 | `bluefrog` | `admin123` | 普通角色（角色 ID 2，仅部分菜单） |
 
 > 启动日志会打印生效开关，例如
-> `system 初始化：登录认证=true 权限校验=false 图形验证码=false 基础数据初始化=true`，
+> `system 初始化：登录认证=true 权限校验=false 图形验证码=false 基础数据初始化=true 定时任务调度=true`，
 > 部署后请核对，避免「配置未随部署更新」导致开关静默失效。
+
+# 定时任务调度
+
+调度器使用标准库实现（无第三方依赖，不引入 Quartz/gcron）：常驻协程按秒扫描 cron 表达式，
+命中即在独立协程中执行「调用目标」，并把执行结果写入 `sys_job_log`。
+
+| 接口 | 方法 | 说明 |
+| ---- | ---- | ---- |
+| `/system/job/list` `/create` `/update` `/delete` `/detail` | - | 任务增删改查（新增/修改会校验 cron 与调用目标） |
+| `/system/job/change-status` | PUT | 启用（`status=0`）/ 暂停（`status=1`），立即生效 |
+| `/system/job/run` | PUT | 立即执行一次（暂停中的任务同样可以执行） |
+| `/system/job-log/list` `/detail` `/delete` | - | 任务执行日志查询 / 删除 |
+
+**cron 表达式**（6~7 段：`秒 分 时 日 月 周 [年]`，与若依 Quartz 一致）：
+
+```bash
+0/20 * * * * ?          # 每 20 秒执行一次
+0 0 2 1 * ?             # 每月 1 日凌晨 2 点执行
+0 15 10 ? * MON-FRI     # 周一到周五 10:15:00 执行
+0 0 12 L * ?            # 每月最后一天 12:00:00
+0 0 12 15W * ?          # 每月最接近 15 号的工作日
+0 0 12 ? * 6L           # 每月最后一个周五
+```
+
+* 日（日）与周（周）都指定时取「或」关系（Quartz 语义），未使用的一侧写 `?`；
+* 周字段 `1~7` 依次表示周日~周六（Quartz 约定），同时兼容 `0` 表示周日；
+* 支持 `*` `?` `,` `-` `/` `L` `W` `#` 与月份/星期英文缩写（`JAN-DEC` / `SUN-SAT`）。
+
+**调用目标**（`bean.method(args)`，与若依一致）：只能调用「已注册」的方法，
+未注册的调用目标在新增/修改时即被拒绝（等价于若依的调用目标白名单校验，避免任意方法调用）。
+内置示例目标定义在 `app/system/task/task.go`：
+
+```bash
+ryTask.ryNoParams()                            # 无参
+ryTask.ryParams('ry')                          # 单个字符串参数
+ryTask.ryMultipleParams('ry', true, 2000, 1.0) # 多类型参数
+testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
+```
+
+新增任务目标：在 `app/system/task/task.go` 中调用 `task.Register(bean, method, remark, fn)` 注册后即可使用；
+任务表的 `job_args`（以 `|` 分隔）在调用目标本身不带参数时作为位置参数传入。
+
+| 变量 | 默认值 | 说明 |
+| ---- | ------ | ---- |
+| `JOB_ENABLED` | true | 是否启动调度器；关闭后任务不再自动触发，手动「执行一次」仍可用 |
+| `JOB_LOG_RETAIN_DAYS` | 30 | 任务日志保留天数（启动时清理，`<=0` 不清理） |
+
+其他约定：
+
+* `concurrent=1`（禁止并发）时，上次执行未结束会跳过本次触发；
+* `misfire_policy`：`1` 立即执行 / `2` 执行一次 / `3` 放弃执行——调度器启动时据此补偿停机期间错过的执行（`3` 不补偿）；
+* 删除任务时同时清理该任务的执行日志（与若依一致，日志按 `job_name + job_group` 匹配）；
+* 内置示例任务默认「暂停」，`SEED_ENABLED=true` 且 `sys_job` 为空时写入 4 条示例任务。
 
 # 配置与环境切换
 

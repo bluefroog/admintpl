@@ -64,7 +64,8 @@ smoke base_url="http://127.0.0.1:8080":
 # 打包：编译 linux/amd64 静态二进制（Docker 镜像内运行，勿用本机平台二进制）
 build:
     rm -f ./{{ srv }}
-    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o {{ srv }} main.go
+    WSLENV=GOOS:GOARCH:CGO_ENABLED GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o {{ srv }} main.go
+    @file ./{{ srv }} | grep -q ELF || { echo "!! 产物不是 Linux ELF：交叉编译环境变量未生效（WSL 调用 Windows go 需 WSLENV 透传）"; exit 1; }
     @echo "== 已生成 linux/amd64 静态二进制：{{ srv }} ✔ =="
 
 # 发布：构建 Docker 镜像并推送到远程仓库

@@ -31,3 +31,7 @@ CAPTCHA_EXPIRE=120
 
 # ---- 基础数据初始化（生产环境默认关闭） ----
 SEED_ENABLED=false
+
+# ---- 定时任务调度 ----
+JOB_ENABLED=true
+JOB_LOG_RETAIN_DAYS=30
