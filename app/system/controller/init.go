@@ -143,6 +143,7 @@ func InitRouter(r *gin.Engine) {
 		// 参数扩展接口（按键取值 / 唯一性校验）
 		group.GET("/config/get-by-key", config.GetByKey)
 		group.GET("/config/check-key", config.CheckKeyUnique)
+		group.DELETE("/config/refresh-cache", config.RefreshCache)
 
 		// 角色扩展接口（菜单授权 / 数据权限 / 分配用户 / 唯一性校验）
 		group.PUT("/role/menu", role.AssignMenus)
@@ -165,6 +166,7 @@ func InitRouter(r *gin.Engine) {
 		group.GET("/dict-type/list-all", dictType.ListAll)
 		group.GET("/dict-type/get-by-type", dictType.GetByType)
 		group.GET("/dict-type/check-type", dictType.CheckTypeUnique)
+		group.DELETE("/dict-type/refresh-cache", dictType.RefreshCache)
 
 		// 字典数据扩展接口
 		group.GET("/dict-data/get-by-type", dictData.GetByType)

@@ -38,3 +38,5 @@ JOB_LOG_RETAIN_DAYS=30
 
 # ---- 数据权限 ----
 DATA_SCOPE_ENABLED=true
+# 参数 / 字典缓存（关闭后每次查询回源数据库，仅建议排查问题时使用）
+CACHE_ENABLED=true

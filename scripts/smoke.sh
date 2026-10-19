@@ -432,6 +432,92 @@ zero_check role "name=零值角色$S" "{\"key\":\"zero_role_$S\",\"name\":\"零�
 zero_check user "username=zero$S" "{\"username\":\"zero$S\",\"mobile\":\"138$S\",\"nickname\":\"零值用户$S\",\"status\":0,\"email\":\"zero$S@test.com\",\"gender\":0,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"零值校验\",\"isAdmin\":false}" status
 
 echo
+cache_names=$(curl -s -m 10 "${auth_header[@]}" "$M/cache")
+echo "===== 参数 / 字典缓存（若依缓存语义：预热 / 失效 / 刷新）====="
+# 取当前参数值（同时触发缓存写入）
+cfg=$(curl -s -m 10 "${auth_header[@]}" "$B/config/get-by-key?key=sys.index.sideTheme")
+cfg_value=$(echo "$cfg" | grep -o '"data":"[^"]*"' | head -1 | cut -d'"' -f4)
+if echo "$cfg" | grep -q '"code":0'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s 当前值=%s\n' '读取参数 sys.index.sideTheme' "$cfg_value"
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '读取参数 sys.index.sideTheme' "$(echo "$cfg" | head -c 170)"
+fi
+# 参数已缓存：缓存列表按名称过滤应能查到该键
+cl=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_config&cacheKey=sys.index.sideTheme&pageSize=10")
+if echo "$cl" | grep -q 'sys.index.sideTheme'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '参数已写入缓存 sys_config'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '参数已写入缓存 sys_config' "$(echo "$cl" | head -c 170)"
+fi
+# 修改参数后缓存应失效：再次按键取值必须拿到新值
+cfg_list=$(curl -s -m 10 "${auth_header[@]}" "$B/config/list?key=sys.index.sideTheme&pageSize=1")
+cfg_id=$(pick_id "$cfg_list")
+new_value="theme-smoke$S"
+upd=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$B/config/update" -H 'Content-Type: application/json' \
+  -d "{\"id\":$cfg_id,\"name\":\"主框架页-侧边栏主题\",\"key\":\"sys.index.sideTheme\",\"type\":\"Y\",\"value\":\"$new_value\",\"remark\":\"冒烟测试\"}")
+after=$(curl -s -m 10 "${auth_header[@]}" "$B/config/get-by-key?key=sys.index.sideTheme")
+if echo "$upd" | grep -q '"code":0' && echo "$after" | grep -q "$new_value"; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '修改参数后缓存失效并回源新值'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s upd=%s after=%s\n' '修改参数后缓存失效并回源新值' "$(echo "$upd" | head -c 90)" "$(echo "$after" | head -c 90)"
+fi
+# 还原参数值
+if [ "$cfg_value" != "$new_value" ] && [ -n "$cfg_id" ]; then
+  curl -s -m 10 "${auth_header[@]}" -X PUT "$B/config/update" -H 'Content-Type: application/json' \
+    -d "{\"id\":$cfg_id,\"name\":\"主框架页-侧边栏主题\",\"key\":\"sys.index.sideTheme\",\"type\":\"Y\",\"value\":\"$cfg_value\",\"remark\":\"系统内置参数\"}" >/dev/null
+fi
+# 刷新参数缓存
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/config/refresh-cache")
+if echo "$out" | grep -qE '"code":0,"data":[1-9]'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' '刷新参数缓存 /system/config/refresh-cache' "$(echo "$out" | grep -o '"data":[0-9]*')"
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '刷新参数缓存 /system/config/refresh-cache' "$(echo "$out" | head -c 170)"
+fi
+# 字典数据按类型读取后应写入字典缓存
+dd=$(curl -s -m 10 "${auth_header[@]}" "$B/dict-data/get-by-type?type=sys_normal_disable")
+dl=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_dict&cacheKey=sys_normal_disable&pageSize=10")
+if echo "$dd" | grep -q '"code":0' && echo "$dl" | grep -q 'sys_normal_disable'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '字典数据已写入缓存 sys_dict'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s dd=%s dl=%s\n' '字典数据已写入缓存 sys_dict' "$(echo "$dd" | head -c 90)" "$(echo "$dl" | head -c 90)"
+fi
+# 刷新字典缓存
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/dict-type/refresh-cache")
+if echo "$out" | grep -qE '"code":0,"data":[1-9]'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' '刷新字典缓存 /system/dict-type/refresh-cache' "$(echo "$out" | grep -o '"data":[0-9]*')"
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '刷新字典缓存 /system/dict-type/refresh-cache' "$(echo "$out" | head -c 170)"
+fi
+# 字典类型变更后应清理该类型的字典缓存
+dtype="smoke_dict_$S"
+ct=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/dict-type/create" -H 'Content-Type: application/json' \
+  -d "{\"name\":\"冒烟字典$S\",\"type\":\"$dtype\",\"status\":0,\"remark\":\"冒烟测试\"}")
+dt_list=$(curl -s -m 10 "${auth_header[@]}" "$B/dict-type/list?type=$dtype&pageSize=1")
+dt_id=$(pick_id "$dt_list")
+cd_out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/dict-data/create" -H 'Content-Type: application/json' \
+  -d "{\"label\":\"冒烟标签\",\"value\":\"1\",\"type\":\"$dtype\",\"sort\":1,\"is_default\":\"N\",\"status\":0,\"remark\":\"冒烟测试\"}")
+cd_list=$(curl -s -m 10 "${auth_header[@]}" "$B/dict-data/list?type=$dtype&pageSize=1")
+dd_id=$(pick_id "$cd_list")
+curl -s -m 10 "${auth_header[@]}" "$B/dict-data/get-by-type?type=$dtype" >/dev/null
+dl2=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_dict&cacheKey=$dtype&pageSize=10")
+del_t=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/dict-type/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$dt_id]}")
+dl3=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_dict&cacheKey=$dtype&pageSize=10")
+if echo "$dl2" | grep -q "$dtype" && echo "$del_t" | grep -q '"code":0' && ! echo "$dl3" | grep -q "$dtype"; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除字典类型后清理字典缓存'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s cached=%s del=%s after=%s\n' '删除字典类型后清理字典缓存' "$(echo "$dl2" | head -c 60)" "$(echo "$del_t" | head -c 60)" "$(echo "$dl3" | head -c 60)"
+fi
+# 清理冒烟字典数据
+[ -n "$dd_id" ] && curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/dict-data/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$dd_id]}" >/dev/null
+
+# 两个业务缓存已注册到缓存监控
+if echo "$cache_names" | grep -q '"sys_config"' && echo "$cache_names" | grep -q '"sys_dict"'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '参数/字典缓存已注册到缓存监控'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '参数/字典缓存已注册到缓存监控' "$(echo "$cache_names" | head -c 170)"
+fi
+
+echo
 echo "===== 服务监控 / 缓存监控 ====="
 # 服务监控：CPU / 内存 / Go 运行时 / 主机 / 磁盘
 srv=$(curl -s -m 10 "${auth_header[@]}" "$M/server")

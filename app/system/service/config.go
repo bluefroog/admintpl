@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/cache"
+	"github.com/bluefroog/admintpl/common/config"
 	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 	"strings"
@@ -10,6 +12,74 @@ import (
 )
 
 type Config struct{}
+
+// 参数缓存：与若依一致，sys_config 全量缓存在进程内（config_key -> config_value），
+// 新增/修改/删除后失效，启动时预热，支持手动刷新缓存
+const (
+	// ConfigCacheName 参数缓存名称（缓存监控页面按此名称展示）
+	ConfigCacheName = "sys_config"
+	// configCacheTTL 缓存条目有效期（进程内缓存，仅作兜底清理）
+	configCacheTTL = 24 * time.Hour
+)
+
+// configCacheStore 参数缓存实例（注册到缓存监控）
+var configCacheStore = cache.New(10 * time.Minute)
+
+func init() {
+	cache.Register(ConfigCacheName, configCacheStore)
+}
+
+// ConfigCacheEnabled 是否启用参数缓存（关闭后每次都查库，便于排查配置不生效问题）
+// @return: bool
+func ConfigCacheEnabled() bool {
+	return !config.IsSet("system.cache.enabled") || config.Bool("system.cache.enabled")
+}
+
+// GetByKeyFromCache 仅从缓存读取参数键值（不查库）
+// @param: key string 参数键名
+// @return: string, bool
+func (s Config) GetByKeyFromCache(key string) (string, bool) {
+	value, exists := configCacheStore.Get(key)
+	if !exists {
+		return "", false
+	}
+	str, ok := value.(string)
+	return str, ok
+}
+
+// EvictCache 清理指定参数键名的缓存
+// @param: keys ...string 参数键名
+func (s Config) EvictCache(keys ...string) {
+	for _, key := range keys {
+		if key != "" {
+			configCacheStore.Delete(key)
+		}
+	}
+}
+
+// LoadCache 预热参数缓存（sys_config 全表写入缓存）
+// @return: err error, total int
+func (s Config) LoadCache() (err error, total int) {
+	if !ConfigCacheEnabled() {
+		return nil, 0
+	}
+	var list []domain.Config
+	if err = database.DB.Find(&list).Error; err != nil {
+		return err, 0
+	}
+	configCacheStore.Clear()
+	for _, item := range list {
+		configCacheStore.Set(item.Key, item.Value, configCacheTTL)
+	}
+	return nil, len(list)
+}
+
+// RefreshCache 刷新参数缓存（清空后重新加载）
+// @return: err error, total int
+func (s Config) RefreshCache() (err error, total int) {
+	configCacheStore.Clear()
+	return s.LoadCache()
+}
 
 // GetCount 获取参数列表数据数量
 // @author: [bluefrog](https://github.com/freewu)
@@ -132,7 +202,12 @@ func (s Config) Create(data *domain.ConfigCreateRequest) error {
 	config.UpdateTime = time.Now()
 	config.Remark = data.Remark
 
-	return database.DB.Create(&config).Error
+	if err := database.DB.Create(&config).Error; err != nil {
+		return err
+	}
+	// 写库后失效缓存（下次读取时回源）
+	s.EvictCache(config.Key)
+	return nil
 }
 
 // Update 修改参数
@@ -150,6 +225,11 @@ func (s Config) Update(data *domain.ConfigUpdateRequest) (err error) {
 	if s.KeyIsExist(data.Key, &[]uint{data.ID}) {
 		return errors.New("已存在相同的参数键名")
 	}
+	// 修改前的键名（键名变更时需同时失效旧键）
+	oldKey := ""
+	if detail, detailErr := s.Detail(data.ID); detailErr == nil && detail != nil {
+		oldKey = detail.Key
+	}
 	record := make(map[string]interface{})
 	record["Name"] = data.Name
 	record["Key"] = data.Key
@@ -159,7 +239,11 @@ func (s Config) Update(data *domain.ConfigUpdateRequest) (err error) {
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 
-	return s.UpdateByMap(data.ID, record)
+	if err = s.UpdateByMap(data.ID, record); err != nil {
+		return err
+	}
+	s.EvictCache(oldKey, data.Key)
+	return nil
 }
 
 // UpdateByMap 更新指定ID的参数信息
@@ -183,9 +267,19 @@ func (s Config) UpdateByMap(id uint, updateMap map[string]interface{}) (err erro
 // @param: ids []uint
 // @return: err error
 func (s Config) Delete(ids []uint) (err error) {
+	// 删除前取出键名，用于失效缓存
+	keys := make([]string, 0, len(ids))
+	var list []domain.Config
+	if err = database.DB.Where("config_id in (?)", ids).Find(&list).Error; err != nil {
+		return err
+	}
+	for _, item := range list {
+		keys = append(keys, item.Key)
+	}
 	if err = database.DB.Where("config_id in (?) ", ids).Unscoped().Delete(&domain.Config{}).Error; err != nil {
 		return err
 	}
+	s.EvictCache(keys...)
 	return nil
 }
 
@@ -249,9 +343,18 @@ func (s Config) KeyIsExist(key string, excludeIds *[]uint) bool {
 // @param: key string 参数键名
 // @return: err error, value string
 func (s Config) GetByKey(key string) (err error, value string) {
+	// 缓存优先（与若依 selectConfigByKey 一致）
+	if ConfigCacheEnabled() {
+		if value, exists := s.GetByKeyFromCache(key); exists {
+			return nil, value
+		}
+	}
 	var config domain.Config
 	if err = database.DB.Where("config_key = ?", key).First(&config).Error; err != nil {
 		return err, ""
+	}
+	if ConfigCacheEnabled() {
+		configCacheStore.Set(config.Key, config.Value, configCacheTTL)
 	}
 	return nil, config.Value
 }

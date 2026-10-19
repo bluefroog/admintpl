@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/cache"
+	"github.com/bluefroog/admintpl/common/config"
 	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 	"strings"
@@ -10,6 +12,83 @@ import (
 )
 
 type DictData struct{}
+
+// 字典缓存：与若依一致，按字典类型缓存字典数据列表（dict_type -> []DictData），
+// 字典数据/字典类型变更后失效，启动时预热，支持手动刷新缓存
+const (
+	// DictCacheName 字典缓存名称（缓存监控页面按此名称展示）
+	DictCacheName = "sys_dict"
+	// dictCacheTTL 缓存条目有效期（进程内缓存，仅作兜底清理）
+	dictCacheTTL = 24 * time.Hour
+)
+
+// dictCacheStore 字典缓存实例（注册到缓存监控）
+var dictCacheStore = cache.New(10 * time.Minute)
+
+func init() {
+	cache.Register(DictCacheName, dictCacheStore)
+}
+
+// DictCacheEnabled 是否启用字典缓存（关闭后每次都查库，便于排查字典不生效问题）
+// @return: bool
+func DictCacheEnabled() bool {
+	return !config.IsSet("system.cache.enabled") || config.Bool("system.cache.enabled")
+}
+
+// GetByTypeFromCache 仅从缓存读取字典数据列表（不查库）
+// @param: dictType string 字典类型
+// @return: []domain.DictData, bool
+func (s DictData) GetByTypeFromCache(dictType string) ([]domain.DictData, bool) {
+	value, exists := dictCacheStore.Get(dictType)
+	if !exists {
+		return nil, false
+	}
+	list, ok := value.([]domain.DictData)
+	return list, ok
+}
+
+// EvictCache 清理指定字典类型的缓存
+// @param: dictTypes ...string 字典类型
+func (s DictData) EvictCache(dictTypes ...string) {
+	for _, dictType := range dictTypes {
+		if dictType != "" {
+			dictCacheStore.Delete(dictType)
+		}
+	}
+}
+
+// ClearCache 清空全部字典缓存
+func (s DictData) ClearCache() {
+	dictCacheStore.Clear()
+}
+
+// LoadCache 预热字典缓存（按字典类型分组写入缓存）
+// @return: err error, total int
+func (s DictData) LoadCache() (err error, total int) {
+	if !DictCacheEnabled() {
+		return nil, 0
+	}
+	var list []domain.DictData
+	if err = database.DB.Order("dict_sort asc").Find(&list).Error; err != nil {
+		return err, 0
+	}
+	grouped := make(map[string][]domain.DictData)
+	for _, item := range list {
+		grouped[item.Type] = append(grouped[item.Type], item)
+	}
+	dictCacheStore.Clear()
+	for dictType, items := range grouped {
+		dictCacheStore.Set(dictType, items, dictCacheTTL)
+	}
+	return nil, len(grouped)
+}
+
+// RefreshCache 刷新字典缓存（清空后重新加载）
+// @return: err error, total int
+func (s DictData) RefreshCache() (err error, total int) {
+	dictCacheStore.Clear()
+	return s.LoadCache()
+}
 
 // GetCount 获取字典数据列表数据数量
 // @author: [bluefrog](https://github.com/freewu)
@@ -128,7 +207,11 @@ func (s DictData) Create(data *domain.DictDataCreateRequest) error {
 	dictData.UpdateBy = "" // todo 通过登录服务获取
 	dictData.UpdateTime = time.Now()
 
-	return database.DB.Create(&dictData).Error
+	if err := database.DB.Create(&dictData).Error; err != nil {
+		return err
+	}
+	s.EvictCache(dictData.Type)
+	return nil
 }
 
 // Update 修改字典数据
@@ -141,6 +224,11 @@ func (s DictData) Update(data *domain.DictDataUpdateRequest) (err error) {
 	// 判断字典标签是否唯一
 	if s.LabelIsExist(data.Type, data.Label, &[]uint{data.ID}) {
 		return errors.New("已存在相同的字典标签")
+	}
+	// 修改前的字典类型（类型变更时需同时失效旧类型）
+	oldType := ""
+	if detail, detailErr := s.Detail(data.ID); detailErr == nil && detail != nil {
+		oldType = detail.Type
 	}
 	record := make(map[string]interface{})
 	record["Sort"] = data.Sort
@@ -155,7 +243,11 @@ func (s DictData) Update(data *domain.DictDataUpdateRequest) (err error) {
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 
-	return s.UpdateByMap(data.ID, record)
+	if err = s.UpdateByMap(data.ID, record); err != nil {
+		return err
+	}
+	s.EvictCache(oldType, data.Type)
+	return nil
 }
 
 // UpdateByMap 更新指定ID的字典数据信息
@@ -179,8 +271,16 @@ func (s DictData) UpdateByMap(id uint, updateMap map[string]interface{}) (err er
 // @param: ids []uint
 // @return: err error
 func (s DictData) Delete(ids []uint) (err error) {
+	// 删除前取出字典类型，用于失效缓存
+	var list []domain.DictData
+	if err = database.DB.Where("dict_code in (?)", ids).Find(&list).Error; err != nil {
+		return err
+	}
 	if err = database.DB.Where("dict_code in (?) ", ids).Unscoped().Delete(&domain.DictData{}).Error; err != nil {
 		return err
+	}
+	for _, item := range list {
+		s.EvictCache(item.Type)
 	}
 	return nil
 }
@@ -228,8 +328,17 @@ func (s DictData) LabelIsExist(dictType string, label string, excludeIds *[]uint
 // @param: req *domain.DictDataByTypeRequest
 // @return: err error, list []domain.DictData
 func (s DictData) GetByType(req *domain.DictDataByTypeRequest) (err error, list []domain.DictData) {
+	// 缓存优先（与若依 selectDictDataByType 一致）
+	if DictCacheEnabled() {
+		if cached, exists := s.GetByTypeFromCache(req.Type); exists {
+			return nil, cached
+		}
+	}
 	if err = database.DB.Where("dict_type = ?", req.Type).Order("dict_sort asc").Find(&list).Error; err != nil {
 		return err, nil
+	}
+	if DictCacheEnabled() {
+		dictCacheStore.Set(req.Type, list, dictCacheTTL)
 	}
 	return nil, list
 }

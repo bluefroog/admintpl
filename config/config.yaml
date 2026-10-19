@@ -40,6 +40,9 @@ system:
   # 数据权限（按登录用户角色的数据范围过滤列表数据）
   data-scope:
     enabled: "${DATA_SCOPE_ENABLED:-true}" # 是否开启数据权限过滤（关闭后所有登录用户可见全部数据，仅建议调试使用）
+  # 参数 / 字典缓存（sys_config 与 sys_dict 缓存在进程内，变更后失效，支持 /system/*/refresh-cache 手动刷新）
+  cache:
+    enabled: "${CACHE_ENABLED:-true}" # 是否启用参数与字典缓存（关闭后每次查询直接回源数据库，仅建议排查问题时使用）
 
 # 环境变量清单（.env / 容器环境变量 / 系统环境变量均可注入，优先级从高到低）：
 #   SERVICE_PORT SERVICE_DEBUG
@@ -48,4 +51,4 @@ system:
 #   CAPTCHA_ENABLED CAPTCHA_LENGTH CAPTCHA_EXPIRE
 #   SEED_ENABLED
 #   JOB_ENABLED JOB_LOG_RETAIN_DAYS
-#   DATA_SCOPE_ENABLED
+#   DATA_SCOPE_ENABLED CACHE_ENABLED

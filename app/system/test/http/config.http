@@ -202,3 +202,9 @@ GET http://127.0.0.1:8080/system/config/get-by-key?key=sys.user.initPassword
 
 ### check-key
 GET http://127.0.0.1:8080/system/config/check-key?key=sys.user.initPassword
+
+### 刷新参数缓存（若依「刷新缓存」等价实现，返回缓存条目数）
+DELETE http://127.0.0.1:8080/system/config/refresh-cache
+
+### get-by-key（命中缓存，不查库）
+GET http://127.0.0.1:8080/system/config/get-by-key?key=sys.index.sideTheme

@@ -3383,6 +3383,23 @@ paths:
       summary: 获取系统参数列表
       tags:
       - 系统参数管理
+  /system/config/refresh-cache:
+    delete:
+      description: 清空并按当前数据库内容重新加载参数缓存（若依「刷新缓存」等价实现）
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": 12}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security: []
+      summary: 刷新参数缓存
+      tags:
+      - 系统参数管理
   /system/config/update:
     put:
       description: 修改系统参数
@@ -4087,6 +4104,23 @@ paths:
               type: object
       security: []
       summary: 获取全部字典类型
+      tags:
+      - 字典类型
+  /system/dict-type/refresh-cache:
+    delete:
+      description: 清空并按当前数据库内容重新加载字典数据缓存（若依「刷新缓存」等价实现）
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": 12}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      security: []
+      summary: 刷新字典缓存
       tags:
       - 字典类型
   /system/dict-type/update:

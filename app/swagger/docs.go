@@ -1948,6 +1948,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/system/config/refresh-cache": {
+            "delete": {
+                "security": [],
+                "description": "清空并按当前数据库内容重新加载参数缓存（若依「刷新缓存」等价实现）",
+                "tags": [
+                    "系统参数管理"
+                ],
+                "summary": "刷新参数缓存",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": 12}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/system/config/update": {
             "put": {
                 "security": [],
@@ -3078,6 +3108,36 @@ const docTemplate = `{
                                             "items": {
                                                 "$ref": "#/definitions/domain.DictType"
                                             }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/system/dict-type/refresh-cache": {
+            "delete": {
+                "security": [],
+                "description": "清空并按当前数据库内容重新加载字典数据缓存（若依「刷新缓存」等价实现）",
+                "tags": [
+                    "字典类型"
+                ],
+                "summary": "刷新字典缓存",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": 12}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "integer"
                                         }
                                     }
                                 }

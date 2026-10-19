@@ -150,7 +150,12 @@ func (s DictType) Update(data *domain.DictTypeUpdateRequest) (err error) {
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 
-	return s.UpdateByMap(data.ID, record)
+	if err = s.UpdateByMap(data.ID, record); err != nil {
+		return err
+	}
+	// 字典类型变更会影响字典数据缓存（与若依 @CacheEvict(allEntries = true) 一致）
+	DictData{}.ClearCache()
+	return nil
 }
 
 // UpdateByMap 更新指定ID的字典类型信息
@@ -174,9 +179,19 @@ func (s DictType) UpdateByMap(id uint, updateMap map[string]interface{}) (err er
 // @param: ids []uint
 // @return: err error
 func (s DictType) Delete(ids []uint) (err error) {
+	// 取出字典类型，用于失效字典数据缓存
+	var list []domain.DictType
+	if err = database.DB.Where("dict_id in (?)", ids).Find(&list).Error; err != nil {
+		return err
+	}
 	if err = database.DB.Where("dict_id in (?) ", ids).Unscoped().Delete(&domain.DictType{}).Error; err != nil {
 		return err
 	}
+	types := make([]string, 0, len(list))
+	for _, item := range list {
+		types = append(types, item.Type)
+	}
+	DictData{}.EvictCache(types...)
 	return nil
 }
 

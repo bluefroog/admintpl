@@ -156,3 +156,12 @@ GET http://127.0.0.1:8080/system/dict-type/get-by-type?type=sys_user_sex
 
 ### check-type
 GET http://127.0.0.1:8080/system/dict-type/check-type?type=sys_user_sex
+
+### 刷新字典缓存（若依「刷新缓存」等价实现，返回缓存的字典类型数）
+DELETE http://127.0.0.1:8080/system/dict-type/refresh-cache
+
+### 字典数据按类型读取（首次读库并写入 sys_dict 缓存）
+GET http://127.0.0.1:8080/system/dict-data/get-by-type?type=sys_normal_disable
+
+### 缓存监控中查看字典缓存（键为字典类型）
+GET http://127.0.0.1:8080/monitor/cache/list?cacheName=sys_dict&cacheKey=sys_normal_disable

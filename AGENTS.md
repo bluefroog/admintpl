@@ -123,7 +123,21 @@
   （`service/job.go` 已内置）；新任务表的 Create 同样使用 map 写入（`concurrent`/`status`/`misfire_policy` 有默认值）。
 - **任务日志写入**：使用 map 写入（`status=0`、`exception_info=''` 是零值）；日志清理天数由 `JOB_LOG_RETAIN_DAYS` 控制。
 
-## 8. 服务监控 / 缓存监控约定
+## 8. 参数 / 字典缓存约定（若依缓存语义）
+
+- **缓存介质**：进程内内存缓存 `common/cache`（无 Redis）；参数缓存名 `sys_config`（`config_key -> config_value`），
+  字典缓存名 `sys_dict`（`dict_type -> []DictData`），两者都注册到缓存监控。
+- **实现位置**：参数在 `app/system/service/config.go`（`LoadCache`/`RefreshCache`/`GetByKeyFromCache`/`EvictCache`），
+  字典在 `app/system/service/dict-data.go`（`LoadCache`/`RefreshCache`/`GetByTypeFromCache`/`EvictCache`/`ClearCache`）。
+- **读取一律缓存优先**：`Config{}.GetByKey`、`DictData{}.GetByType` 先查缓存，未命中再查库并回填。
+- **写操作必须失效缓存**：参数新增/修改/删除后失效对应键（键名变更时新旧键都失效）；字典数据变更后失效对应字典类型；
+  字典类型修改/删除后清理相关字典缓存。新增「修改配置/字典」的接口时不要绕过 service。
+- **启动预热**：`app/system/initialize.go` 在 `CACHE_ENABLED=true` 时调用 `LoadCache` 并打印条目数；
+  刷新接口 `DELETE /system/config/refresh-cache`、`DELETE /system/dict-type/refresh-cache`（返回缓存条目数）。
+- **排查**：`system.cache.enabled`（`CACHE_ENABLED`）置 false 时全部查询回源数据库；
+  缓存内容可在「缓存监控 / 缓存列表」按 `sys_config` / `sys_dict` 过滤查看。
+
+## 9. 服务监控 / 缓存监控约定
 
 - **服务监控** `/monitor/server`（权限 `monitor:server:list`）：采集逻辑在 `common/sysinfo`，**只用标准库**（Linux 读 `/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts` + `syscall.Statfs`），
   禁止引入 `gopsutil`；平台相关代码用构建标签拆分（`sysinfo_linux.go` / `sysinfo_other.go`），字符串解析逻辑放在平台无关文件以便单测；
