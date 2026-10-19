@@ -121,6 +121,7 @@ func (s Post) Create(data *domain.PostCreateRequest) error {
 	post.Status = data.Status
 	post.Sort = data.Sort
 
+	post.Remark = data.Remark
 	post.CreateBy = "" // todo 通过登录服务获取
 	post.CreateTime = time.Now()
 	post.UpdateBy = "" // todo 通过登录服务获取
@@ -149,6 +150,7 @@ func (s Post) Update(data *domain.PostUpdateRequest) (err error) {
 	record["Code"] = data.Code
 	record["Status"] = data.Status
 	record["Sort"] = data.Sort
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 

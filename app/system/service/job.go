@@ -126,6 +126,7 @@ func (s Job) Create(data *domain.JobCreateRequest) error {
 	job.Concurrent = data.Concurrent
 	job.Status = data.Status
 
+	job.Remark = data.Remark
 	job.CreateBy = "" // todo 通过登录服务获取
 	job.CreateTime = time.Now()
 	job.UpdateBy = "" // todo 通过登录服务获取
@@ -156,6 +157,7 @@ func (s Job) Update(data *domain.JobUpdateRequest) (err error) {
 	record["MisfirePolicy"] = data.MisfirePolicy
 	record["Concurrent"] = data.Concurrent
 	record["Status"] = data.Status
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 

@@ -59,7 +59,11 @@ just test
 # 检查：go vet
 just vet
 
-# 打包：编译静态二进制
+# 冒烟：对已启动的实例跑读接口 + 全模块 CRUD 回归
+just smoke
+just smoke http://192.168.122.129:8080
+
+# 打包：编译 linux/amd64 静态二进制（镜像内运行）
 just build
 
 # 发布：构建 Docker 镜像并推送远程仓库
@@ -87,6 +91,30 @@ docker run -d --name admintpl -p 8080:8080 \
   -e DB_DSN='root:123456@tcp(10.0.0.5:3306)/ruoyi?charset=utf8mb4&parseTime=True&loc=Local' \
   -e SERVICE_DEBUG=false \
   rouyi-go-service:latest
+```
+
+> 注：`just build` 编译的是 **linux/amd64 静态二进制**（供镜像内运行）；本地调试请用 `just dev`（`go run`）。
+
+# 内网 / 离线部署（服务器无外网、无 Go 环境）
+
+在开发机（有 Go + Docker）完成构建，导出镜像文件后拷贝到服务器加载：
+
+```bash
+# 开发机：构建并导出镜像
+just env pro          # 选好生产配置（生成 .env）
+just build            # 编译 linux/amd64 静态二进制
+just release          # 构建并推送镜像；仅本地构建可改用 docker build . -t rouyi-go-service:latest
+docker save rouyi-go-service:latest | gzip > rouyi-go-service.tar.gz
+scp rouyi-go-service.tar.gz bluefrog@192.168.122.129:~
+
+# 服务器：加载并启动（.env 由手工编写或从开发机拷贝）
+gunzip -c ~/rouyi-go-service.tar.gz | docker load
+docker run -d --name admintpl --restart always -p 8080:8080 \
+  --env-file ~/.env rouyi-go-service:latest
+docker logs -f admintpl          # 正常应看到 GIN-debug 路由注册日志
+
+# 部署后自检（读接口 + 全模块 CRUD 往返，会自建自删测试数据）
+just smoke http://192.168.122.129:8080
 ```
 
 # 接口文档生成

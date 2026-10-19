@@ -56,12 +56,16 @@ test:
 vet:
     go vet ./...
 
-# 打包：编译静态二进制文件
+# 冒烟：对已启动的实例做读接口 + 全模块 CRUD 回归
+# 用法：just smoke 或 just smoke http://192.168.122.129:8080
+smoke base_url="http://127.0.0.1:8080":
+    bash ./scripts/smoke.sh {{ base_url }}
+
+# 打包：编译 linux/amd64 静态二进制（Docker 镜像内运行，勿用本机平台二进制）
 build:
     rm -f ./{{ srv }}
-    go env -w CGO_ENABLED=0
-    go build -a -ldflags '-extldflags "-static"' -o {{ srv }} main.go
-    go env -w CGO_ENABLED=1
+    GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o {{ srv }} main.go
+    @echo "== 已生成 linux/amd64 静态二进制：{{ srv }} ✔ =="
 
 # 发布：构建 Docker 镜像并推送到远程仓库
 release: _ensure-env

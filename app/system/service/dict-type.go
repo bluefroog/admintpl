@@ -117,6 +117,7 @@ func (s DictType) Create(data *domain.DictTypeCreateRequest) error {
 	dictType.Type = data.Type
 	dictType.Status = data.Status
 
+	dictType.Remark = data.Remark
 	dictType.CreateBy = "" // todo 通过登录服务获取
 	dictType.CreateTime = time.Now()
 	dictType.UpdateBy = "" // todo 通过登录服务获取
@@ -144,6 +145,7 @@ func (s DictType) Update(data *domain.DictTypeUpdateRequest) (err error) {
 	record["Name"] = data.Name
 	record["Type"] = data.Type
 	record["Status"] = data.Status
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 

@@ -23,7 +23,7 @@ CREATE TABLE `user_online` (
 type UserOnline struct {
 	ID         uint   `json:"id" form:"id" gorm:"column:id;type:int(10) unsigned auto_increment;primary_key;not null;comment:主键ID"`              // 主键ID
 	UUID       string `json:"uuid" form:"uuid" gorm:"column:uuid;type:char(32);not null;default:'';comment:用户标识"`                                // 用户标识
-	Token      string `json:"token" form:"token" gorm:"column:token;type:varchar(255);not null;default:'';unique;comment:用户token"`                      // 用户token
+	Token      string `json:"token" form:"token" gorm:"column:token;type:varchar(255);not null;default:'';unique;comment:用户token"`               // 用户token
 	CreateTime uint   `json:"create_time" form:"create_time" gorm:"column:create_time;type:bigint(20) unsigned;not null;default:0;comment:登录时间"` // 登录时间（13位时间戳）
 	UserName   string `json:"user_name" form:"user_name" gorm:"column:user_name;type:varchar(255);not null;comment:用户名"`                         // 用户名
 	IP         string `json:"ip" form:"ip" gorm:"column:ip;type:varchar(120);not null;default:'';comment:登录ip"`                                  // 登录ip

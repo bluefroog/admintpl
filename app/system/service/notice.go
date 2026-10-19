@@ -123,6 +123,7 @@ func (s Notice) Create(data *domain.NoticeCreateRequest) error {
 	notice.Type = data.Type
 	notice.Status = data.Status
 
+	notice.Remark = data.Remark
 	notice.CreateBy = "" // todo 通过登录服务获取
 	notice.CreateTime = time.Now()
 	notice.UpdateBy = "" // todo 通过登录服务获取
@@ -150,6 +151,7 @@ func (s Notice) Update(data *domain.NoticeUpdateRequest) (err error) {
 	record["Content"] = data.Content
 	record["Type"] = data.Type
 	record["Status"] = data.Status
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 

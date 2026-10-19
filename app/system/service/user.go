@@ -278,7 +278,7 @@ func (s User) ResetPwd(req *domain.UserResetPwdRequest) (err error) {
 	}
 	record := make(map[string]interface{})
 	record["Password"] = password
-	record["UpdateTime"] = time.Now()
+	record["UpdatedAt"] = time.Now()
 	return s.UpdateByMap(req.ID, record)
 }
 
@@ -291,7 +291,7 @@ func (s User) ResetPwd(req *domain.UserResetPwdRequest) (err error) {
 func (s User) ChangeStatus(req *domain.UserChangeStatusRequest) (err error) {
 	record := make(map[string]interface{})
 	record["Status"] = req.Status
-	record["UpdateTime"] = time.Now()
+	record["UpdatedAt"] = time.Now()
 	return s.UpdateByMap(req.ID, record)
 }
 
@@ -404,7 +404,7 @@ func (s User) UpdateProfile(req *domain.UserProfileUpdateRequest) (err error) {
 	record["Email"] = req.Email
 	record["Mobile"] = req.Mobile
 	record["Gender"] = req.Gender
-	record["UpdateTime"] = time.Now()
+	record["UpdatedAt"] = time.Now()
 	return s.UpdateByMap(req.ID, record)
 }
 
@@ -428,7 +428,7 @@ func (s User) UpdatePassword(req *domain.UserPasswordUpdateRequest) (err error) 
 	}
 	record := make(map[string]interface{})
 	record["Password"] = password
-	record["UpdateTime"] = time.Now()
+	record["UpdatedAt"] = time.Now()
 	return s.UpdateByMap(req.ID, record)
 }
 
@@ -441,6 +441,6 @@ func (s User) UpdatePassword(req *domain.UserPasswordUpdateRequest) (err error) 
 func (s User) UpdateAvatar(req *domain.UserAvatarUpdateRequest) (err error) {
 	record := make(map[string]interface{})
 	record["Avatar"] = req.Avatar
-	record["UpdateTime"] = time.Now()
+	record["UpdatedAt"] = time.Now()
 	return s.UpdateByMap(req.ID, record)
 }

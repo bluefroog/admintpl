@@ -137,6 +137,7 @@ func (s Menu) Create(data *domain.MenuCreateRequest) error {
 	menu.Perms = data.Perms
 	menu.Icon = data.Icon
 
+	menu.Remark = data.Remark
 	menu.CreateBy = "" // todo 通过登录服务获取
 	menu.CreateTime = time.Now()
 	menu.UpdateBy = "" // todo 通过登录服务获取
@@ -171,6 +172,7 @@ func (s Menu) Update(data *domain.MenuUpdateRequest) (err error) {
 	record["Status"] = data.Status
 	record["Perms"] = data.Perms
 	record["Icon"] = data.Icon
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 
@@ -301,7 +303,7 @@ func (s Menu) CheckNameUnique(req *domain.MenuCheckNameRequest) (err error, uniq
 		Where("menu_name = ?", req.Name).
 		Where("parent_id = ?", req.ParentID)
 	if req.ID != nil {
-		db = db.Where("id <> ?", *req.ID)
+		db = db.Where("menu_id <> ?", *req.ID)
 	}
 	var count int64
 	if err = db.Count(&count).Error; err != nil {
@@ -322,7 +324,7 @@ func (s Menu) CheckPermsUnique(req *domain.MenuCheckPermsRequest) (err error, un
 	}
 	db := domain.DB.Model(&domain.Menu{}).Where("perms = ?", req.Perms)
 	if req.ID != nil {
-		db = db.Where("id <> ?", *req.ID)
+		db = db.Where("menu_id <> ?", *req.ID)
 	}
 	var count int64
 	if err = db.Count(&count).Error; err != nil {

@@ -135,6 +135,7 @@ func (s Role) Create(data *domain.RoleCreateRequest) error {
 	role.DepartmentCheckStrictly = data.DepartmentCheckStrictly
 	role.DataScope = data.DataScope
 
+	role.Remark = data.Remark
 	role.CreateBy = "" // todo 通过登录服务获取
 	role.CreateTime = time.Now()
 	role.UpdateBy = "" // todo 通过登录服务获取
@@ -167,6 +168,7 @@ func (s Role) Update(data *domain.RoleUpdateRequest) (err error) {
 	record["DeleteFlag"] = data.DeleteFlag
 	record["Status"] = data.Status
 	record["Sort"] = data.Sort
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 

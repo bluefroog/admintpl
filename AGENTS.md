@@ -26,8 +26,9 @@
   - `just dev` — 开发：启动项目（`go run main.go`）
   - `just test` — 测试：`go test ./...`
   - `just vet` — 检查：`go vet ./...`
+  - `just smoke [BASE_URL]` — 冒烟：对已启动实例跑读接口 + 全模块 CRUD 回归（默认 `http://127.0.0.1:8080`，脚本 `scripts/smoke.sh`）
   - `just env dev` / `just env pro` — 环境切换：将 `.env.dev` / `.env.pro` 复制为 `.env`
-  - `just build` — 打包：编译静态二进制 `rouyi-go-service`
+  - `just build` — 打包：编译供镜像使用的 linux/amd64 静态二进制 `rouyi-go-service`
   - `just release` — 发布：构建 Docker 镜像并推送远程仓库
   - `just docs` — 生成 swagger 文档
   - `just` / `just --list` — 查看全部命令
@@ -43,7 +44,7 @@
 
 **每次开发完成后，必须自动执行 git commit 并 git push 到远程仓库，推送成功后才算本次开发完成。**
 
-1. 先验证：`just vet` 与 `just test` 必须无错误。
+1. 先验证：`just vet` 与 `just test` 必须无错误（涉及接口/数据库字段改动时，另跑 `just smoke` 对已启动实例回归）。
 2. 总结本次开发内容，用于 git commit message（模板已配置 `.gitmessage`，`git commit` 自动载入）：
    - 格式：`<type>(<scope>): <中文描述>` + 文件清单 + 功能点 + 验证结果
    - type：`feat` 新增 / `fix` 修复 / `refactor` 重构 / `docs` 文档 / `chore` 杂项

@@ -121,6 +121,7 @@ func (s DictData) Create(data *domain.DictDataCreateRequest) error {
 	dictData.IsDefault = data.IsDefault
 	dictData.Status = data.Status
 
+	dictData.Remark = data.Remark
 	dictData.CreateBy = "" // todo 通过登录服务获取
 	dictData.CreateTime = time.Now()
 	dictData.UpdateBy = "" // todo 通过登录服务获取
@@ -149,6 +150,7 @@ func (s DictData) Update(data *domain.DictDataUpdateRequest) (err error) {
 	record["ListClass"] = data.ListClass
 	record["IsDefault"] = data.IsDefault
 	record["Status"] = data.Status
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
 	record["UpdateTime"] = time.Now()
 

@@ -6,6 +6,7 @@ import (
 	"github.com/bluefroog/admintpl/common/model/request"
 	"gorm.io/gorm"
 	"strings"
+	"time"
 )
 
 type Department struct{}
@@ -27,7 +28,7 @@ func (s Department) GetList(searchParams *domain.DepartmentSearchRequest) (err e
 	if total > 0 {
 		// 排序
 		// orderBy := "id desc"
-		db.Order("id desc")
+		db.Order("dept_id desc")
 		if searchParams.OrderBy != "" {
 			db.Order(searchParams.OrderBy)
 		}
@@ -57,13 +58,13 @@ func (s Department) parseFilter(db *gorm.DB, searchParams *domain.DepartmentSear
 		db = db.Where("parent_id IN (?)", searchParams.ParentIDIn)
 	}
 	if len(searchParams.IDNotIn) > 0 { // IDNotIn
-		db = db.Where("id NOT IN (?)", searchParams.IDNotIn)
+		db = db.Where("dept_id NOT IN (?)", searchParams.IDNotIn)
 	}
 	if len(searchParams.IDIn) > 0 { // IDIn
-		db = db.Where("id IN (?)", searchParams.IDIn)
+		db = db.Where("dept_id IN (?)", searchParams.IDIn)
 	}
 	if searchParams.Name != "" { // 部门名称
-		db = db.Where("name like ?", "%"+searchParams.Name+"%")
+		db = db.Where("dept_name like ?", "%"+searchParams.Name+"%")
 	}
 	if searchParams.Ancestors != "" { // 祖级列表
 		db = db.Where("ancestors LIKE ?", "%"+searchParams.Ancestors+"%")
@@ -101,9 +102,12 @@ func (s Department) Create(data *domain.DepartmentCreateRequest) error {
 	department.Ancestors = data.Ancestors
 	department.Sort = data.Sort
 	department.Status = data.Status
+	department.Remark = data.Remark
 
 	department.CreateBy = "" // todo 通过登录服务获取
+	department.CreateTime = time.Now()
 	department.UpdateBy = "" // todo 通过登录服务获取
+	department.UpdateTime = time.Now()
 
 	return domain.DB.Create(&department).Error
 }
@@ -125,7 +129,9 @@ func (s Department) Update(data *domain.DepartmentUpdateRequest) (err error) {
 	record["Sort"] = data.Sort
 	record["Status"] = data.Status
 
+	record["Remark"] = data.Remark
 	record["UpdateBy"] = "" // todo 通过登录服务获取
+	record["UpdateTime"] = time.Now()
 
 	return s.UpdateByMap(data.ID, record)
 }
@@ -137,7 +143,7 @@ func (s Department) Update(data *domain.DepartmentUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Department) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Department{}).Where("id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := domain.DB.Model(&domain.Department{}).Where("dept_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -150,7 +156,7 @@ func (s Department) UpdateByMap(id uint, updateMap map[string]interface{}) (err 
 // @return: err error
 func (s Department) Delete(ids []uint) (err error) {
 	// 删除区域
-	if err = domain.DB.Where("id in (?) ", ids).Unscoped().Delete(&domain.Department{}).Error; err != nil {
+	if err = domain.DB.Where("dept_id in (?) ", ids).Unscoped().Delete(&domain.Department{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -163,7 +169,7 @@ func (s Department) Delete(ids []uint) (err error) {
 // @return: *domain.Department,err error
 func (s Department) Detail(id uint) (*domain.Department, error) {
 	var detail domain.Department
-	db := domain.DB.Where("id = ?", id)
+	db := domain.DB.Where("dept_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -244,7 +250,7 @@ func (s Department) CheckNameUnique(req *domain.DepartmentCheckNameRequest) (err
 		Where("dept_name = ?", req.Name).
 		Where("parent_id = ?", req.ParentID)
 	if req.ID != nil {
-		db = db.Where("id <> ?", *req.ID)
+		db = db.Where("dept_id <> ?", *req.ID)
 	}
 	var count int64
 	if err = db.Count(&count).Error; err != nil {
