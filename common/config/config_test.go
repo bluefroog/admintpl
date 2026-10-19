@@ -119,4 +119,34 @@ func TestConfigFileExpansion(t *testing.T) {
 	if conf.GetInt("database.admin.max-idle") <= 0 {
 		t.Fatalf("database.admin.max-idle 解析失败: %d", conf.GetInt("database.admin.max-idle"))
 	}
+
+	// 代码读取的配置项必须全部存在于配置文件中：
+	// 防止「代码读 system.auth.enabled、配置写在 auth.enabled」这类键名不一致导致开关静默失效
+	required := []string{
+		"service.port", "service.debug",
+		"database.admin.type", "database.admin.dsn", "database.admin.prefix",
+		"database.admin.max-idle", "database.admin.max-open", "database.admin.max-lifetime",
+		"database.admin.debug",
+		"system.auth.enabled", "system.auth.token-expire", "system.auth.max-retry",
+		"system.auth.lock-time", "system.auth.permission-enabled",
+		"system.captcha.enabled", "system.captcha.length", "system.captcha.expire",
+		"system.seed.enabled",
+	}
+	for _, key := range required {
+		if !conf.IsSet(key) {
+			t.Errorf("配置文件缺少代码使用的配置项: %s", key)
+		}
+	}
+
+	// 开关型配置必须能解析为布尔值（值写错时 viper 会静默返回 false）
+	bools := []string{
+		"service.debug", "database.admin.debug", "system.auth.enabled",
+		"system.auth.permission-enabled", "system.captcha.enabled", "system.seed.enabled",
+	}
+	for _, key := range bools {
+		value := strings.ToLower(conf.GetString(key))
+		if value != "true" && value != "false" {
+			t.Errorf("开关型配置 %s 取值非法（应为 true/false）: %q", key, conf.GetString(key))
+		}
+	}
 }

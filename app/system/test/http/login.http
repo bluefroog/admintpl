@@ -1,0 +1,42 @@
+### 获取图形验证码
+GET http://127.0.0.1:8080/captchaImage
+
+### 登录（默认账号 admin / admin123，密码由 system.seed 初始化）
+# @name login
+POST http://127.0.0.1:8080/login
+content-type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 登录（带验证码，CAPTCHA_ENABLED=true 时使用）
+POST http://127.0.0.1:8080/login
+content-type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123",
+  "code": "1234",
+  "uuid": "验证码标识"
+}
+
+### 获取登录用户信息（令牌取自登录响应）
+GET http://127.0.0.1:8080/getInfo
+Authorization: Bearer {{login.response.body.$.data.token}}
+
+### 获取前端路由
+GET http://127.0.0.1:8080/getRouters
+Authorization: Bearer {{login.response.body.$.data.token}}
+
+### 退出登录
+POST http://127.0.0.1:8080/logout
+Authorization: Bearer {{login.response.body.$.data.token}}
+
+### 未携带令牌访问业务接口（预期 401）
+GET http://127.0.0.1:8080/system/user/list?pageSize=1
+
+### 携带令牌访问业务接口
+GET http://127.0.0.1:8080/system/user/list?pageSize=1
+Authorization: Bearer {{login.response.body.$.data.token}}

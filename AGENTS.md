@@ -13,6 +13,8 @@
 - 新增表模型必须注册到 `app/system/domain/init.go` 的 `autoMigrate`；路由必须注册到 `app/system/controller/init.go`。
 - 路由统一 `/system/<表名>/<list|create|update|delete|detail>`：
   - 业务表：全量 5 个接口；日志表：仅 list/delete/detail；关系表（复合主键）：仅 list/create/delete。
+  - 需登录的接口必须注册到 `app/system/controller/init.go` 的 `authorized` 分组内（已挂 `middleware.Auth()`）；
+    免登录接口（`/login`、`/captchaImage`）注册在该分组之前。
   - 扩展动作（`tree`、`check-*`、`roles`、`menu`、`data-scope`、`clear`、`force-logout` 等）见 `docs/开发规范.md` 1.3 节。
 - 响应：成功 `response.OK(data, c)` / `response.Success("提示", c)`；失败 `response.Fail(-1, "错误", c)`。
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
@@ -59,3 +61,20 @@
 - 参考模板：`app/system/controller/department.go`。
 - 删除接口参数：业务表 `request.IdsRequest`、关系表 `XxxDeleteRequest`；详情接口参数 `request.GetById`。
 - 文档生成：`swag init -o ./app/swagger`。
+
+## 5. 认证、配置与数据写入约定
+
+- **认证**：登录成功签发 64 位令牌并写入 `user_online` 表；请求头 `Authorization: Bearer <token>`（兼容 `token` 请求头与 `?token=`）携带。
+  鉴权逻辑集中在 `app/system/middleware/auth.go`，业务方法取当前用户用 `middleware.GetLoginUser(c)` / `middleware.GetUserID(c)`，禁止再写 `// todo 通过登录服务获取`。
+- **权限标识**：路径 `/system/<模块>/<动作>` 对应权限 `system:<模块>:<动作>`（如 `/system/user/list` -> `system:user:list`），
+  与菜单 `perms` 字段一致；`system/user/profile|password|avatar` 为登录用户自助接口，不参与权限校验。
+- **配置**：新增开关必须同时改 `config/config.yaml`（`${KEY:-默认值}` 占位符）与 `.env.dev` / `.env.pro`；
+  `config/config.yaml` 末尾维护变量清单，`common/config/config_test.go` 会校验代码读取的键在配置文件中存在，缺失即测试失败。
+- **GORM 写入零值陷阱**：带 `default:` 标签的列在「结构体方式 Create」时，若字段取零值会被数据库默认值覆盖
+  （如 `sys_menu.is_frame` 默认 1、`sys_user.status` 默认 1、`sys_role.menu_check_strictly` 默认 1）。
+  此类表的 Create 必须使用 `map[string]interface{}` 显式写入（参考 `service/menu.go`、`service/user.go`、`service/role.go`），
+  Update 已统一使用 map。
+- **基础数据初始化**：`app/system/service/seed.go` 仅在对应表为空时写入（幂等、事务内），入口开关 `SEED_ENABLED`；
+  修改种子数据后需清空对应表并重启服务验证，或直接改库核对。
+- **自检**：开发完成后本地跑 `just vet` + `just test`，对已启动实例跑 `just smoke <BASE_URL>`
+  （脚本会自动登录携带令牌，并校验零值字段落库、SQL 列名错配等回归项）。

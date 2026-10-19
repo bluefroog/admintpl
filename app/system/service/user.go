@@ -119,21 +119,27 @@ func (s User) Create(data *domain.UserAddRequest) error {
 	// todo 判断用户名是否已存在
 	// todo 判断手机号是否已存在
 	// todo 判断邮箱是否已存在
-	user := new(domain.User)
-	user.Username = data.Username
-	user.Mobile = data.Mobile
-	user.Nickname = data.Nickname
-	user.Birthday = data.Birthday
-	user.Status = data.Status
-	user.Email = data.Email
-	user.Gender = data.Gender
-	user.Avatar = data.Avatar
-	user.DepartmentID = data.DepartmentID
-	user.Remark = data.Remark
-	user.IsAdmin = data.IsAdmin
-	user.RegisterTime = time.Now() // 注册时间
+	// 注意：结构体方式 Create 会让带 default 标签的零值字段（如 status 默认 1）被数据库默认值覆盖，
+	// 导致显式传入的「禁用（0）」被写成「正常（1）」，因此与 Update 保持一致，使用 map 显式写入。
+	now := time.Now()
+	record := map[string]interface{}{
+		"Username":     data.Username,
+		"Mobile":       data.Mobile,
+		"Nickname":     data.Nickname,
+		"Birthday":     data.Birthday,
+		"Status":       data.Status,
+		"Email":        data.Email,
+		"Gender":       data.Gender,
+		"Avatar":       data.Avatar,
+		"DepartmentID": data.DepartmentID,
+		"Remark":       data.Remark,
+		"IsAdmin":      data.IsAdmin,
+		"RegisterTime": now, // 注册时间
+		"CreatedAt":    now,
+		"UpdatedAt":    now,
+	}
 
-	return domain.DB.Create(&user).Error
+	return domain.DB.Model(&domain.User{}).Create(record).Error
 }
 
 // @author: [bluefrog](https://github.com/freewu)
@@ -197,6 +203,20 @@ func (s User) Detail(id uint) (*domain.User, error) {
 	var detail domain.User
 	db := domain.DB.Where("id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
+		return nil, err
+	}
+	return &detail, nil
+}
+
+// GetByUsername 根据登录账号获取用户（登录认证使用）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetByUsername
+// @description: 根据登录账号获取用户详情
+// @param: username string 登录账号
+// @return: *domain.User, error
+func (s User) GetByUsername(username string) (*domain.User, error) {
+	var detail domain.User
+	if err := domain.DB.Where("username = ?", username).First(&detail).Error; err != nil {
 		return nil, err
 	}
 	return &detail, nil

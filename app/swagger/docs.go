@@ -15,6 +15,174 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/captchaImage": {
+            "get": {
+                "security": [],
+                "description": "获取图形验证码（system.captcha.enabled=false 时返回 captchaEnabled=false）",
+                "tags": [
+                    "登录认证"
+                ],
+                "summary": "获取图形验证码",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {\"captchaEnabled\": true, \"uuid\": \"\", \"img\": \"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.CaptchaResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/getInfo": {
+            "get": {
+                "security": [],
+                "description": "获取当前登录用户的资料、角色标识与权限标识",
+                "tags": [
+                    "登录认证"
+                ],
+                "summary": "获取登录用户信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID（未携带令牌时用于调试）",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.UserInfoResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/getRouters": {
+            "get": {
+                "security": [],
+                "description": "获取当前登录用户的菜单路由树",
+                "tags": [
+                    "登录认证"
+                ],
+                "summary": "获取登录用户的前端路由",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID（未携带令牌时用于调试）",
+                        "name": "userId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": []}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.RouterResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "security": [],
+                "description": "用户登录，成功后返回访问令牌",
+                "tags": [
+                    "登录认证"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {\"token\": \"\", \"expiresIn\": 720}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.LoginResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "security": [],
+                "description": "退出登录，删除当前令牌对应的在线用户记录",
+                "tags": [
+                    "登录认证"
+                ],
+                "summary": "退出登录",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/system/config/check-key": {
             "get": {
                 "security": [],
@@ -5846,6 +6014,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.CaptchaResponse": {
+            "type": "object",
+            "properties": {
+                "captchaEnabled": {
+                    "description": "是否开启验证码",
+                    "type": "boolean"
+                },
+                "img": {
+                    "description": "验证码图片（base64，前端拼接 data:image/png;base64, 前缀）",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "验证码标识",
+                    "type": "string"
+                }
+            }
+        },
         "domain.Config": {
             "type": "object",
             "required": [
@@ -6836,6 +7021,44 @@ const docTemplate = `{
                 "status": {
                     "description": "登录状态（0成功 1失败）",
                     "type": "integer"
+                }
+            }
+        },
+        "domain.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "code": {
+                    "description": "验证码（开启验证码时必填）",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "登录密码",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "登录账号",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "验证码标识",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "expiresIn": {
+                    "description": "令牌有效期（秒）",
+                    "type": "integer"
+                },
+                "token": {
+                    "description": "令牌",
+                    "type": "string"
                 }
             }
         },
@@ -7836,6 +8059,71 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.RouterMeta": {
+            "type": "object",
+            "properties": {
+                "icon": {
+                    "description": "菜单图标",
+                    "type": "string"
+                },
+                "link": {
+                    "description": "外链地址",
+                    "type": "string"
+                },
+                "noCache": {
+                    "description": "是否不缓存",
+                    "type": "boolean"
+                },
+                "title": {
+                    "description": "菜单名称",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.RouterResponse": {
+            "type": "object",
+            "properties": {
+                "alwaysShow": {
+                    "description": "是否始终显示根菜单",
+                    "type": "boolean"
+                },
+                "children": {
+                    "description": "子路由",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.RouterResponse"
+                    }
+                },
+                "component": {
+                    "description": "组件路径",
+                    "type": "string"
+                },
+                "hidden": {
+                    "description": "是否隐藏",
+                    "type": "boolean"
+                },
+                "meta": {
+                    "description": "元信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.RouterMeta"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "路由名称",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "路由地址",
+                    "type": "string"
+                },
+                "redirect": {
+                    "description": "重定向地址",
+                    "type": "string"
+                }
+            }
+        },
         "domain.User": {
             "type": "object",
             "required": [
@@ -8092,6 +8380,37 @@ const docTemplate = `{
                 "username": {
                     "description": "用户名",
                     "type": "string"
+                }
+            }
+        },
+        "domain.UserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "isAdmin": {
+                    "description": "是否超级管理员",
+                    "type": "boolean"
+                },
+                "permissions": {
+                    "description": "权限标识列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "roles": {
+                    "description": "角色标识列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "user": {
+                    "description": "用户信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.User"
+                        }
+                    ]
                 }
             }
         },

@@ -14,13 +14,28 @@ B="$BASE_URL/system"
 S=$(date +%s)
 ok=0; sqlbad=0; bad=0
 
+# ---- 登录获取令牌（认证关闭或未初始化数据时自动降级为免认证模式） ----
+SMOKE_USER="${SMOKE_USER:-admin}"
+SMOKE_PASS="${SMOKE_PASS:-admin123}"
+TOKEN=""
+login_out=$(curl -s -m 10 -X POST "$BASE_URL/login" -H 'Content-Type: application/json' \
+  -d "{\"username\":\"$SMOKE_USER\",\"password\":\"$SMOKE_PASS\"}")
+TOKEN=$(echo "$login_out" | grep -o '"token":"[^"]*"' | head -1 | cut -d'"' -f4)
+# 始终携带认证头（令牌为空时等价于未认证；服务端认证关闭时该头会被忽略）
+auth_header=(-H "Authorization: Bearer ${TOKEN}")
+if [ -n "$TOKEN" ]; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' "登录 /login" "已获取令牌（${#TOKEN} 位）"
+else
+  printf '\033[33mWARN\033[0m  %-44s %s\n' "登录 /login" "未获取到令牌，按免认证模式继续：$(echo "$login_out" | head -c 120)"
+fi
+
 # 取 JSON 中第一个 "id" 值（不依赖 jq）
 pick_id() { echo "$1" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 # 读接口断言：SQL 列名错误单独计数（这类错误一定是 bug）
 req() {
   local m=$1 p=$2 out
-  out=$(curl -s -m 10 -X "$m" "$B$p")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$B$p")
   if echo "$out" | grep -q '"code":0'; then
     ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "$p"
   elif echo "$out" | grep -qE '1054|Unknown column'; then
@@ -35,20 +50,43 @@ req() {
 # 全模块 CRUD 断言：create → list(取 id) → detail → update → delete
 crud() {
   local mod=$1 listq=$2 body=$3 ub=$4 out id
-  out=$(curl -s -m 10 -X POST "$B/$mod/create" -H 'Content-Type: application/json' -d "$body")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/$mod/create" -H 'Content-Type: application/json' -d "$body")
   echo "$out" | grep -q '"code":0' || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  create %-10s %s\n' "$mod" "$out"; return; }
-  out=$(curl -s -m 10 "$B/$mod/list?pageSize=1&$listq")
+  out=$(curl -s -m 10 "${auth_header[@]}" "$B/$mod/list?pageSize=1&$listq")
   id=$(pick_id "$out")
   [ -n "$id" ] || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  list   %-10s [%s] %s\n' "$mod" "$listq" "$(echo "$out" | head -c 150)"; return; }
-  out=$(curl -s -m 10 "$B/$mod/detail?id=$id")
+  out=$(curl -s -m 10 "${auth_header[@]}" "$B/$mod/detail?id=$id")
   echo "$out" | grep -q '"code":0' || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  detail %-10s id=%s %s\n' "$mod" "$id" "$out"; return; }
-  out=$(curl -s -m 10 -X PUT "$B/$mod/update" -H 'Content-Type: application/json' -d "$(echo "$ub" | sed "s/%ID%/$id/")")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$B/$mod/update" -H 'Content-Type: application/json' -d "$(echo "$ub" | sed "s/%ID%/$id/")")
   echo "$out" | grep -q '"code":0' || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  update %-10s id=%s %s\n' "$mod" "$id" "$out"; return; }
-  out=$(curl -s -m 10 -X DELETE "$B/$mod/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$id]}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/$mod/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$id]}")
   echo "$out" | grep -q '"code":0' || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  delete %-10s id=%s %s\n' "$mod" "$id" "$out"; return; }
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-10s CRUD 全通过 (id=%s)\n' "$mod" "$id"
 }
 
+echo "===== 认证接口 ====="
+authed() {
+  local p=$1 out
+  out=$(curl -s -m 10 "${auth_header[@]}" "$BASE_URL$p")
+  if echo "$out" | grep -q '"code":0'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "$p"
+  else
+    bad=$((bad+1)); printf '\033[33mWARN\033[0m  %-44s %s\n' "$p" "$(echo "$out" | head -c 170)"
+  fi
+}
+authed '/captchaImage'
+authed '/getInfo'
+authed '/getRouters'
+if [ -n "$TOKEN" ]; then
+  code=$(curl -s -m 10 -o /dev/null -w '%{http_code}' "$B/user/list")
+  if [ "$code" = "401" ]; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s 无令牌访问返回 401\n' '认证拦截'
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 期望 401，实际 %s\n' '认证拦截' "$code"
+  fi
+fi
+
+echo
 echo "===== 读接口（列表 / 详情 / 唯一性校验 / 树）====="
 req GET '/config/list?pageSize=3'
 req GET '/config/list?name=x&type=0&key=k'
@@ -144,6 +182,28 @@ crud notice     "title=冒烟公告$S" "{\"title\":\"冒烟公告$S\",\"content\
 crud post       "name=冒烟岗位$S"  "{\"code\":\"smoke_post_$S\",\"name\":\"冒烟岗位$S\",\"sort\":9,\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"code\":\"smoke_post_$S\",\"name\":\"冒烟岗位$S改\",\"sort\":8,\"status\":0,\"remark\":\"备注2\"}"
 crud role       "name=冒烟角色$S"  "{\"key\":\"smoke_role_$S\",\"name\":\"冒烟角色$S\",\"sort\":9,\"status\":0,\"menu_check_strictly\":1,\"dept_check_strictly\":1,\"data_scope\":1,\"del_flag\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"key\":\"smoke_role_$S\",\"name\":\"冒烟角色$S改\",\"sort\":8,\"status\":0,\"menu_check_strictly\":1,\"dept_check_strictly\":1,\"data_scope\":1,\"del_flag\":0,\"remark\":\"备注2\"}"
 crud user       "username=smoke$S" "{\"username\":\"smoke$S\",\"mobile\":\"139$S\",\"nickname\":\"冒烟用户$S\",\"status\":1,\"email\":\"smoke$S@test.com\",\"gender\":1,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"备注1\",\"isAdmin\":false}"  "{\"id\":%ID%,\"username\":\"smoke$S\",\"mobile\":\"139$S\",\"nickname\":\"冒烟用户$S改\",\"status\":1,\"email\":\"smoke$S@test.com\",\"gender\":1,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"备注2\",\"isAdmin\":false}"
+
+echo
+echo "===== 字段零值落库校验（GORM default 标签陷阱）====="
+# 带 default 标签的字段（如 menu.is_frame 默认 1、user.status 默认 1）用结构体 Create 时，
+# 显式传入的零值会被数据库默认值覆盖，这里逐项校验零值能原样落库。
+zero_check() {
+  local mod=$1 listq=$2 body=$3 key=$4 out id
+  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/$mod/create" -H 'Content-Type: application/json' -d "$body")
+  echo "$out" | grep -q '"code":0' || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  create %-10s %s\n' "$mod" "$out"; return; }
+  out=$(curl -s -m 10 "${auth_header[@]}" "$B/$mod/list?pageSize=1&$listq")
+  id=$(pick_id "$out")
+  out=$(curl -s -m 10 "${auth_header[@]}" "$B/$mod/detail?id=$id")
+  if echo "$out" | grep -q "\"$key\":0"; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-10s 零值字段 %s=0 落库正确 (id=%s)\n' "$mod" "$key" "$id"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-10s 零值字段 %s 被默认值覆盖 (id=%s) %s\n' "$mod" "$key" "$id" "$(echo "$out" | head -c 150)"
+  fi
+  curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/$mod/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$id]}" >/dev/null
+}
+zero_check menu "name=零值菜单$S" "{\"name\":\"零值菜单$S\",\"parent_id\":0,\"sort\":1,\"path\":\"/zero$S\",\"menu_type\":\"M\",\"is_frame\":0,\"is_cache\":1,\"visible\":\"0\",\"status\":0,\"perms\":\"zero:list$S\",\"icon\":\"#\"}" is_frame
+zero_check role "name=零值角色$S" "{\"key\":\"zero_role_$S\",\"name\":\"零值角色$S\",\"sort\":9,\"status\":0,\"menu_check_strictly\":0,\"dept_check_strictly\":0,\"data_scope\":1,\"del_flag\":0,\"remark\":\"零值校验\"}" menu_check_strictly
+zero_check user "username=zero$S" "{\"username\":\"zero$S\",\"mobile\":\"138$S\",\"nickname\":\"零值用户$S\",\"status\":0,\"email\":\"zero$S@test.com\",\"gender\":0,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"零值校验\",\"isAdmin\":false}" status
 
 echo
 printf '===== 汇总：通过=%s  SQL列名错误=%s  其他失败=%s =====\n' "$ok" "$sqlbad" "$bad"

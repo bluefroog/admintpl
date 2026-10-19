@@ -175,3 +175,17 @@ func (s UserOnline) Detail(id uint) (*domain.UserOnline, error) {
 	}
 	return &detail, nil
 }
+
+// GetByToken 根据令牌获取在线用户记录（登录认证使用）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: GetByToken
+// @description: 根据令牌获取在线用户记录
+// @param: token string 用户令牌
+// @return: *domain.UserOnline, error
+func (s UserOnline) GetByToken(token string) (*domain.UserOnline, error) {
+	var detail domain.UserOnline
+	if err := domain.DB.Where("token = ?", token).First(&detail).Error; err != nil {
+		return nil, err
+	}
+	return &detail, nil
+}

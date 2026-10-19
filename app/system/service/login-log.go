@@ -6,6 +6,7 @@ import (
 	"github.com/bluefroog/admintpl/common/lib"
 	"gorm.io/gorm"
 	"strings"
+	"time"
 )
 
 type LoginLog struct{}
@@ -151,8 +152,27 @@ func (s LoginLog) Create(data *domain.LoginLogCreateRequest) error {
 	config.Message = data.Message
 	config.Module = data.Module
 	config.Time = data.Time
+	config.Status = data.Status
 
 	return domain.DB.Create(&config).Error
+}
+
+// CountRecentFailure 统计指定账号在最近 N 分钟内的登录失败次数（登录锁定判定）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: CountRecentFailure
+// @description: 统计指定账号在最近 N 分钟内的登录失败次数
+// @param: loginName string 登录账号
+// @param: minutes int 统计时间范围（分钟）
+// @return: err error, count int64
+func (s LoginLog) CountRecentFailure(loginName string, minutes int) (err error, count int64) {
+	if loginName == "" || minutes <= 0 {
+		return nil, 0
+	}
+	since := time.Now().Add(-time.Duration(minutes) * time.Minute).UnixMilli()
+	db := domain.DB.Model(&domain.LoginLog{}).
+		Where("login_name = ? and status = ? and login_time >= ?", loginName, 1, since)
+	err = db.Count(&count).Error
+	return err, count
 }
 
 // Update 修改访问日志

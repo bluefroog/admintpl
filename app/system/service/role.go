@@ -126,22 +126,26 @@ func (s Role) Create(data *domain.RoleCreateRequest) error {
 	if s.KeyIsExist(data.Key, nil) {
 		return errors.New("已存在相同的角色权限字符串")
 	}
-	role := new(domain.Role)
-	role.Key = data.Key
-	role.Name = data.Name
-	role.Status = data.Status
-	role.Sort = data.Sort
-	role.MenuCheckStrictly = data.MenuCheckStrictly
-	role.DepartmentCheckStrictly = data.DepartmentCheckStrictly
-	role.DataScope = data.DataScope
+	// 注意：结构体方式 Create 会让带 default 标签的零值字段（如 menu_check_strictly 默认 1、
+	// dept_check_strictly 默认 1、data_scope 默认 1）被数据库默认值覆盖，显式传入的 0 会丢失，
+	// 因此与 Update 保持一致，使用 map 显式写入。
+	record := map[string]interface{}{
+		"Key":                     data.Key,
+		"Name":                    data.Name,
+		"Status":                  data.Status,
+		"Sort":                    data.Sort,
+		"MenuCheckStrictly":       data.MenuCheckStrictly,
+		"DepartmentCheckStrictly": data.DepartmentCheckStrictly,
+		"DataScope":               data.DataScope,
+		"DeleteFlag":              data.DeleteFlag,
+		"Remark":                  data.Remark,
+		"CreateBy":                "", // todo 通过登录服务获取
+		"CreateTime":              time.Now(),
+		"UpdateBy":                "", // todo 通过登录服务获取
+		"UpdateTime":              time.Now(),
+	}
 
-	role.Remark = data.Remark
-	role.CreateBy = "" // todo 通过登录服务获取
-	role.CreateTime = time.Now()
-	role.UpdateBy = "" // todo 通过登录服务获取
-	role.UpdateTime = time.Now()
-
-	return domain.DB.Create(&role).Error
+	return domain.DB.Model(&domain.Role{}).Create(record).Error
 }
 
 // Update 修改角色

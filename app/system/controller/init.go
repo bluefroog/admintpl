@@ -1,9 +1,25 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/bluefroog/admintpl/app/system/middleware"
+	"github.com/gin-gonic/gin"
+)
 
 func InitRouter(r *gin.Engine) {
-	group := r.Group("/system")
+	// 登录认证接口（无需令牌）
+	login := Login{}
+	r.GET("/captchaImage", login.Captcha)
+	r.POST("/login", login.Login)
+
+	// 需登录的接口（认证开关见 system.auth.enabled）
+	authorized := r.Group("", middleware.Auth())
+	{
+		authorized.POST("/logout", login.Logout)
+		authorized.GET("/getInfo", login.GetInfo)
+		authorized.GET("/getRouters", login.GetRouters)
+	}
+
+	group := authorized.Group("/system")
 	{
 		// 用户相关接口
 		user := User{}

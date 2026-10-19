@@ -121,29 +121,32 @@ func (s Menu) Create(data *domain.MenuCreateRequest) error {
 	if s.NameIsExist(data.Name, nil) {
 		return errors.New("已存在相同的菜单名称")
 	}
-	menu := new(domain.Menu)
-	menu.Name = data.Name
-	menu.ParentID = data.ParentID
-	menu.Sort = data.Sort
-	menu.Path = data.Path
-	menu.Component = data.Component
-	menu.Query = data.Query
-	menu.RouteName = data.RouteName
-	menu.IsFrame = data.IsFrame
-	menu.IsCache = data.IsCache
-	menu.MenuType = data.MenuType
-	menu.Visible = data.Visible
-	menu.Status = data.Status
-	menu.Perms = data.Perms
-	menu.Icon = data.Icon
+	// 注意：GORM 以结构体方式 Create 时，带 default 标签且取零值的字段（如 is_frame 默认 1、
+	// is_cache 默认 0）会交由数据库默认值处理，导致显式传入的 0 被覆盖为 1；
+	// 因此这里与 Update 保持一致，使用 map 显式写入，保证零值能正确落库。
+	record := map[string]interface{}{
+		"Name":       data.Name,
+		"ParentID":   data.ParentID,
+		"Sort":       data.Sort,
+		"Path":       data.Path,
+		"Component":  data.Component,
+		"Query":      data.Query,
+		"RouteName":  data.RouteName,
+		"IsFrame":    data.IsFrame,
+		"IsCache":    data.IsCache,
+		"MenuType":   data.MenuType,
+		"Visible":    data.Visible,
+		"Status":     data.Status,
+		"Perms":      data.Perms,
+		"Icon":       data.Icon,
+		"Remark":     data.Remark,
+		"CreateBy":   "", // todo 通过登录服务获取
+		"CreateTime": time.Now(),
+		"UpdateBy":   "", // todo 通过登录服务获取
+		"UpdateTime": time.Now(),
+	}
 
-	menu.Remark = data.Remark
-	menu.CreateBy = "" // todo 通过登录服务获取
-	menu.CreateTime = time.Now()
-	menu.UpdateBy = "" // todo 通过登录服务获取
-	menu.UpdateTime = time.Now()
-
-	return domain.DB.Create(&menu).Error
+	return domain.DB.Model(&domain.Menu{}).Create(record).Error
 }
 
 // Update 修改菜单
