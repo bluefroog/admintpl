@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bluefroog/admintpl/app/system/domain"
-	"github.com/bluefroog/admintpl/app/system/task"
+	"github.com/bluefroog/admintpl/app/cron/domain"
+	"github.com/bluefroog/admintpl/app/cron/task"
 	"github.com/bluefroog/admintpl/common/cron"
 	"github.com/bluefroog/admintpl/common/model/core"
 )

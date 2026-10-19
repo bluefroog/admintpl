@@ -1,0 +1,67 @@
+### list default
+GET http://127.0.0.1:8080/monitor/operlog/list
+
+### list search by keyword
+GET http://127.0.0.1:8080/monitor/operlog/list?keyword=操作
+
+### list search by status = 1
+GET http://127.0.0.1:8080/monitor/operlog/list?status=1
+
+### list search by status = 0
+GET http://127.0.0.1:8080/monitor/operlog/list?status=0
+
+### list search by business_type = 1
+GET http://127.0.0.1:8080/monitor/operlog/list?business_type=1
+
+### list search by oper_name
+GET http://127.0.0.1:8080/monitor/operlog/list?oper_name=admin
+
+### list search by title
+GET http://127.0.0.1:8080/monitor/operlog/list?title=模块标题
+
+### list search by request_method = GET
+GET http://127.0.0.1:8080/monitor/operlog/list?request_method=GET
+
+### list search by id
+GET http://127.0.0.1:8080/monitor/operlog/list?id=1
+
+### detail empty
+GET http://127.0.0.1:8080/monitor/operlog/detail
+
+### detail empty id
+GET http://127.0.0.1:8080/monitor/operlog/detail?id=
+
+### detail not exist data
+GET http://127.0.0.1:8080/monitor/operlog/detail?id=99999
+
+### detail success
+GET http://127.0.0.1:8080/monitor/operlog/detail?id=1
+
+### delete empty
+DELETE http://127.0.0.1:8080/monitor/operlog/delete
+content-type: application/json
+
+{
+}
+
+### delete empty ids
+DELETE http://127.0.0.1:8080/monitor/operlog/delete
+content-type: application/json
+
+{
+  "ids": []
+}
+
+### delete success
+DELETE http://127.0.0.1:8080/monitor/operlog/delete
+content-type: application/json
+
+{
+  "ids": [1]
+}
+
+### check delete
+GET http://127.0.0.1:8080/monitor/operlog/detail?id=1
+
+### clear
+DELETE http://127.0.0.1:8080/monitor/operlog/clear

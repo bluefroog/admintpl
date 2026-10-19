@@ -1,0 +1,59 @@
+### 缓存监控（各内存缓存的键数量与读写统计）
+GET http://127.0.0.1:8080/monitor/cache
+Authorization: Bearer {{token}}
+
+### 缓存列表
+GET http://127.0.0.1:8080/monitor/cache/list?pageSize=10
+Authorization: Bearer {{token}}
+
+### 缓存列表（按缓存名称过滤）
+GET http://127.0.0.1:8080/monitor/cache/list?cacheName=captcha
+Authorization: Bearer {{token}}
+
+### 缓存列表（按缓存键模糊过滤）
+GET http://127.0.0.1:8080/monitor/cache/list?cacheKey=zzz
+Authorization: Bearer {{token}}
+
+### 缓存列表（缓存名称不存在）
+GET http://127.0.0.1:8080/monitor/cache/list?cacheName=not-exist
+Authorization: Bearer {{token}}
+
+### 清空指定缓存
+DELETE http://127.0.0.1:8080/monitor/cache/clear?cacheName=captcha
+Authorization: Bearer {{token}}
+
+### 清空全部缓存
+DELETE http://127.0.0.1:8080/monitor/cache/clear
+Authorization: Bearer {{token}}
+
+### 清空缓存（缓存名称不存在）
+DELETE http://127.0.0.1:8080/monitor/cache/clear?cacheName=not-exist
+Authorization: Bearer {{token}}
+
+### 期望响应结构
+# /monitor/cache
+# {
+#   "code": 0,
+#   "msg": "success",
+#   "data": {
+#     "info": [
+#       { "name": "captcha", "keyCount": 2, "hits": 5, "misses": 1, "sets": 6, "deletes": 0,
+#         "expired": 3, "cleanupInterval": "2m0s", "createdAt": "2024-01-01 00:00:00", "uptime": "12分钟" },
+#       { "name": "default", "keyCount": 0, "hits": 0, "misses": 0, "sets": 0, "deletes": 0,
+#         "expired": 0, "cleanupInterval": "1m0s", "createdAt": "2024-01-01 00:00:00", "uptime": "12分钟" }
+#     ],
+#     "dbSize": 2,
+#     "commandStats": [ { "name": "get", "value": 5 }, { "name": "miss", "value": 1 },
+#                       { "name": "set", "value": 6 }, { "name": "del", "value": 0 } ],
+#     "names": [ "captcha", "default" ]
+#   }
+# }
+#
+# /monitor/cache/list
+# { "code": 0, "msg": "success",
+#   "data": { "list": [ { "cacheName": "captcha", "cacheKey": "captcha:xxx", "cacheValue": "1234",
+#                         "expiration": "2024-01-01 00:05:00" } ], "total": 1, "page": 1, "pageSize": 10 } }
+#
+# 说明：
+# - 本项目使用进程内内存缓存（common/cache），与若依基于 Redis 的实现不同，因此统计的是各内存缓存实例
+# - 已注册的缓存：default（默认缓存）、captcha（图形验证码）

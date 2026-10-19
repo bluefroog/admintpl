@@ -4,7 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/app/monitor/domain"
+	"github.com/bluefroog/admintpl/common/database"
 
 	"gorm.io/gorm"
 )
@@ -18,7 +19,7 @@ type UserOnline struct{}
 // @param: searchParams *domain.UserOnlineSearchRequest
 // @return: err error, total int64
 func (s UserOnline) GetCount(searchParams *domain.UserOnlineSearchRequest) (err error, total int64) {
-	db := domain.DB.Model(&domain.UserOnline{})
+	db := database.DB.Model(&domain.UserOnline{})
 	db = s.parseFilter(db, searchParams)
 	err = db.Count(&total).Error
 	return err, total
@@ -31,7 +32,7 @@ func (s UserOnline) GetCount(searchParams *domain.UserOnlineSearchRequest) (err 
 // @param: searchParams *domain.UserOnlineSearchRequest
 // @return: err error, list []domain.UserOnline, total int64
 func (s UserOnline) GetList(searchParams *domain.UserOnlineSearchRequest) (err error, list []domain.UserOnline, total int64) {
-	db := domain.DB.Model(&domain.UserOnline{})
+	db := database.DB.Model(&domain.UserOnline{})
 	db = s.parseFilter(db, searchParams)
 	if err = db.Count(&total).Error; err != nil {
 		return err, nil, 0
@@ -109,7 +110,7 @@ func (s UserOnline) Create(data *domain.UserOnlineCreateRequest) error {
 	record.Explorer = data.Explorer
 	record.OS = data.OS
 	record.CreateTime = uint(time.Now().UnixMilli())
-	return domain.DB.Create(&record).Error
+	return database.DB.Create(&record).Error
 }
 
 // DeleteByToken 根据用户token删除在线记录（用户退出登录时调用）
@@ -122,7 +123,7 @@ func (s UserOnline) DeleteByToken(token string) (err error) {
 	if token == "" {
 		return nil
 	}
-	return domain.DB.Where("token = ?", token).Unscoped().Delete(&domain.UserOnline{}).Error
+	return database.DB.Where("token = ?", token).Unscoped().Delete(&domain.UserOnline{}).Error
 }
 
 // Delete 批量删除在线用户记录
@@ -135,7 +136,7 @@ func (s UserOnline) Delete(ids []uint) (err error) {
 	if len(ids) == 0 {
 		return nil
 	}
-	return domain.DB.Where("id in (?)", ids).Unscoped().Delete(&domain.UserOnline{}).Error
+	return database.DB.Where("id in (?)", ids).Unscoped().Delete(&domain.UserOnline{}).Error
 }
 
 // DeleteNotInIds 删除不在指定ID列表中的在线记录（清理失效会话）
@@ -145,7 +146,7 @@ func (s UserOnline) Delete(ids []uint) (err error) {
 // @param: ids []uint
 // @return: err error
 func (s UserOnline) DeleteNotInIds(ids []uint) (err error) {
-	db := domain.DB.Session(&gorm.Session{AllowGlobalUpdate: true})
+	db := database.DB.Session(&gorm.Session{AllowGlobalUpdate: true})
 	if len(ids) > 0 {
 		db = db.Where("id NOT IN (?)", ids)
 	}
@@ -170,7 +171,7 @@ func (s UserOnline) ForceLogout(req *domain.UserOnlineForceLogoutRequest) (err e
 // @return: *domain.UserOnline, err error
 func (s UserOnline) Detail(id uint) (*domain.UserOnline, error) {
 	var detail domain.UserOnline
-	if err := domain.DB.Where("id = ?", id).First(&detail).Error; err != nil {
+	if err := database.DB.Where("id = ?", id).First(&detail).Error; err != nil {
 		return nil, err
 	}
 	return &detail, nil
@@ -184,7 +185,7 @@ func (s UserOnline) Detail(id uint) (*domain.UserOnline, error) {
 // @return: *domain.UserOnline, error
 func (s UserOnline) GetByToken(token string) (*domain.UserOnline, error) {
 	var detail domain.UserOnline
-	if err := domain.DB.Where("token = ?", token).First(&detail).Error; err != nil {
+	if err := database.DB.Where("token = ?", token).First(&detail).Error; err != nil {
 		return nil, err
 	}
 	return &detail, nil

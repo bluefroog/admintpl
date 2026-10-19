@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -18,7 +19,7 @@ type Config struct{}
 // @return: err error, total int64
 func (s Config) GetCount(searchParams *domain.ConfigSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Config{})
+	db := database.DB.Model(&domain.Config{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -34,7 +35,7 @@ func (s Config) GetCount(searchParams *domain.ConfigSearchRequest) (err error, t
 // @return: err error, list interface{}, total int64
 func (s Config) GetList(searchParams *domain.ConfigSearchRequest) (err error, list []domain.Config, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Config{})
+	db := database.DB.Model(&domain.Config{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -131,7 +132,7 @@ func (s Config) Create(data *domain.ConfigCreateRequest) error {
 	config.UpdateTime = time.Now()
 	config.Remark = data.Remark
 
-	return domain.DB.Create(&config).Error
+	return database.DB.Create(&config).Error
 }
 
 // Update 修改参数
@@ -169,7 +170,7 @@ func (s Config) Update(data *domain.ConfigUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Config) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Config{}).Where("config_id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.Config{}).Where("config_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -182,7 +183,7 @@ func (s Config) UpdateByMap(id uint, updateMap map[string]interface{}) (err erro
 // @param: ids []uint
 // @return: err error
 func (s Config) Delete(ids []uint) (err error) {
-	if err = domain.DB.Where("config_id in (?) ", ids).Unscoped().Delete(&domain.Config{}).Error; err != nil {
+	if err = database.DB.Where("config_id in (?) ", ids).Unscoped().Delete(&domain.Config{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -196,7 +197,7 @@ func (s Config) Delete(ids []uint) (err error) {
 // @return: *domain.Config,err error
 func (s Config) Detail(id uint) (*domain.Config, error) {
 	var detail domain.Config
-	db := domain.DB.Where("config_id = ?", id)
+	db := database.DB.Where("config_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -249,7 +250,7 @@ func (s Config) KeyIsExist(key string, excludeIds *[]uint) bool {
 // @return: err error, value string
 func (s Config) GetByKey(key string) (err error, value string) {
 	var config domain.Config
-	if err = domain.DB.Where("config_key = ?", key).First(&config).Error; err != nil {
+	if err = database.DB.Where("config_key = ?", key).First(&config).Error; err != nil {
 		return err, ""
 	}
 	return nil, config.Value
@@ -265,7 +266,7 @@ func (s Config) CheckKeyUnique(req *domain.ConfigCheckKeyRequest) (err error, un
 	if req.Key == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.Config{}).Where("config_key = ?", req.Key)
+	db := database.DB.Model(&domain.Config{}).Where("config_key = ?", req.Key)
 	if req.ID != nil {
 		db = db.Where("config_id <> ?", *req.ID)
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/common/config"
+	"github.com/bluefroog/admintpl/common/database"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -85,8 +86,8 @@ func (s DataScope) ApplyToRoles(db *gorm.DB, loginUser *domain.LoginUser) *gorm.
 	if !limited {
 		return db
 	}
-	userIDs := domain.DB.Model(&domain.User{}).Select("id").Where(conditions, args...)
-	roleIDs := domain.DB.Model(&domain.UserRole{}).Select("role_id").Where("user_id IN (?)", userIDs)
+	userIDs := database.DB.Model(&domain.User{}).Select("id").Where(conditions, args...)
+	roleIDs := database.DB.Model(&domain.UserRole{}).Select("role_id").Where("user_id IN (?)", userIDs)
 	return db.Where("role_id IN (?)", roleIDs)
 }
 
@@ -99,7 +100,7 @@ func (s DataScope) ApplyToRoles(db *gorm.DB, loginUser *domain.LoginUser) *gorm.
 // @return: conditions string 过滤条件, args []interface{} 参数, limited bool 是否需要追加条件
 func (s DataScope) userScope(loginUser *domain.LoginUser, options DataScopeOptions) (conditions string, args []interface{}, limited bool) {
 	// 数据库未初始化（如单元测试）时不追加条件
-	if domain.DB == nil {
+	if database.DB == nil {
 		return "", nil, false
 	}
 	if loginUser == nil || loginUser.IsAdmin {
@@ -120,7 +121,7 @@ func (s DataScope) userScope(loginUser *domain.LoginUser, options DataScopeOptio
 // @return: []roleScope
 func (s DataScope) roleScopes(userID uint) []roleScope {
 	var roleIDs []uint
-	if err := domain.DB.Model(&domain.UserRole{}).
+	if err := database.DB.Model(&domain.UserRole{}).
 		Where("user_id = ?", userID).
 		Distinct().
 		Pluck("role_id", &roleIDs).Error; err != nil {
@@ -131,7 +132,7 @@ func (s DataScope) roleScopes(userID uint) []roleScope {
 		return nil
 	}
 	var roles []domain.Role
-	if err := domain.DB.Model(&domain.Role{}).
+	if err := database.DB.Model(&domain.Role{}).
 		Where("role_id IN (?) AND status = 0 AND del_flag = 0", roleIDs).
 		Find(&roles).Error; err != nil {
 		log.Errorf("数据权限：查询角色数据范围失败：%v", err)
@@ -219,8 +220,8 @@ func tableName(model interface{}) string {
 		return namer.TableName()
 	}
 	// 未自定义表名时按 GORM 命名策略（表前缀 + 单数）推导
-	if domain.DB != nil {
-		return domain.DB.NamingStrategy.TableName(reflect.TypeOf(model).Elem().Name())
+	if database.DB != nil {
+		return database.DB.NamingStrategy.TableName(reflect.TypeOf(model).Elem().Name())
 	}
 	return ""
 }

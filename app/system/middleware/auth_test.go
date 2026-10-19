@@ -56,6 +56,19 @@ func TestPathPermission(t *testing.T) {
 		"/swagger.json":         "",
 		"":                      "",
 		"/system/user/list/":    "system:user:list",
+		// 系统监控 / 定时任务（模块拆分后与若依路径一致）
+		"/monitor/online/list":         "monitor:online:list",
+		"/monitor/online/force-logout": "monitor:online:force-logout",
+		"/monitor/logininfor/clear":    "monitor:logininfor:clear",
+		"/monitor/operlog/list":        "monitor:operlog:list",
+		"/monitor/job/list":            "monitor:job:list",
+		"/monitor/job/change-status":   "monitor:job:change-status",
+		"/monitor/jobLog/list":         "monitor:jobLog:list",
+		// 无法由路径推导的监控接口走别名
+		"/monitor/server":      "monitor:server:list",
+		"/monitor/cache":       "monitor:cache:list",
+		"/monitor/cache/list":  "monitor:cacheList:list",
+		"/monitor/cache/clear": "monitor:cache:clear",
 	}
 	for path, want := range cases {
 		if got := PathPermission(path); got != want {

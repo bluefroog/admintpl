@@ -3,23 +3,35 @@
 > 项目：Go + Gin + GORM 后台管理系统快速开发框架（模块 `github.com/bluefroog/admintpl`）
 > 详细规范见 `docs/开发规范.md`，本文档为 Agent 开发时必须遵守的核心约定。
 
-## 1. 代码放置规范
+## 1. 模块划分与代码放置规范
 
-- 每张表对应一套文件，文件名 = 表名（蛇形），放置位置：
-  - `app/system/controller/<table>.go` — HTTP 控制器（只做：绑定参数 → `validate.Struct` 校验 → 调 service → 返回响应）
-  - `app/system/service/<table>.go` — 业务逻辑（用 `domain.DB`，标准方法：GetCount/GetList/parseFilter/Create/Update/Delete/Detail + 唯一性校验）
-  - `app/system/domain/<table>.go` — 实体（`ID uint` + `XxxBase` 嵌入 `core.RuoyiModel` + `TableName()`）与请求结构体（`XxxSearchRequest` 嵌入 `request.PageInfo/SortInfo/core.RouyiSearchRequest`、`XxxCreateRequest`、`XxxUpdateRequest` 嵌入 `request.GetById`）
-  - `app/system/test/http/<table>.http` — 接口测试文件（`###` 分隔用例）
-- 新增表模型必须注册到 `app/system/domain/init.go` 的 `autoMigrate`；路由必须注册到 `app/system/controller/init.go`。
-- 路由统一 `/system/<表名>/<list|create|update|delete|detail>`：
+模块（各自独立，互为兄弟）：
+
+| 模块 | 目录 | 路由前缀 | 内容 |
+| ---- | ---- | -------- | ---- |
+| 系统管理 | `app/system` | `/system/...` | 用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证 |
+| 系统监控 | `app/monitor` | `/monitor/...` | 在线用户/登录日志/操作日志/服务监控/缓存监控 |
+| 定时任务 | `app/cron` | `/monitor/job...`、`/monitor/jobLog/...` | 任务配置/调度器/任务日志/内置调用目标 |
+
+每个模块包含 `domain/`（实体 + 请求结构体）、`service/`（业务逻辑）、`controller/`（HTTP 控制器）、`initialize.go`（初始化入口，负责注册路由与模块级启动逻辑）、`test/http/`（接口测试文件）。
+
+- 每张表对应一套文件，文件名 = 表名（蛇形），放置位置（`<模块>` 取上表目录）：
+  - `<模块>/controller/<table>.go` — HTTP 控制器（只做：绑定参数 → `validate.Struct` 校验 → 调 service → 返回响应）
+  - `<模块>/service/<table>.go` — 业务逻辑（用 `common/database`.DB，标准方法：GetCount/GetList/parseFilter/Create/Update/Delete/Detail + 唯一性校验）
+  - `<模块>/domain/<table>.go` — 实体（`ID uint` + `XxxBase` 嵌入 `core.RuoyiModel` + `TableName()`）与请求结构体（`XxxSearchRequest` 嵌入 `request.PageInfo/SortInfo/core.RouyiSearchRequest`、`XxxCreateRequest`、`XxxUpdateRequest` 嵌入 `request.GetById`）
+  - `<模块>/test/http/<table>.http` — 接口测试文件（`###` 分隔用例）
+- 新增表模型必须注册到所属模块 `domain/init.go` 的 `Models()`；路由必须注册到所属模块 `controller/init.go`。
+  `bootstrap/bootstrap.go` 统一执行「数据库初始化 → `AutoMigrateAll(各模块 Models()...)` → 各模块 Initialize」，新增模块时在 `bootstrap` 中追加两行即可。
+- 路由统一 `<前缀>/<表名>/<list|create|update|delete|detail>`：
   - 业务表：全量 5 个接口；日志表：仅 list/delete/detail；关系表（复合主键）：仅 list/create/delete。
-  - 需登录的接口必须注册到 `app/system/controller/init.go` 的 `authorized` 分组内（已挂 `middleware.Auth()`）；
+  - 需登录的接口必须注册到所属模块 `controller/init.go` 的 `authorized` 分组内（已挂 `middleware.Auth()`）；
     免登录接口（`/login`、`/captchaImage`）注册在该分组之前。
   - 扩展动作（`tree`、`check-*`、`roles`、`menu`、`data-scope`、`clear`、`force-logout` 等）见 `docs/开发规范.md` 1.3 节。
 - 响应：成功 `response.OK(data, c)` / `response.Success("提示", c)`；失败 `response.Fail(-1, "错误", c)`。
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
 - 删除接口必须同步清理关联表（用户：`sys_user_role`/`sys_user_post`；角色：`sys_role_menu`/`sys_role_dept`/`sys_user_role`），与若依一致，避免孤儿数据。
 - 新增 `.go`/`.md`/`.http` 文件使用 **CRLF** 行尾。
+- 其它模块未迁移的业务（如代码生成）按同一模块划分方式新建 `app/<模块>`，不要塞进 `app/system`。
 
 ## 2. 开发工具：just（开发 / 测试 / 打包 / 发布）
 
@@ -67,15 +79,20 @@
 
 - **认证**：登录成功签发 64 位令牌并写入 `user_online` 表；请求头 `Authorization: Bearer <token>`（兼容 `token` 请求头与 `?token=`）携带。
   鉴权逻辑集中在 `app/system/middleware/auth.go`，业务方法取当前用户用 `middleware.GetLoginUser(c)` / `middleware.GetUserID(c)`，禁止再写 `// todo 通过登录服务获取`。
-- **权限标识**：路径 `/system/<模块>/<动作>` 对应权限 `system:<模块>:<动作>`（如 `/system/user/list` -> `system:user:list`），
-  与菜单 `perms` 字段一致；`system/user/profile|password|avatar` 为登录用户自助接口，不参与权限校验。
+- **权限标识**：路径 `<模块前缀>/<子模块>/<动作>` 对应权限 `<模块前缀>:<子模块>:<动作>`
+  （如 `/system/user/list` -> `system:user:list`、`/monitor/online/list` -> `monitor:online:list`），与菜单 `perms` 字段一致；
+  参与校验的前缀为 `system/`、`monitor/`、`tool/`（`app/system/middleware/auth.go` 的 `PathPermission`），
+  无法由路径推导的（如 `/monitor/server`、`/monitor/cache`、`/monitor/cache/list`）在 `pathPermissionAlias` 中显式映射；
+  `system/user/profile|password|avatar` 为登录用户自助接口，不参与权限校验。
+  注意：种子菜单的按钮权限沿用若依命名（`xxx:remove` / `xxx:edit` / `monitor:job:changeStatus` 等），
+  开启 `AUTH_PERMISSION_ENABLED` 前需在 `pathPermissionAlias` 中补齐这类映射，否则非超管角色会被拒绝。
 - **配置**：新增开关必须同时改 `config/config.yaml`（`${KEY:-默认值}` 占位符）与 `.env.dev` / `.env.pro`；
   `config/config.yaml` 末尾维护变量清单，`common/config/config_test.go` 会校验代码读取的键在配置文件中存在，缺失即测试失败。
 - **GORM 写入零值陷阱**：带 `default:` 标签的列在「结构体方式 Create」时，若字段取零值会被数据库默认值覆盖
   （如 `sys_menu.is_frame` 默认 1、`sys_user.status` 默认 1、`sys_role.menu_check_strictly` 默认 1）。
   此类表的 Create 必须使用 `map[string]interface{}` 显式写入（参考 `service/menu.go`、`service/user.go`、`service/role.go`），
   Update 已统一使用 map。
-- **基础数据初始化**：`app/system/service/seed.go` 仅在对应表为空时写入（幂等、事务内），入口开关 `SEED_ENABLED`；
+- **基础数据初始化**：各模块的 `service/seed.go`（`app/system`、`app/cron`）仅在对应表为空时写入（幂等、事务内，判空用 `database.TableEmpty`），入口开关 `SEED_ENABLED`；
   修改种子数据后需清空对应表并重启服务验证，或直接改库核对。
 - **自检**：开发完成后本地跑 `just vet` + `just test`，对已启动实例跑 `just smoke <BASE_URL>`
   （脚本会自动登录携带令牌，并校验零值字段落库、SQL 列名错配、定时任务调度等回归项）。
@@ -97,11 +114,20 @@
 
 - **cron 表达式**：统一使用 `common/cron`（若依/Quartz 语义，6~7 段 `秒 分 时 日 月 周 [年]`），
   禁止再引入 Quartz/gcron/cron 第三方库；日与周都指定时取「或」关系，周字段 `1~7` 为周日~周六（兼容 `0` 表示周日）。
-- **调用目标**：`bean.method(args)` 形式，只能调用在 `app/system/task/task.go` 中通过 `task.Register(...)` 显式注册的方法；
+- **调用目标**：`bean.method(args)` 形式，只能调用在 `app/cron/task/task.go` 中通过 `task.Register(...)` 显式注册的方法；
   新增任务目标 = 注册目标方法 + 建任务并启用，未注册的目标会在新增/修改时被拒绝（等价于若依的调用目标白名单）。
-- **调度器**：`app/system/service/job-scheduler.go`（按表命名规范之外的模块级文件），按秒扫描、独立协程执行、
+- **调度器**：`app/cron/service/job-scheduler.go`（按表命名规范之外的模块级文件），按秒扫描、独立协程执行、
   并发策略与错过执行补偿按 `sys_job.concurrent` / `sys_job.misfire_policy` 生效，执行结果写入 `sys_job_log`；
   开关 `system.job.enabled`（`JOB_ENABLED`）。
 - **任务变更必须联动调度器**：新增/修改/启停后调用 `JobScheduler{}.Refresh(id)`，删除调用 `Remove(id)`
   （`service/job.go` 已内置）；新任务表的 Create 同样使用 map 写入（`concurrent`/`status`/`misfire_policy` 有默认值）。
 - **任务日志写入**：使用 map 写入（`status=0`、`exception_info=''` 是零值）；日志清理天数由 `JOB_LOG_RETAIN_DAYS` 控制。
+
+## 8. 服务监控 / 缓存监控约定
+
+- **服务监控** `/monitor/server`（权限 `monitor:server:list`）：采集逻辑在 `common/sysinfo`，**只用标准库**（Linux 读 `/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts` + `syscall.Statfs`），
+  禁止引入 `gopsutil`；平台相关代码用构建标签拆分（`sysinfo_linux.go` / `sysinfo_other.go`），字符串解析逻辑放在平台无关文件以便单测；
+  返回字段名与若依前端一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles` 等），单位 MB、使用率 %。
+- **缓存监控** `/monitor/cache`、`/monitor/cache/list`、`/monitor/cache/clear`（权限 `monitor:cache:list`、`monitor:cacheList:list`）：
+  基于进程内内存缓存 `common/cache`（无 Redis）；新增业务缓存后用 `cache.Register("名称", 实例)` 注册即会被监控页面列出，
+  缓存列表只展示未过期条目，缓存值超过 200 字符截断。

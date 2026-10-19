@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"github.com/bluefroog/admintpl/common/lib"
 	"gorm.io/gorm"
 	"strings"
@@ -19,7 +20,7 @@ type User struct{}
 // @return: err error, list interface{}, total int64
 func (s User) GetList(searchParams *domain.UserSearchRequest, loginUser *domain.LoginUser) (err error, list []domain.User, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.User{})
+	db := database.DB.Model(&domain.User{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 数据权限（部门ID列 + 用户ID列）
@@ -142,7 +143,7 @@ func (s User) Create(data *domain.UserAddRequest) error {
 		"UpdatedAt":    now,
 	}
 
-	return domain.DB.Model(&domain.User{}).Create(record).Error
+	return database.DB.Model(&domain.User{}).Create(record).Error
 }
 
 // @author: [bluefrog](https://github.com/freewu)
@@ -178,7 +179,7 @@ func (s User) Update(data *domain.UserEditRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s User) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.User{}).Where("id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.User{}).Where("id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -194,7 +195,7 @@ func (s User) Delete(ids []uint) (err error) {
 		return nil
 	}
 	// 删除用户与角色/岗位的关联记录（与若依一致，避免遗留孤儿数据）
-	return domain.DB.Transaction(func(tx *gorm.DB) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("user_id in (?)", ids).Unscoped().Delete(&domain.UserRole{}).Error; err != nil {
 			return err
 		}
@@ -212,7 +213,7 @@ func (s User) Delete(ids []uint) (err error) {
 // @return: *domain.User,err error
 func (s User) Detail(id uint) (*domain.User, error) {
 	var detail domain.User
-	db := domain.DB.Where("id = ?", id)
+	db := database.DB.Where("id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -227,7 +228,7 @@ func (s User) Detail(id uint) (*domain.User, error) {
 // @return: *domain.User, error
 func (s User) GetByUsername(username string) (*domain.User, error) {
 	var detail domain.User
-	if err := domain.DB.Where("username = ?", username).First(&detail).Error; err != nil {
+	if err := database.DB.Where("username = ?", username).First(&detail).Error; err != nil {
 		return nil, err
 	}
 	return &detail, nil
@@ -243,7 +244,7 @@ func (s User) CheckUniqueUsername(req *domain.UserCheckUniqueRequest) (err error
 	if req.Username == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.User{}).Where("username = ?", req.Username)
+	db := database.DB.Model(&domain.User{}).Where("username = ?", req.Username)
 	if req.ID != nil {
 		db = db.Where("id <> ?", *req.ID)
 	}
@@ -264,7 +265,7 @@ func (s User) CheckUniqueMobile(req *domain.UserCheckUniqueRequest) (err error, 
 	if req.Mobile == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.User{}).Where("mobile = ?", req.Mobile)
+	db := database.DB.Model(&domain.User{}).Where("mobile = ?", req.Mobile)
 	if req.ID != nil {
 		db = db.Where("id <> ?", *req.ID)
 	}
@@ -285,7 +286,7 @@ func (s User) CheckUniqueEmail(req *domain.UserCheckUniqueRequest) (err error, u
 	if req.Email == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.User{}).Where("email = ?", req.Email)
+	db := database.DB.Model(&domain.User{}).Where("email = ?", req.Email)
 	if req.ID != nil {
 		db = db.Where("id <> ?", *req.ID)
 	}
@@ -333,7 +334,7 @@ func (s User) ChangeStatus(req *domain.UserChangeStatusRequest) (err error) {
 // @param: req *domain.UserAssignRoleRequest
 // @return: err error
 func (s User) AssignRoles(req *domain.UserAssignRoleRequest) (err error) {
-	return domain.DB.Transaction(func(tx *gorm.DB) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("user_id = ?", req.ID).Delete(&domain.UserRole{}).Error; err != nil {
 			return err
 		}
@@ -361,7 +362,7 @@ func (s User) AssignRoles(req *domain.UserAssignRoleRequest) (err error) {
 // @param: req *domain.UserAssignPostRequest
 // @return: err error
 func (s User) AssignPosts(req *domain.UserAssignPostRequest) (err error) {
-	return domain.DB.Transaction(func(tx *gorm.DB) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("user_id = ?", req.ID).Delete(&domain.UserPost{}).Error; err != nil {
 			return err
 		}
@@ -389,7 +390,7 @@ func (s User) AssignPosts(req *domain.UserAssignPostRequest) (err error) {
 // @param: userId uint
 // @return: err error, roleIds []uint
 func (s User) GetUserRoles(userId uint) (err error, roleIds []uint) {
-	if err = domain.DB.Model(&domain.UserRole{}).Where("user_id = ?", userId).Pluck("role_id", &roleIds).Error; err != nil {
+	if err = database.DB.Model(&domain.UserRole{}).Where("user_id = ?", userId).Pluck("role_id", &roleIds).Error; err != nil {
 		return err, nil
 	}
 	return nil, roleIds
@@ -402,7 +403,7 @@ func (s User) GetUserRoles(userId uint) (err error, roleIds []uint) {
 // @param: userId uint
 // @return: err error, postIds []uint
 func (s User) GetUserPosts(userId uint) (err error, postIds []uint) {
-	if err = domain.DB.Model(&domain.UserPost{}).Where("user_id = ?", userId).Pluck("post_id", &postIds).Error; err != nil {
+	if err = database.DB.Model(&domain.UserPost{}).Where("user_id = ?", userId).Pluck("post_id", &postIds).Error; err != nil {
 		return err, nil
 	}
 	return nil, postIds
@@ -417,7 +418,7 @@ func (s User) GetUserPosts(userId uint) (err error, postIds []uint) {
 // @return: err error, has bool
 func (s User) HasRole(userId uint, roleId uint) (err error, has bool) {
 	var count int64
-	if err = domain.DB.Model(&domain.UserRole{}).Where("user_id = ? AND role_id = ?", userId, roleId).Count(&count).Error; err != nil {
+	if err = database.DB.Model(&domain.UserRole{}).Where("user_id = ? AND role_id = ?", userId, roleId).Count(&count).Error; err != nil {
 		return err, false
 	}
 	return nil, count > 0

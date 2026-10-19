@@ -14,10 +14,11 @@
 * [已实现]操作日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
 * [已实现]登录日志：系统登录日志记录查询包含登录异常。
 * [已实现]在线用户：当前系统中活跃用户状态监控，支持强退。
+* [已实现]缓存监控：查询内存缓存的键值、读写统计，支持按缓存名称/缓存键过滤与清空。
+* [已实现]服务监控：监视当前系统 CPU、内存、磁盘、Go 运行时等信息。
 * [已实现]数据权限：按角色划分数据范围（全部/自定义/本部门/本部门及以下/仅本人），作用于用户、部门、角色列表。
 * [已实现]定时任务：任务配置（增删改查/启停/立即执行一次）+ 调度执行 + 任务日志；cron 表达式与调用目标均为若依（Quartz）语义。
 * [待实现]代码生成：前后端代码的生成。
-* [待实现]服务监控：监视当前系统CPU、内存、磁盘、堆栈等相关信息。
 
 # 项目初始化
 ```bash
@@ -37,7 +38,7 @@ just init
 | `/logout` | POST | 退出登录（删除令牌对应的在线记录） |
 | `/getInfo` | GET | 获取当前登录用户信息、角色标识与权限标识 |
 | `/getRouters` | GET | 获取当前用户的前端路由（Layout/ParentView、外链等若依约定结构） |
-| `/system/user-online/*` | - | 在线用户列表 / 详情 / 强退（强退后令牌立即失效） |
+| `/monitor/online/*` | - | 在线用户列表 / 详情 / 强退（强退后令牌立即失效） |
 
 令牌携带方式（三选一，优先级从上到下）：
 
@@ -54,14 +55,15 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 
 | 变量 | 默认值 | 说明 |
 | ---- | ------ | ---- |
-| `AUTH_ENABLED` | true | 关闭后所有 `/system` 接口免登录（仅用于本地调试） |
+| `AUTH_ENABLED` | true | 关闭后所有业务接口（`/system/...`、`/monitor/...`）免登录（仅用于本地调试） |
 | `AUTH_TOKEN_EXPIRE` | 720 | 令牌有效期（分钟） |
 | `AUTH_MAX_RETRY` | 5 | 连续登录失败次数上限，超过后锁定账号 |
 | `AUTH_LOCK_TIME` | 10 | 登录失败锁定时间（分钟） |
-| `AUTH_PERMISSION_ENABLED` | false | 开启后按请求路径推导权限标识（如 `system/user/list` -> `system:user:list`）做角色权限校验 |
+| `AUTH_PERMISSION_ENABLED` | false | 开启后按请求路径推导权限标识（如 `system/user/list` -> `system:user:list`、`monitor/online/list` -> `monitor:online:list`）做角色权限校验 |
 | `CAPTCHA_ENABLED` | dev=false / pro=true | 是否开启登录图形验证码 |
 | `CAPTCHA_LENGTH` / `CAPTCHA_EXPIRE` | 4 / 120 | 验证码位数 / 有效期（秒） |
 | `SEED_ENABLED` | dev=true / pro=false | 空库时自动初始化基础数据（部门/岗位/角色/用户/菜单/字典/参数/定时任务） |
+| `JOB_ENABLED` | true | 是否启动定时任务调度器（在 `app/cron` 模块启动时生效） |
 
 基础数据默认账号（`SEED_ENABLED=true` 且对应表为空时写入，幂等）：
 
@@ -71,7 +73,8 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 | `ry` | `admin123` | 普通角色（角色 ID 2，岗位 4，部门 105） |
 
 > 启动日志会打印生效开关，例如
-> `system 初始化：登录认证=true 权限校验=false 图形验证码=false 数据权限=true 基础数据初始化=true 定时任务调度=true`，
+> `system 初始化：登录认证=true 权限校验=false 图形验证码=false 数据权限=true 基础数据初始化=true`，
+> `cron 初始化：定时任务调度=true 基础数据初始化=true`
 > 部署后请核对，避免「配置未随部署更新」导致开关静默失效。
 
 # 定时任务调度
@@ -81,10 +84,10 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 
 | 接口 | 方法 | 说明 |
 | ---- | ---- | ---- |
-| `/system/job/list` `/create` `/update` `/delete` `/detail` | - | 任务增删改查（新增/修改会校验 cron 与调用目标） |
-| `/system/job/change-status` | PUT | 启用（`status=0`）/ 暂停（`status=1`），立即生效 |
-| `/system/job/run` | PUT | 立即执行一次（暂停中的任务同样可以执行） |
-| `/system/job-log/list` `/detail` `/delete` | - | 任务执行日志查询 / 删除 |
+| `/monitor/job/list` `/create` `/update` `/delete` `/detail` | - | 任务增删改查（新增/修改会校验 cron 与调用目标） |
+| `/monitor/job/change-status` | PUT | 启用（`status=0`）/ 暂停（`status=1`），立即生效 |
+| `/monitor/job/run` | PUT | 立即执行一次（暂停中的任务同样可以执行） |
+| `/monitor/jobLog/list` `/detail` `/delete` `/clear` | - | 任务执行日志查询 / 删除 / 清空 |
 
 **cron 表达式**（6~7 段：`秒 分 时 日 月 周 [年]`，与若依 Quartz 一致）：
 
@@ -103,7 +106,7 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 
 **调用目标**（`bean.method(args)`，与若依一致）：只能调用「已注册」的方法，
 未注册的调用目标在新增/修改时即被拒绝（等价于若依的调用目标白名单校验，避免任意方法调用）。
-内置示例目标定义在 `app/system/task/task.go`：
+内置示例目标定义在 `app/cron/task/task.go`：
 
 ```bash
 ryTask.ryNoParams()                            # 无参
@@ -112,7 +115,7 @@ ryTask.ryMultipleParams('ry', true, 2000, 1.0) # 多类型参数
 testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 ```
 
-新增任务目标：在 `app/system/task/task.go` 中调用 `task.Register(bean, method, remark, fn)` 注册后即可使用；
+新增任务目标：在 `app/cron/task/task.go` 中调用 `task.Register(bean, method, remark, fn)` 注册后即可使用；
 任务表的 `job_args`（以 `|` 分隔）在调用目标本身不带参数时作为位置参数传入。
 
 | 变量 | 默认值 | 说明 |
@@ -149,6 +152,37 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 | 变量 | 默认值 | 说明 |
 | ---- | ------ | ---- |
 | `DATA_SCOPE_ENABLED` | true | 关闭后列表接口不再按数据范围过滤（排查「数据查不到」时可临时关闭） |
+
+# 服务监控 / 缓存监控
+
+| 接口 | 方法 | 说明 |
+| ---- | ---- | ---- |
+| `/monitor/server` | GET | 服务监控：CPU（核心数/使用率/平均负载）、内存、Go 运行时、主机（名称/IP/系统/架构）、磁盘 |
+| `/monitor/cache` | GET | 缓存监控：各内存缓存的键数量与读写统计（`info`/`dbSize`/`commandStats`/`names`） |
+| `/monitor/cache/list` | GET | 缓存列表：分页查询缓存键值，支持 `cacheName`、`cacheKey` 过滤 |
+| `/monitor/cache/clear` | DELETE | 清空缓存：`cacheName` 为空清空全部，指定名称不存在时返回错误 |
+
+* 响应字段与若依前端（`ruoyi-ui` 的监控页面）保持一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles`/`dbSize`/`commandStats` 等），便于直接复用前端页面；
+* **零新增依赖**：不使用 `gopsutil`，CPU/负载/内存/磁盘均读取 Linux `/proc`（`/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts`）+ `syscall.Statfs` 实现；非 Linux 平台仅返回 Go 运行时与主机基础信息，系统指标为零值；
+* 内存/磁盘单位均为 MB，使用率单位为 %；容器内根目录（`overlay`）与 `/dev/*` 设备都会作为磁盘列出；
+* 缓存监控基于进程内内存缓存（`common/cache`，无 Redis）。除默认缓存外，图形验证码缓存（`captcha`）也注册到监控中；缓存列表中的过期项不展示；
+* 权限标识：`monitor:server:list`、`monitor:cache:list`、`monitor:cacheList:list`（已有种子菜单），认证开启权限校验时按 `/monitor/...` 路径推导。
+
+# 模块划分
+
+```
+app/system    系统管理（用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证）
+app/monitor   系统监控（在线用户/登录日志/操作日志/服务监控/缓存监控）
+app/cron      定时任务（任务配置/调度器/任务日志/内置调用目标）
+common/database  数据库初始化与迁移（DB/InitDB/AutoMigrateAll/TableEmpty）
+common/sysinfo   服务器指标采集（标准库 /proc 实现）
+common/cache     进程内内存缓存（含监控统计与注册表）
+bootstrap     启动编排：初始化数据库 → 迁移各模块模型 → 依次注册各模块路由
+```
+
+* 每个模块自带 `domain`（实体/请求结构体）、`service`（业务逻辑）、`controller`（HTTP 控制器）、`initialize.go`（初始化入口）；
+* 新增监控/定时任务类业务时，在对应模块内新增文件即可，`bootstrap` 无需改动（模型通过各模块 `domain.Models()` 汇总）；
+* 接口测试文件放在各模块的 `test/http/` 下（如 `app/monitor/test/http/cache.http`）。
 
 # 配置与环境切换
 

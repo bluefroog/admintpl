@@ -61,12 +61,6 @@ func InitRouter(r *gin.Engine) {
 		group.DELETE("/config/delete", config.Delete)
 		group.GET("/config/detail", config.Detail)
 
-		// 访问日志相关接口
-		loginLog := LoginLog{}
-		group.GET("/login-log/list", loginLog.List)
-		group.DELETE("/login-log/delete", loginLog.Delete)
-		group.GET("/login-log/detail", loginLog.Detail)
-
 		// 角色相关接口
 		role := Role{}
 		group.GET("/role/list", role.List)
@@ -98,26 +92,6 @@ func InitRouter(r *gin.Engine) {
 		group.PUT("/dict-data/update", dictData.Update)
 		group.DELETE("/dict-data/delete", dictData.Delete)
 		group.GET("/dict-data/detail", dictData.Detail)
-
-		// 定时任务相关接口
-		job := Job{}
-		group.GET("/job/list", job.List)
-		group.POST("/job/create", job.Create)
-		group.PUT("/job/update", job.Update)
-		group.DELETE("/job/delete", job.Delete)
-		group.GET("/job/detail", job.Detail)
-
-		// 定时任务日志相关接口
-		jobLog := JobLog{}
-		group.GET("/job-log/list", jobLog.List)
-		group.DELETE("/job-log/delete", jobLog.Delete)
-		group.GET("/job-log/detail", jobLog.Detail)
-
-		// 操作日志相关接口
-		operationLog := OperationLog{}
-		group.GET("/operation-log/list", operationLog.List)
-		group.DELETE("/operation-log/delete", operationLog.Delete)
-		group.GET("/operation-log/detail", operationLog.Detail)
 
 		// 角色部门关联相关接口
 		roleDept := RoleDept{}
@@ -170,9 +144,6 @@ func InitRouter(r *gin.Engine) {
 		group.GET("/config/get-by-key", config.GetByKey)
 		group.GET("/config/check-key", config.CheckKeyUnique)
 
-		// 登录日志扩展接口（清空）
-		group.DELETE("/login-log/clear", loginLog.Clear)
-
 		// 角色扩展接口（菜单授权 / 数据权限 / 分配用户 / 唯一性校验）
 		group.PUT("/role/menu", role.AssignMenus)
 		group.PUT("/role/data-scope", role.DataScope)
@@ -198,21 +169,6 @@ func InitRouter(r *gin.Engine) {
 		// 字典数据扩展接口
 		group.GET("/dict-data/get-by-type", dictData.GetByType)
 		group.GET("/dict-data/check-label", dictData.CheckLabelUnique)
-
-		// 定时任务扩展接口（状态修改 / 立即执行一次 / 唯一性校验）
-		group.PUT("/job/change-status", job.ChangeStatus)
-		group.PUT("/job/run", job.Run)
-		group.GET("/job/check-name", job.CheckNameUnique)
-
-		// 操作日志扩展接口（清空）
-		group.DELETE("/operation-log/clear", operationLog.Clear)
-
-		// 在线用户接口
-		userOnline := UserOnline{}
-		group.GET("/user-online/list", userOnline.List)
-		group.DELETE("/user-online/delete", userOnline.Delete)
-		group.GET("/user-online/detail", userOnline.Detail)
-		group.DELETE("/user-online/force-logout", userOnline.ForceLogout)
 
 	}
 	//r.GET("/ping", func(c *gin.Context) {

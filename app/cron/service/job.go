@@ -5,9 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bluefroog/admintpl/app/system/domain"
-	"github.com/bluefroog/admintpl/app/system/task"
+	"github.com/bluefroog/admintpl/app/cron/domain"
+	"github.com/bluefroog/admintpl/app/cron/task"
 	"github.com/bluefroog/admintpl/common/cron"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +22,7 @@ type Job struct{}
 // @return: err error, total int64
 func (s Job) GetCount(searchParams *domain.JobSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Job{})
+	db := database.DB.Model(&domain.Job{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -37,7 +38,7 @@ func (s Job) GetCount(searchParams *domain.JobSearchRequest) (err error, total i
 // @return: err error, list interface{}, total int64
 func (s Job) GetList(searchParams *domain.JobSearchRequest) (err error, list []domain.Job, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Job{})
+	db := database.DB.Model(&domain.Job{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -141,12 +142,12 @@ func (s Job) Create(data *domain.JobCreateRequest) error {
 		"UpdateBy":       "", // todo 通过登录服务获取
 		"UpdateTime":     now,
 	}
-	if err := domain.DB.Model(&domain.Job{}).Create(record).Error; err != nil {
+	if err := database.DB.Model(&domain.Job{}).Create(record).Error; err != nil {
 		return err
 	}
 	// 新增后按最新配置注册调度（状态为「暂停」时不注册）
 	var created domain.Job
-	if err := domain.DB.Where("job_name = ?", data.Name).First(&created).Error; err == nil {
+	if err := database.DB.Where("job_name = ?", data.Name).First(&created).Error; err == nil {
 		JobScheduler{}.Refresh(created.ID)
 	}
 	return nil
@@ -198,7 +199,7 @@ func (s Job) Update(data *domain.JobUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Job) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Job{}).Where("job_id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.Job{}).Where("job_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -217,12 +218,12 @@ func (s Job) Delete(ids []uint) (err error) {
 	}
 	// 与若依一致：删除任务时同时清理其执行日志（日志表没有 job_id，按 任务名称+任务组 匹配）
 	var jobs []domain.Job
-	if err = domain.DB.Where("job_id in (?) ", ids).Find(&jobs).Error; err == nil {
+	if err = database.DB.Where("job_id in (?) ", ids).Find(&jobs).Error; err == nil {
 		for _, job := range jobs {
-			domain.DB.Where("job_name = ? AND job_group = ?", job.Name, job.Group).Delete(&domain.JobLog{})
+			database.DB.Where("job_name = ? AND job_group = ?", job.Name, job.Group).Delete(&domain.JobLog{})
 		}
 	}
-	if err = domain.DB.Where("job_id in (?) ", ids).Unscoped().Delete(&domain.Job{}).Error; err != nil {
+	if err = database.DB.Where("job_id in (?) ", ids).Unscoped().Delete(&domain.Job{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -236,7 +237,7 @@ func (s Job) Delete(ids []uint) (err error) {
 // @return: *domain.Job,err error
 func (s Job) Detail(id uint) (*domain.Job, error) {
 	var detail domain.Job
-	db := domain.DB.Where("job_id = ?", id)
+	db := database.DB.Where("job_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -347,7 +348,7 @@ func (s Job) CheckNameUnique(name string, excludeIds *[]uint) (err error, unique
 	if name == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.Job{}).Where("job_name = ?", name)
+	db := database.DB.Model(&domain.Job{}).Where("job_name = ?", name)
 	if excludeIds != nil && len(*excludeIds) > 0 {
 		db = db.Where("job_id NOT IN (?)", *excludeIds)
 	}

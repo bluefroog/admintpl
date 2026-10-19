@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +16,7 @@ type RoleMenu struct{}
 // @return: err error, total int64
 func (s RoleMenu) GetCount(searchParams *domain.RoleMenuSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.RoleMenu{})
+	db := database.DB.Model(&domain.RoleMenu{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -31,7 +32,7 @@ func (s RoleMenu) GetCount(searchParams *domain.RoleMenuSearchRequest) (err erro
 // @return: err error, list interface{}, total int64
 func (s RoleMenu) GetList(searchParams *domain.RoleMenuSearchRequest) (err error, list []domain.RoleMenu, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.RoleMenu{})
+	db := database.DB.Model(&domain.RoleMenu{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -88,7 +89,7 @@ func (s RoleMenu) Create(data *domain.RoleMenuCreateRequest) error {
 	roleMenu.RoleID = data.RoleID
 	roleMenu.MenuID = data.MenuID
 
-	return domain.DB.Create(&roleMenu).Error
+	return database.DB.Create(&roleMenu).Error
 }
 
 // Delete 删除角色菜单关联
@@ -98,7 +99,7 @@ func (s RoleMenu) Create(data *domain.RoleMenuCreateRequest) error {
 // @param: data *domain.RoleMenuDeleteRequest
 // @return: err error
 func (s RoleMenu) Delete(data *domain.RoleMenuDeleteRequest) (err error) {
-	db := domain.DB.Model(&domain.RoleMenu{})
+	db := database.DB.Model(&domain.RoleMenu{})
 	// 条件过滤
 	if data.RoleID != nil { // 角色ID
 		db = db.Where("role_id = ?", data.RoleID)

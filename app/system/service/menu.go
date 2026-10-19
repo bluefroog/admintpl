@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"github.com/bluefroog/admintpl/common/model/request"
 	"gorm.io/gorm"
 	"strings"
@@ -19,7 +20,7 @@ type Menu struct{}
 // @return: err error, total int64
 func (s Menu) GetCount(searchParams *domain.MenuSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Menu{})
+	db := database.DB.Model(&domain.Menu{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -35,7 +36,7 @@ func (s Menu) GetCount(searchParams *domain.MenuSearchRequest) (err error, total
 // @return: err error, list interface{}, total int64
 func (s Menu) GetList(searchParams *domain.MenuSearchRequest) (err error, list []domain.Menu, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Menu{})
+	db := database.DB.Model(&domain.Menu{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -146,7 +147,7 @@ func (s Menu) Create(data *domain.MenuCreateRequest) error {
 		"UpdateTime": time.Now(),
 	}
 
-	return domain.DB.Model(&domain.Menu{}).Create(record).Error
+	return database.DB.Model(&domain.Menu{}).Create(record).Error
 }
 
 // Update 修改菜单
@@ -190,7 +191,7 @@ func (s Menu) Update(data *domain.MenuUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Menu) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Menu{}).Where("menu_id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.Menu{}).Where("menu_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -211,7 +212,7 @@ func (s Menu) Delete(ids []uint) (err error) {
 	if total > 0 {
 		return errors.New("存在子菜单，禁止删除")
 	}
-	if err = domain.DB.Where("menu_id in (?) ", ids).Unscoped().Delete(&domain.Menu{}).Error; err != nil {
+	if err = database.DB.Where("menu_id in (?) ", ids).Unscoped().Delete(&domain.Menu{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -225,7 +226,7 @@ func (s Menu) Delete(ids []uint) (err error) {
 // @return: *domain.Menu,err error
 func (s Menu) Detail(id uint) (*domain.Menu, error) {
 	var detail domain.Menu
-	db := domain.DB.Where("menu_id = ?", id)
+	db := database.DB.Where("menu_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -258,7 +259,7 @@ func (s Menu) NameIsExist(name string, excludeIds *[]uint) bool {
 // @param: req *domain.MenuTreeRequest
 // @return: err error, list []domain.Ztree
 func (s Menu) TreeData(req *domain.MenuTreeRequest) (err error, list []domain.Ztree) {
-	db := domain.DB.Model(&domain.Menu{})
+	db := database.DB.Model(&domain.Menu{})
 	if req.Name != "" {
 		db = db.Where("menu_name LIKE ?", "%"+req.Name+"%")
 	}
@@ -283,12 +284,12 @@ func (s Menu) TreeData(req *domain.MenuTreeRequest) (err error, list []domain.Zt
 // @return: err error, list []domain.Ztree
 func (s Menu) RoleMenuTreeData(roleId uint) (err error, list []domain.Ztree) {
 	var menus []domain.Menu
-	if err = domain.DB.Order("order_num asc").Find(&menus).Error; err != nil {
+	if err = database.DB.Order("order_num asc").Find(&menus).Error; err != nil {
 		return err, nil
 	}
 	var checkedIds []uint
 	if roleId > 0 {
-		if err = domain.DB.Model(&domain.RoleMenu{}).Where("role_id = ?", roleId).Pluck("menu_id", &checkedIds).Error; err != nil {
+		if err = database.DB.Model(&domain.RoleMenu{}).Where("role_id = ?", roleId).Pluck("menu_id", &checkedIds).Error; err != nil {
 			return err, nil
 		}
 	}
@@ -302,7 +303,7 @@ func (s Menu) RoleMenuTreeData(roleId uint) (err error, list []domain.Ztree) {
 // @param: req *domain.MenuCheckNameRequest
 // @return: err error, unique bool
 func (s Menu) CheckNameUnique(req *domain.MenuCheckNameRequest) (err error, unique bool) {
-	db := domain.DB.Model(&domain.Menu{}).
+	db := database.DB.Model(&domain.Menu{}).
 		Where("menu_name = ?", req.Name).
 		Where("parent_id = ?", req.ParentID)
 	if req.ID != nil {
@@ -325,7 +326,7 @@ func (s Menu) CheckPermsUnique(req *domain.MenuCheckPermsRequest) (err error, un
 	if req.Perms == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.Menu{}).Where("perms = ?", req.Perms)
+	db := database.DB.Model(&domain.Menu{}).Where("perms = ?", req.Perms)
 	if req.ID != nil {
 		db = db.Where("menu_id <> ?", *req.ID)
 	}
@@ -344,7 +345,7 @@ func (s Menu) CheckPermsUnique(req *domain.MenuCheckPermsRequest) (err error, un
 // @return: err error, has bool
 func (s Menu) HasChild(menuId uint) (err error, has bool) {
 	var count int64
-	if err = domain.DB.Model(&domain.Menu{}).Where("parent_id = ?", menuId).Count(&count).Error; err != nil {
+	if err = database.DB.Model(&domain.Menu{}).Where("parent_id = ?", menuId).Count(&count).Error; err != nil {
 		return err, false
 	}
 	return nil, count > 0

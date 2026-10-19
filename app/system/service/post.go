@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"github.com/bluefroog/admintpl/common/model/request"
 	"gorm.io/gorm"
 	"strings"
@@ -19,7 +20,7 @@ type Post struct{}
 // @return: err error, total int64
 func (s Post) GetCount(searchParams *domain.PostSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Post{})
+	db := database.DB.Model(&domain.Post{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -35,7 +36,7 @@ func (s Post) GetCount(searchParams *domain.PostSearchRequest) (err error, total
 // @return: err error, list interface{}, total int64
 func (s Post) GetList(searchParams *domain.PostSearchRequest) (err error, list []domain.Post, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Post{})
+	db := database.DB.Model(&domain.Post{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -127,7 +128,7 @@ func (s Post) Create(data *domain.PostCreateRequest) error {
 	post.UpdateBy = "" // todo 通过登录服务获取
 	post.UpdateTime = time.Now()
 
-	return domain.DB.Create(&post).Error
+	return database.DB.Create(&post).Error
 }
 
 // Update 修改职位
@@ -165,7 +166,7 @@ func (s Post) Update(data *domain.PostUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Post) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Post{}).Where("post_id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.Post{}).Where("post_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -178,7 +179,7 @@ func (s Post) UpdateByMap(id uint, updateMap map[string]interface{}) (err error)
 // @param: ids []uint
 // @return: err error
 func (s Post) Delete(ids []uint) (err error) {
-	if err = domain.DB.Where("post_id in (?) ", ids).Unscoped().Delete(&domain.Post{}).Error; err != nil {
+	if err = database.DB.Where("post_id in (?) ", ids).Unscoped().Delete(&domain.Post{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -192,7 +193,7 @@ func (s Post) Delete(ids []uint) (err error) {
 // @return: *domain.Post,err error
 func (s Post) Detail(id uint) (*domain.Post, error) {
 	var detail domain.Post
-	db := domain.DB.Where("post_id = ?", id)
+	db := database.DB.Where("post_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -249,7 +250,7 @@ func (s Post) CheckUniqueName(req *domain.PostCheckUniqueRequest) (err error, un
 	if req.Name == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.Post{}).Where("post_name = ?", req.Name)
+	db := database.DB.Model(&domain.Post{}).Where("post_name = ?", req.Name)
 	if req.ID != nil {
 		db = db.Where("post_id <> ?", *req.ID)
 	}
@@ -270,7 +271,7 @@ func (s Post) CheckUniqueCode(req *domain.PostCheckUniqueRequest) (err error, un
 	if req.Code == "" {
 		return nil, true
 	}
-	db := domain.DB.Model(&domain.Post{}).Where("post_code = ?", req.Code)
+	db := database.DB.Model(&domain.Post{}).Where("post_code = ?", req.Code)
 	if req.ID != nil {
 		db = db.Where("post_id <> ?", *req.ID)
 	}

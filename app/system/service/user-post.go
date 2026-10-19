@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +16,7 @@ type UserPost struct{}
 // @return: err error, total int64
 func (s UserPost) GetCount(searchParams *domain.UserPostSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.UserPost{})
+	db := database.DB.Model(&domain.UserPost{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -31,7 +32,7 @@ func (s UserPost) GetCount(searchParams *domain.UserPostSearchRequest) (err erro
 // @return: err error, list interface{}, total int64
 func (s UserPost) GetList(searchParams *domain.UserPostSearchRequest) (err error, list []domain.UserPost, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.UserPost{})
+	db := database.DB.Model(&domain.UserPost{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -88,7 +89,7 @@ func (s UserPost) Create(data *domain.UserPostCreateRequest) error {
 	userPost.UserID = data.UserID
 	userPost.PostID = data.PostID
 
-	return domain.DB.Create(&userPost).Error
+	return database.DB.Create(&userPost).Error
 }
 
 // Delete 删除用户岗位关联
@@ -98,7 +99,7 @@ func (s UserPost) Create(data *domain.UserPostCreateRequest) error {
 // @param: data *domain.UserPostDeleteRequest
 // @return: err error
 func (s UserPost) Delete(data *domain.UserPostDeleteRequest) (err error) {
-	db := domain.DB.Model(&domain.UserPost{})
+	db := database.DB.Model(&domain.UserPost{})
 	// 条件过滤
 	if data.UserID != nil { // 用户ID
 		db = db.Where("user_id = ?", data.UserID)

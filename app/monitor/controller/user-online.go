@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/bluefroog/admintpl/app/system/domain"
-	"github.com/bluefroog/admintpl/app/system/service"
+	"github.com/bluefroog/admintpl/app/monitor/domain"
+	"github.com/bluefroog/admintpl/app/monitor/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
@@ -21,7 +21,7 @@ var (
 // @Tags 在线用户
 // @Param data query domain.UserOnlineSearchRequest true "data"
 // @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.UserOnline}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
-// @Router /system/user-online/list [get]
+// @Router /monitor/online/list [get]
 // @Security
 func (u *UserOnline) List(c *gin.Context) {
 	var searchParams domain.UserOnlineSearchRequest
@@ -51,7 +51,7 @@ func (u *UserOnline) List(c *gin.Context) {
 // @Tags 在线用户
 // @Param ids body request.IdsRequest true "{ids: [1,2']}"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/user-online/delete [delete]
+// @Router /monitor/online/delete [delete]
 // @Security
 func (u *UserOnline) Delete(c *gin.Context) {
 	var data *request.IdsRequest
@@ -75,7 +75,7 @@ func (u *UserOnline) Delete(c *gin.Context) {
 // @Tags 在线用户
 // @Param data query request.GetById true "data"
 // @Success 0 {object} response.Response{data=domain.UserOnline} "{"code": 0, "msg":"success","data": {}}"
-// @Router /system/user-online/detail [get]
+// @Router /monitor/online/detail [get]
 // @Security
 func (u *UserOnline) Detail(c *gin.Context) {
 	var param request.GetById
@@ -100,7 +100,7 @@ func (u *UserOnline) Detail(c *gin.Context) {
 // @Tags 在线用户
 // @Param data body domain.UserOnlineForceLogoutRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/user-online/force-logout [delete]
+// @Router /monitor/online/force-logout [delete]
 // @Security
 func (u *UserOnline) ForceLogout(c *gin.Context) {
 	var param domain.UserOnlineForceLogoutRequest

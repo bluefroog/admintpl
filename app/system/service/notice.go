@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"github.com/bluefroog/admintpl/common/model/request"
 	"gorm.io/gorm"
 	"strings"
@@ -19,7 +20,7 @@ type Notice struct{}
 // @return: err error, total int64
 func (s Notice) GetCount(searchParams *domain.NoticeSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Notice{})
+	db := database.DB.Model(&domain.Notice{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -35,7 +36,7 @@ func (s Notice) GetCount(searchParams *domain.NoticeSearchRequest) (err error, t
 // @return: err error, list interface{}, total int64
 func (s Notice) GetList(searchParams *domain.NoticeSearchRequest) (err error, list []domain.Notice, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Notice{})
+	db := database.DB.Model(&domain.Notice{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -129,7 +130,7 @@ func (s Notice) Create(data *domain.NoticeCreateRequest) error {
 	notice.UpdateBy = "" // todo 通过登录服务获取
 	notice.UpdateTime = time.Now()
 
-	return domain.DB.Create(&notice).Error
+	return database.DB.Create(&notice).Error
 }
 
 // Update 修改公告
@@ -166,7 +167,7 @@ func (s Notice) Update(data *domain.NoticeUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Notice) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Notice{}).Where("notice_id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.Notice{}).Where("notice_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -179,7 +180,7 @@ func (s Notice) UpdateByMap(id uint, updateMap map[string]interface{}) (err erro
 // @param: ids []uint
 // @return: err error
 func (s Notice) Delete(ids []uint) (err error) {
-	if err = domain.DB.Where("notice_id in (?) ", ids).Unscoped().Delete(&domain.Notice{}).Error; err != nil {
+	if err = database.DB.Where("notice_id in (?) ", ids).Unscoped().Delete(&domain.Notice{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -193,7 +194,7 @@ func (s Notice) Delete(ids []uint) (err error) {
 // @return: *domain.Notice,err error
 func (s Notice) Detail(id uint) (*domain.Notice, error) {
 	var detail domain.Notice
-	db := domain.DB.Where("notice_id = ?", id)
+	db := database.DB.Where("notice_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}

@@ -11,6 +11,7 @@ set -u
 
 BASE_URL="${1:-${BASE_URL:-http://127.0.0.1:8080}}"
 B="$BASE_URL/system"
+M="$BASE_URL/monitor"
 S=$(date +%s)
 ok=0; sqlbad=0; bad=0
 
@@ -47,8 +48,24 @@ req() {
   fi
 }
 
+# 监控模块读接口断言（与 req 相同，但使用 /monitor 前缀）
+mreq() {
+  local m=$1 p=$2 out
+  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$M$p")
+  if echo "$out" | grep -q '"code":0'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "monitor$p"
+  elif echo "$out" | grep -qE '1054|Unknown column'; then
+    sqlbad=$((sqlbad+1)); printf '\033[31mSQLERR\033[0m %-44s %s\n' "monitor$p" "$(echo "$out" | head -c 170)"
+  elif echo "$out" | grep -q 'record not found'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s （空表，无记录，符合预期）\n' "monitor$p"
+  else
+    bad=$((bad+1)); printf '\033[33mWARN\033[0m  %-44s %s\n' "monitor$p" "$(echo "$out" | head -c 170)"
+  fi
+}
+
 # 全模块 CRUD 断言：create → list(取 id) → detail → update → delete
-crud() {
+crud_at() {
+  local B=$1; shift
   local mod=$1 listq=$2 body=$3 ub=$4 out id
   out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/$mod/create" -H 'Content-Type: application/json' -d "$body")
   echo "$out" | grep -q '"code":0' || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  create %-10s %s\n' "$mod" "$out"; return; }
@@ -62,6 +79,14 @@ crud() {
   out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/$mod/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$id]}")
   echo "$out" | grep -q '"code":0' || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  delete %-10s id=%s %s\n' "$mod" "$id" "$out"; return; }
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-10s CRUD 全通过 (id=%s)\n' "$mod" "$id"
+}
+
+crud() {
+  crud_at "$B" "$@"
+}
+
+crudm() {
+  crud_at "$M" "$@"
 }
 
 echo "===== 认证接口 ====="
@@ -114,19 +139,19 @@ req GET '/dict-type/check-type?type=x'
 req GET '/dict-type/get-by-type?type=x'
 req GET '/dict-type/list-all'
 
-req GET '/job/list?pageSize=3'
-req GET '/job/list?name=x&groupId=1&status=0'
-req GET '/job/detail?id=1'
-req GET '/job/check-name?name=x'
-req GET '/job-log/list?pageSize=3'
-req GET '/job-log/detail?id=1'
+mreq GET '/job/list?pageSize=3'
+mreq GET '/job/list?name=x&groupId=1&status=0'
+mreq GET '/job/detail?id=1'
+mreq GET '/job/check-name?name=x'
+mreq GET '/jobLog/list?pageSize=3'
+mreq GET '/jobLog/detail?id=1'
 
-req GET '/login-log/list?pageSize=3'
-req GET '/login-log/list?loginName=x&status=0'
-req GET '/login-log/detail?id=1'
-req GET '/operation-log/list?pageSize=3'
-req GET '/operation-log/list?title=x&businessType=1&status=0'
-req GET '/operation-log/detail?id=1'
+mreq GET '/logininfor/list?pageSize=3'
+mreq GET '/logininfor/list?loginName=x&status=0'
+mreq GET '/logininfor/detail?id=1'
+mreq GET '/operlog/list?pageSize=3'
+mreq GET '/operlog/list?title=x&businessType=1&status=0'
+mreq GET '/operlog/detail?id=1'
 
 req GET '/menu/list?pageSize=3'
 req GET '/menu/list?name=x&status=0&menuType=M'
@@ -167,8 +192,8 @@ req GET '/user/check-email?email=x@x.com'
 req GET '/user/posts?id=1'
 req GET '/user/roles?id=1'
 
-req GET '/user-online/list?pageSize=3'
-req GET '/user-online/detail?id=1'
+mreq GET '/online/list?pageSize=3'
+mreq GET '/online/detail?id=1'
 
 echo
 echo "===== 写接口（全模块 CRUD 往返）====="
@@ -176,7 +201,7 @@ crud config     "name=冒烟参数$S"  "{\"name\":\"冒烟参数$S\",\"key\":\"s
 crud department "name=冒烟部门$S"  "{\"parent_id\":0,\"name\":\"冒烟部门$S\",\"ancestors\":\"0\",\"sort\":1,\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"parent_id\":0,\"name\":\"冒烟部门$S改\",\"ancestors\":\"0\",\"sort\":2,\"status\":0,\"remark\":\"备注2\"}"
 crud dict-type  "name=冒烟字典$S"  "{\"name\":\"冒烟字典$S\",\"type\":\"smoke_type_$S\",\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"name\":\"冒烟字典$S改\",\"type\":\"smoke_type_$S\",\"status\":0,\"remark\":\"备注2\"}"
 crud dict-data  "type=smoke_type_$S" "{\"sort\":1,\"label\":\"冒烟标签$S\",\"value\":\"1\",\"type\":\"smoke_type_$S\",\"css_class\":\"\",\"list_class\":\"\",\"is_default\":\"0\",\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"sort\":2,\"label\":\"冒烟标签$S改\",\"value\":\"2\",\"type\":\"smoke_type_$S\",\"css_class\":\"\",\"list_class\":\"\",\"is_default\":\"0\",\"status\":0,\"remark\":\"备注2\"}"
-crud job        "name=冒烟任务$S"  "{\"name\":\"冒烟任务$S\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryNoParams()\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"0\",\"status\":1,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"name\":\"冒烟任务$S改\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryParams('ry')\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"0\",\"status\":1,\"remark\":\"备注2\"}"
+crudm job       "name=冒烟任务$S"  "{\"name\":\"冒烟任务$S\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryNoParams()\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"0\",\"status\":1,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"name\":\"冒烟任务$S改\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryParams('ry')\",\"job_args\":\"\",\"job_kwargs\":\"\",\"cron_expression\":\"0 0 1 * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"0\",\"status\":1,\"remark\":\"备注2\"}"
 crud menu       "name=冒烟菜单$S"  "{\"name\":\"冒烟菜单$S\",\"parent_id\":0,\"sort\":1,\"path\":\"/smoke$S\",\"component\":\"\",\"query\":\"\",\"route_name\":\"\",\"is_frame\":1,\"is_cache\":0,\"menu_type\":\"M\",\"visible\":\"0\",\"status\":0,\"perms\":\"smoke:list$S\",\"icon\":\"#\"}"  "{\"id\":%ID%,\"name\":\"冒烟菜单$S改\",\"parent_id\":0,\"sort\":2,\"path\":\"/smoke$S\",\"component\":\"\",\"query\":\"\",\"route_name\":\"\",\"is_frame\":1,\"is_cache\":0,\"menu_type\":\"M\",\"visible\":\"0\",\"status\":0,\"perms\":\"smoke:list$S\",\"icon\":\"#\"}"
 crud notice     "title=冒烟公告$S" "{\"title\":\"冒烟公告$S\",\"content\":\"公告内容\",\"type\":1,\"status\":0}"  "{\"id\":%ID%,\"title\":\"冒烟公告$S改\",\"content\":\"公告内容2\",\"type\":1,\"status\":0}"
 crud post       "name=冒烟岗位$S"  "{\"code\":\"smoke_post_$S\",\"name\":\"冒烟岗位$S\",\"sort\":9,\"status\":0,\"remark\":\"备注1\"}"  "{\"id\":%ID%,\"code\":\"smoke_post_$S\",\"name\":\"冒烟岗位$S改\",\"sort\":8,\"status\":0,\"remark\":\"备注2\"}"
@@ -187,7 +212,7 @@ echo
 echo "===== 定时任务调度（cron 解析 / 自动触发 / 立即执行 / 启停 / 日志）====="
 JOBN="smokejob$S"
 # 非法 cron 表达式应当被拒绝
-out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/job/create" -H 'Content-Type: application/json' \
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$M/job/create" -H 'Content-Type: application/json' \
   -d "{\"name\":\"${JOBN}bad\",\"invoke_target\":\"ryTask.ryNoParams()\",\"cron_expression\":\"0 0 0 * *\",\"status\":1}")
 if echo "$out" | grep -q 'Cron 表达式不正确'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '非法 cron 表达式被拒绝'
@@ -195,7 +220,7 @@ else
   bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '非法 cron 表达式被拒绝' "$(echo "$out" | head -c 170)"
 fi
 # 未注册的调用目标应当被拒绝
-out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/job/create" -H 'Content-Type: application/json' \
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$M/job/create" -H 'Content-Type: application/json' \
   -d "{\"name\":\"${JOBN}bad2\",\"invoke_target\":\"evil.exec('rm -rf /')\",\"cron_expression\":\"0 0 1 * * ?\",\"status\":1}")
 if echo "$out" | grep -q '调用目标字符串错误'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '未注册的调用目标被拒绝'
@@ -205,17 +230,17 @@ fi
 
 # 任务日志条数（按任务名称统计）
 job_logs() {
-  curl -s -m 10 "${auth_header[@]}" "$B/job-log/list?pageSize=200&job_name=$1" | grep -o '"job_name"' | wc -l | tr -d ' '
+  curl -s -m 10 "${auth_header[@]}" "$M/jobLog/list?pageSize=200&job_name=$1" | grep -o '"job_name"' | wc -l | tr -d ' '
 }
 # 每 2 秒执行一次、禁止并发、错过执行放弃
-out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/job/create" -H 'Content-Type: application/json' \
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$M/job/create" -H 'Content-Type: application/json' \
   -d "{\"name\":\"$JOBN\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"ryTask.ryNoParams()\",\"cron_expression\":\"*/2 * * * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"1\",\"status\":0}")
 if echo "$out" | grep -q '"code":0'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '创建并启用定时任务'
 else
   bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '创建并启用定时任务' "$(echo "$out" | head -c 170)"
 fi
-JID=$(pick_id "$(curl -s -m 10 "${auth_header[@]}" "$B/job/list?pageSize=1&name=$JOBN")")
+JID=$(pick_id "$(curl -s -m 10 "${auth_header[@]}" "$M/job/list?pageSize=1&name=$JOBN")")
 if [ -n "$JID" ]; then
   sleep 6
   c1=$(job_logs "$JOBN")
@@ -225,7 +250,7 @@ if [ -n "$JID" ]; then
     bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 未产生执行日志\n' '任务按 cron 自动触发'
   fi
   # 暂停后不应再自动触发
-  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$B/job/change-status" -H 'Content-Type: application/json' -d "{\"id\":$JID,\"status\":1}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$M/job/change-status" -H 'Content-Type: application/json' -d "{\"id\":$JID,\"status\":1}")
   echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '暂停定时任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '暂停定时任务' "$out"; }
   sleep 6
   c2=$(job_logs "$JOBN")
@@ -235,7 +260,7 @@ if [ -n "$JID" ]; then
     bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 暂停前 %s 条、暂停后 %s 条\n' '暂停后不再自动触发' "$c1" "$c2"
   fi
   # 立即执行一次（暂停状态同样可执行）
-  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$B/job/run" -H 'Content-Type: application/json' -d "{\"id\":$JID}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$M/job/run" -H 'Content-Type: application/json' -d "{\"id\":$JID}")
   echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '立即执行一次任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '立即执行一次任务' "$out"; }
   sleep 2
   c3=$(job_logs "$JOBN")
@@ -245,7 +270,7 @@ if [ -n "$JID" ]; then
     bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 日志未增加（%s）\n' '执行日志写入 sys_job_log' "$c3"
   fi
   # 删除任务应同时清理其执行日志（与若依一致）
-  out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/job/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$JID]}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/job/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$JID]}")
   echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除定时任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '删除定时任务' "$out"; }
   c4=$(job_logs "$JOBN")
   if [ "${c4:-1}" = "0" ]; then
@@ -405,6 +430,55 @@ zero_check() {
 zero_check menu "name=零值菜单$S" "{\"name\":\"零值菜单$S\",\"parent_id\":0,\"sort\":1,\"path\":\"/zero$S\",\"menu_type\":\"M\",\"is_frame\":0,\"is_cache\":1,\"visible\":\"0\",\"status\":0,\"perms\":\"zero:list$S\",\"icon\":\"#\"}" is_frame
 zero_check role "name=零值角色$S" "{\"key\":\"zero_role_$S\",\"name\":\"零值角色$S\",\"sort\":9,\"status\":0,\"menu_check_strictly\":0,\"dept_check_strictly\":0,\"data_scope\":1,\"del_flag\":0,\"remark\":\"零值校验\"}" menu_check_strictly
 zero_check user "username=zero$S" "{\"username\":\"zero$S\",\"mobile\":\"138$S\",\"nickname\":\"零值用户$S\",\"status\":0,\"email\":\"zero$S@test.com\",\"gender\":0,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"零值校验\",\"isAdmin\":false}" status
+
+echo
+echo "===== 服务监控 / 缓存监控 ====="
+# 服务监控：CPU / 内存 / Go 运行时 / 主机 / 磁盘
+srv=$(curl -s -m 10 "${auth_header[@]}" "$M/server")
+srv_assert() {
+  local key=$1 name=$2
+  if echo "$srv" | grep -q "\"$key\""; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "$name"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' "$name" "$(echo "$srv" | head -c 170)"
+  fi
+}
+srv_assert cpuNum            '服务监控返回 CPU 核心数'
+srv_assert memTotal          '服务监控返回内存信息'
+srv_assert goVersion         '服务监控返回 Go 运行时信息'
+srv_assert sysComputerName   '服务监控返回服务器名称/IP'
+srv_assert sysFiles          '服务监控返回磁盘信息'
+if echo "$srv" | grep -qE '"cpuNum":[1-9]'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '服务监控 CPU 核心数 >= 1'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '服务监控 CPU 核心数 >= 1' "$(echo "$srv" | head -c 170)"
+fi
+
+# 缓存监控 / 缓存列表
+mreq GET '/cache'
+mreq GET '/cache/list?pageSize=5'
+cache_info=$(curl -s -m 10 "${auth_header[@]}" "$M/cache")
+if echo "$cache_info" | grep -q '"commandStats"'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '缓存监控返回读写命令统计'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '缓存监控返回读写命令统计' "$(echo "$cache_info" | head -c 170)"
+fi
+if echo "$cache_info" | grep -q '"captcha"'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '验证码缓存已纳入缓存监控'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '验证码缓存已纳入缓存监控' "$(echo "$cache_info" | head -c 170)"
+fi
+# 清空指定缓存与全部缓存
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/cache/clear?cacheName=captcha")
+echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '清空指定缓存'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '清空指定缓存' "$out"; }
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/cache/clear")
+echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '清空全部缓存'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '清空全部缓存' "$out"; }
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/cache/clear?cacheName=not-exist")
+if echo "$out" | grep -q '"code":-1'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '不存在的缓存名称被拒绝'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '不存在的缓存名称被拒绝' "$(echo "$out" | head -c 170)"
+fi
 
 echo
 printf '===== 汇总：通过=%s  SQL列名错误=%s  其他失败=%s =====\n' "$ok" "$sqlbad" "$bad"

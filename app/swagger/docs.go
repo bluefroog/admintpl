@@ -183,6 +183,1459 @@ const docTemplate = `{
                 }
             }
         },
+        "/monitor/cache": {
+            "get": {
+                "security": [],
+                "description": "缓存监控：各内存缓存的键数量与读写统计",
+                "tags": [
+                    "缓存监控"
+                ],
+                "summary": "获取缓存监控信息",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"info\": [], \"dbSize\": 0, \"commandStats\": [], \"names\": [] } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.CacheInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/cache/clear": {
+            "delete": {
+                "security": [],
+                "description": "清空缓存，cacheName 为空时清空全部缓存",
+                "tags": [
+                    "缓存监控"
+                ],
+                "summary": "清空缓存",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "缓存名称，为空清空全部缓存",
+                        "name": "cacheName",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/cache/list": {
+            "get": {
+                "security": [],
+                "description": "缓存列表：分页查询内存缓存中的键值",
+                "tags": [
+                    "缓存列表"
+                ],
+                "summary": "获取缓存列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "缓存键（模糊匹配）",
+                        "name": "cacheKey",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "缓存名称，为空查询全部",
+                        "name": "cacheName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.CacheItem"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/change-status": {
+            "put": {
+                "security": [],
+                "description": "修改定时任务状态（0正常 1暂停）",
+                "tags": [
+                    "定时任务"
+                ],
+                "summary": "修改任务状态",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobChangeStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/check-name": {
+            "get": {
+                "security": [],
+                "description": "校验任务名称是否唯一",
+                "tags": [
+                    "定时任务"
+                ],
+                "summary": "校验任务名称是否唯一",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID（编辑时传入，排除自身）",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": true}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/create": {
+            "post": {
+                "security": [],
+                "description": "添加定时任务",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "添加定时任务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除定时任务",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "删除定时任务",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的定时任务详情",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "获取指定ID的定时任务详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.Job"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/list": {
+            "get": {
+                "security": [],
+                "description": "定时任务列表",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "获取定时任务列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "create_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务执行器",
+                        "name": "executor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务组名",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "调用目标字符串",
+                        "name": "invoke_target",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态（0正常 1暂停）",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "update_by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.Job"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/run": {
+            "put": {
+                "security": [],
+                "description": "立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "立即执行一次定时任务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobRunRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/job/update": {
+            "put": {
+                "security": [],
+                "description": "修改定时任务",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "修改定时任务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/jobLog/clear": {
+            "delete": {
+                "security": [],
+                "description": "清空定时任务日志",
+                "tags": [
+                    "定时任务日志"
+                ],
+                "summary": "清空定时任务日志",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/jobLog/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除定时任务日志",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "删除定时任务日志",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/jobLog/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的定时任务日志详情",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "获取指定ID的定时任务日志详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.JobLog"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/jobLog/list": {
+            "get": {
+                "security": [],
+                "description": "定时任务日志列表",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "获取定时任务日志列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务日志ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "调用目标字符串",
+                        "name": "invoke_target",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务执行器",
+                        "name": "job_executor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务组名",
+                        "name": "job_group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "job_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务触发器",
+                        "name": "job_trigger",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "执行状态（0正常 1失败）",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.JobLog"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/logininfor/clear": {
+            "delete": {
+                "security": [],
+                "description": "清空登录日志，status 为空时清空全部",
+                "tags": [
+                    "登录日志"
+                ],
+                "summary": "清空登录日志",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "登录状态（0成功 1失败）",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/logininfor/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除访问日志",
+                "tags": [
+                    "访问日志管理"
+                ],
+                "summary": "删除访问日志",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/logininfor/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的访问日志详情",
+                "tags": [
+                    "访问日志管理"
+                ],
+                "summary": "获取指定ID的访问日志详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.LoginLog"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/logininfor/list": {
+            "get": {
+                "security": [],
+                "description": "访问日志列表",
+                "tags": [
+                    "访问日志管理"
+                ],
+                "summary": "获取访问日志列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "开始时间",
+                        "name": "begin_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "浏览器类型",
+                        "name": "browser",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "访问ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "登录IP地址",
+                        "name": "ipaddr",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "登录地点",
+                        "name": "login_location",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "登录账号",
+                        "name": "login_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "登录模块",
+                        "name": "module",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "提示消息",
+                        "name": "msg",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "操作系统",
+                        "name": "os",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "登录状态（0成功 1失败）",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.LoginLog"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/online/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除在线用户记录",
+                "tags": [
+                    "在线用户"
+                ],
+                "summary": "删除在线用户",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/online/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的在线用户详情",
+                "tags": [
+                    "在线用户"
+                ],
+                "summary": "获取指定ID的在线用户详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.UserOnline"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/online/force-logout": {
+            "delete": {
+                "security": [],
+                "description": "根据用户token强退在线用户",
+                "tags": [
+                    "在线用户"
+                ],
+                "summary": "强退在线用户",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UserOnlineForceLogoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/online/list": {
+            "get": {
+                "security": [],
+                "description": "在线用户列表",
+                "tags": [
+                    "在线用户"
+                ],
+                "summary": "获取在线用户列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "浏览器",
+                        "name": "explorer",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "登录ip",
+                        "name": "ip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "操作系统",
+                        "name": "os",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户token",
+                        "name": "token",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "user_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户标识",
+                        "name": "uuid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.UserOnline"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/operlog/clear": {
+            "delete": {
+                "security": [],
+                "description": "清空操作日志",
+                "tags": [
+                    "操作日志"
+                ],
+                "summary": "清空操作日志",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/operlog/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除操作日志",
+                "tags": [
+                    "操作日志管理"
+                ],
+                "summary": "删除操作日志",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/operlog/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的操作日志详情",
+                "tags": [
+                    "操作日志管理"
+                ],
+                "summary": "获取指定ID的操作日志详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.OperationLog"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/operlog/list": {
+            "get": {
+                "security": [],
+                "description": "操作日志列表",
+                "tags": [
+                    "操作日志管理"
+                ],
+                "summary": "获取操作日志列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "业务类型（0其它 1新增 2修改 3删除）",
+                        "name": "business_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "部门名称",
+                        "name": "dept_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "日志主键",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "主机地址",
+                        "name": "oper_ip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "操作人员",
+                        "name": "oper_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "请求URL",
+                        "name": "oper_url",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "请求方式",
+                        "name": "request_method",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "操作状态（0正常 1异常）",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "模块标题",
+                        "name": "title",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.OperationLog"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/server": {
+            "get": {
+                "security": [],
+                "description": "服务器监控：CPU 使用率/平均负载、内存、Go 运行时、主机与磁盘信息",
+                "tags": [
+                    "服务监控"
+                ],
+                "summary": "获取服务器监控信息",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"cpu\": {}, \"mem\": {}, \"go\": {}, \"sys\": {}, \"sysFiles\": [] } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.ServerInfo"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/system/config/check-key": {
             "get": {
                 "security": [],
@@ -1663,823 +3116,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/system/job-log/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除定时任务日志",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "删除定时任务日志",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job-log/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的定时任务日志详情",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "获取指定ID的定时任务日志详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.JobLog"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job-log/list": {
-            "get": {
-                "security": [],
-                "description": "定时任务日志列表",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "获取定时任务日志列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "任务日志ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "调用目标字符串",
-                        "name": "invoke_target",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务执行器",
-                        "name": "job_executor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务组名",
-                        "name": "job_group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "job_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务触发器",
-                        "name": "job_trigger",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "执行状态（0正常 1失败）",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.JobLog"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/change-status": {
-            "put": {
-                "security": [],
-                "description": "修改定时任务状态（0正常 1暂停）",
-                "tags": [
-                    "定时任务"
-                ],
-                "summary": "修改任务状态",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobChangeStatusRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/check-name": {
-            "get": {
-                "security": [],
-                "description": "校验任务名称是否唯一",
-                "tags": [
-                    "定时任务"
-                ],
-                "summary": "校验任务名称是否唯一",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "任务ID（编辑时传入，排除自身）",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": true}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "boolean"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/create": {
-            "post": {
-                "security": [],
-                "description": "添加定时任务",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "添加定时任务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除定时任务",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "删除定时任务",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的定时任务详情",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "获取指定ID的定时任务详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.Job"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/list": {
-            "get": {
-                "security": [],
-                "description": "定时任务列表",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "获取定时任务列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "name": "create_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务执行器",
-                        "name": "executor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务组名",
-                        "name": "group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "任务ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "调用目标字符串",
-                        "name": "invoke_target",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "状态（0正常 1暂停）",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "update_by",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.Job"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/run": {
-            "put": {
-                "security": [],
-                "description": "立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "立即执行一次定时任务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobRunRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/job/update": {
-            "put": {
-                "security": [],
-                "description": "修改定时任务",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "修改定时任务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/login-log/clear": {
-            "delete": {
-                "security": [],
-                "description": "清空登录日志，status 为空时清空全部",
-                "tags": [
-                    "登录日志"
-                ],
-                "summary": "清空登录日志",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "登录状态（0成功 1失败）",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/login-log/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除访问日志",
-                "tags": [
-                    "访问日志管理"
-                ],
-                "summary": "删除访问日志",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/login-log/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的访问日志详情",
-                "tags": [
-                    "访问日志管理"
-                ],
-                "summary": "获取指定ID的访问日志详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.LoginLog"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/login-log/list": {
-            "get": {
-                "security": [],
-                "description": "访问日志列表",
-                "tags": [
-                    "访问日志管理"
-                ],
-                "summary": "获取访问日志列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "开始时间",
-                        "name": "begin_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "浏览器类型",
-                        "name": "browser",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "结束时间",
-                        "name": "end_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "访问ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "登录IP地址",
-                        "name": "ipaddr",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "登录地点",
-                        "name": "login_location",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "登录账号",
-                        "name": "login_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "登录模块",
-                        "name": "module",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "提示消息",
-                        "name": "msg",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "操作系统",
-                        "name": "os",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "登录状态（0成功 1失败）",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.LoginLog"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/system/menu/check-name": {
             "get": {
                 "security": [],
@@ -3200,237 +3836,6 @@ const docTemplate = `{
                         "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/operation-log/clear": {
-            "delete": {
-                "security": [],
-                "description": "清空操作日志",
-                "tags": [
-                    "操作日志"
-                ],
-                "summary": "清空操作日志",
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/operation-log/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除操作日志",
-                "tags": [
-                    "操作日志管理"
-                ],
-                "summary": "删除操作日志",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/operation-log/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的操作日志详情",
-                "tags": [
-                    "操作日志管理"
-                ],
-                "summary": "获取指定ID的操作日志详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.OperationLog"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/operation-log/list": {
-            "get": {
-                "security": [],
-                "description": "操作日志列表",
-                "tags": [
-                    "操作日志管理"
-                ],
-                "summary": "获取操作日志列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "业务类型（0其它 1新增 2修改 3删除）",
-                        "name": "business_type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "部门名称",
-                        "name": "dept_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "日志主键",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "主机地址",
-                        "name": "oper_ip",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "操作人员",
-                        "name": "oper_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "请求URL",
-                        "name": "oper_url",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "请求方式",
-                        "name": "request_method",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "操作状态（0正常 1异常）",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "模块标题",
-                        "name": "title",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.OperationLog"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
                         }
                     }
                 }
@@ -4775,236 +5180,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/system/user-online/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除在线用户记录",
-                "tags": [
-                    "在线用户"
-                ],
-                "summary": "删除在线用户",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/user-online/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的在线用户详情",
-                "tags": [
-                    "在线用户"
-                ],
-                "summary": "获取指定ID的在线用户详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.UserOnline"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/system/user-online/force-logout": {
-            "delete": {
-                "security": [],
-                "description": "根据用户token强退在线用户",
-                "tags": [
-                    "在线用户"
-                ],
-                "summary": "强退在线用户",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.UserOnlineForceLogoutRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/system/user-online/list": {
-            "get": {
-                "security": [],
-                "description": "在线用户列表",
-                "tags": [
-                    "在线用户"
-                ],
-                "summary": "获取在线用户列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "浏览器",
-                        "name": "explorer",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "登录ip",
-                        "name": "ip",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "操作系统",
-                        "name": "os",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "用户token",
-                        "name": "token",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "user_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "用户标识",
-                        "name": "uuid",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.UserOnline"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/system/user-post/create": {
             "post": {
                 "security": [],
@@ -6043,6 +6218,115 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.CacheCommandStat": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "命令名称",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "执行次数",
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.CacheInfo": {
+            "type": "object",
+            "properties": {
+                "commandStats": {
+                    "description": "读写命令统计",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CacheCommandStat"
+                    }
+                },
+                "dbSize": {
+                    "description": "缓存键总数",
+                    "type": "integer"
+                },
+                "info": {
+                    "description": "各缓存统计",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CacheStats"
+                    }
+                },
+                "names": {
+                    "description": "缓存名称列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "domain.CacheItem": {
+            "type": "object",
+            "properties": {
+                "cacheKey": {
+                    "description": "缓存键",
+                    "type": "string"
+                },
+                "cacheName": {
+                    "description": "缓存名称",
+                    "type": "string"
+                },
+                "cacheValue": {
+                    "description": "缓存值",
+                    "type": "string"
+                },
+                "expiration": {
+                    "description": "过期时间，永不过期为空",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CacheStats": {
+            "type": "object",
+            "properties": {
+                "cleanupInterval": {
+                    "description": "过期清理间隔",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "deletes": {
+                    "description": "删除次数",
+                    "type": "integer"
+                },
+                "expired": {
+                    "description": "过期失效次数",
+                    "type": "integer"
+                },
+                "hits": {
+                    "description": "命中次数",
+                    "type": "integer"
+                },
+                "keyCount": {
+                    "description": "缓存键数量",
+                    "type": "integer"
+                },
+                "misses": {
+                    "description": "未命中次数",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "缓存名称",
+                    "type": "string"
+                },
+                "sets": {
+                    "description": "写入次数",
+                    "type": "integer"
+                },
+                "uptime": {
+                    "description": "运行时长",
+                    "type": "string"
+                }
+            }
+        },
         "domain.CaptchaResponse": {
             "type": "object",
             "properties": {
@@ -8161,6 +8445,191 @@ const docTemplate = `{
                 },
                 "redirect": {
                     "description": "重定向地址",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ServerCPU": {
+            "type": "object",
+            "properties": {
+                "cpuAvg15": {
+                    "description": "15 分钟平均负载",
+                    "type": "number"
+                },
+                "cpuAvg5": {
+                    "description": "5 分钟平均负载",
+                    "type": "number"
+                },
+                "cpuNum": {
+                    "description": "核心数",
+                    "type": "integer"
+                },
+                "cpuUsed": {
+                    "description": "使用率（%）",
+                    "type": "number"
+                }
+            }
+        },
+        "domain.ServerDisk": {
+            "type": "object",
+            "properties": {
+                "dirName": {
+                    "description": "盘符路径",
+                    "type": "string"
+                },
+                "free": {
+                    "description": "剩余大小",
+                    "type": "integer"
+                },
+                "sysTypeName": {
+                    "description": "文件系统",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "总大小",
+                    "type": "integer"
+                },
+                "typeName": {
+                    "description": "盘符类型",
+                    "type": "string"
+                },
+                "usage": {
+                    "description": "使用率（%）",
+                    "type": "number"
+                },
+                "used": {
+                    "description": "已用大小",
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.ServerGo": {
+            "type": "object",
+            "properties": {
+                "goFree": {
+                    "description": "剩余的内存",
+                    "type": "integer"
+                },
+                "goHome": {
+                    "description": "安装路径",
+                    "type": "string"
+                },
+                "goName": {
+                    "description": "语言环境",
+                    "type": "string"
+                },
+                "goRunTime": {
+                    "description": "运行时长",
+                    "type": "string"
+                },
+                "goStartTime": {
+                    "description": "启动时间",
+                    "type": "string"
+                },
+                "goTotal": {
+                    "description": "分配的总内存",
+                    "type": "integer"
+                },
+                "goUsage": {
+                    "description": "使用率（%）",
+                    "type": "number"
+                },
+                "goUsed": {
+                    "description": "已使用的内存",
+                    "type": "integer"
+                },
+                "goUserDir": {
+                    "description": "项目路径",
+                    "type": "string"
+                },
+                "goVersion": {
+                    "description": "版本",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ServerInfo": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "description": "CPU 信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ServerCPU"
+                        }
+                    ]
+                },
+                "go": {
+                    "description": "Go 运行时信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ServerGo"
+                        }
+                    ]
+                },
+                "mem": {
+                    "description": "内存信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ServerMem"
+                        }
+                    ]
+                },
+                "sys": {
+                    "description": "服务器信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ServerSys"
+                        }
+                    ]
+                },
+                "sysFiles": {
+                    "description": "磁盘信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ServerDisk"
+                    }
+                }
+            }
+        },
+        "domain.ServerMem": {
+            "type": "object",
+            "properties": {
+                "memFree": {
+                    "description": "剩余内存",
+                    "type": "integer"
+                },
+                "memTotal": {
+                    "description": "总内存",
+                    "type": "integer"
+                },
+                "memUsage": {
+                    "description": "使用率（%）",
+                    "type": "number"
+                },
+                "memUsed": {
+                    "description": "已用内存",
+                    "type": "integer"
+                }
+            }
+        },
+        "domain.ServerSys": {
+            "type": "object",
+            "properties": {
+                "sysComputerIp": {
+                    "description": "服务器 IP",
+                    "type": "string"
+                },
+                "sysComputerName": {
+                    "description": "服务器名称",
+                    "type": "string"
+                },
+                "sysOsArch": {
+                    "description": "系统架构",
+                    "type": "string"
+                },
+                "sysOsName": {
+                    "description": "操作系统",
                     "type": "string"
                 }
             }

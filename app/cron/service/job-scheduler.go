@@ -7,10 +7,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bluefroog/admintpl/app/system/domain"
-	"github.com/bluefroog/admintpl/app/system/task"
+	"github.com/bluefroog/admintpl/app/cron/domain"
+	"github.com/bluefroog/admintpl/app/cron/task"
 	"github.com/bluefroog/admintpl/common/config"
 	"github.com/bluefroog/admintpl/common/cron"
+	"github.com/bluefroog/admintpl/common/database"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -122,12 +123,12 @@ func (s JobScheduler) ScheduledCount() int {
 
 // Load 载入状态为「正常」的任务，并按错过执行策略补偿
 func (s JobScheduler) Load() {
-	if domain.DB == nil {
+	if database.DB == nil {
 		log.Warn("定时任务调度器：数据库未初始化，跳过任务载入")
 		return
 	}
 	var jobs []domain.Job
-	if err := domain.DB.Where("status = ?", JobStatusRunning).Find(&jobs).Error; err != nil {
+	if err := database.DB.Where("status = ?", JobStatusRunning).Find(&jobs).Error; err != nil {
 		log.Errorf("定时任务调度器：载入任务失败：%v", err)
 		return
 	}
@@ -152,11 +153,11 @@ func (s JobScheduler) Load() {
 
 // Refresh 按任务表最新数据刷新调度（新增/修改/启停任务后调用）
 func (s JobScheduler) Refresh(id uint) {
-	if domain.DB == nil {
+	if database.DB == nil {
 		return
 	}
 	var job domain.Job
-	if err := domain.DB.Where("job_id = ?", id).First(&job).Error; err != nil {
+	if err := database.DB.Where("job_id = ?", id).First(&job).Error; err != nil {
 		s.Remove(id)
 		return
 	}
@@ -182,11 +183,11 @@ func (s JobScheduler) Remove(id uint) {
 
 // RunOnce 立即执行一次任务（与任务状态无关，与若依「执行一次」一致）
 func (s JobScheduler) RunOnce(id uint) error {
-	if domain.DB == nil {
+	if database.DB == nil {
 		return errors.New("数据库未初始化，无法执行任务")
 	}
 	var job domain.Job
-	if err := domain.DB.Where("job_id = ?", id).First(&job).Error; err != nil {
+	if err := database.DB.Where("job_id = ?", id).First(&job).Error; err != nil {
 		return errors.New("任务不存在")
 	}
 	item, err := newScheduledJob(&job)
@@ -202,10 +203,10 @@ func (s JobScheduler) RunOnce(id uint) error {
 // 保留天数由 system.job.log-retain-days 配置，小于等于 0 表示不清理。
 func (s JobScheduler) CleanExpiredJobLog() {
 	days := config.Int("system.job.log-retain-days")
-	if days <= 0 || domain.DB == nil {
+	if days <= 0 || database.DB == nil {
 		return
 	}
-	result := domain.DB.Where("create_time < ?", time.Now().AddDate(0, 0, -days)).Delete(&domain.JobLog{})
+	result := database.DB.Where("create_time < ?", time.Now().AddDate(0, 0, -days)).Delete(&domain.JobLog{})
 	if result.Error != nil {
 		log.Errorf("清理过期定时任务日志失败：%v", result.Error)
 		return
@@ -326,7 +327,7 @@ func invokeTask(job *domain.Job) (err error) {
 //
 // status=0（成功）与 exception_info=” 都是「零值」，使用 map 写入避免被 GORM 忽略。
 func (s JobScheduler) writeLog(job *domain.Job, trigger, message, exception string, status uint, start time.Time) {
-	if domain.DB == nil {
+	if database.DB == nil {
 		return
 	}
 	record := map[string]interface{}{
@@ -342,7 +343,7 @@ func (s JobScheduler) writeLog(job *domain.Job, trigger, message, exception stri
 		"Status":        status,
 		"CreateTime":    start,
 	}
-	if err := domain.DB.Model(&domain.JobLog{}).Create(record).Error; err != nil {
+	if err := database.DB.Model(&domain.JobLog{}).Create(record).Error; err != nil {
 		log.Errorf("写入定时任务日志失败：%v", err)
 	}
 }
@@ -365,13 +366,13 @@ func (s JobScheduler) missed(job *domain.Job, schedule *cron.Schedule, now time.
 
 // lastRunTime 查询任务最近一次执行时间（无记录时返回零值）
 func (s JobScheduler) lastRunTime(job *domain.Job) time.Time {
-	if domain.DB == nil {
+	if database.DB == nil {
 		return time.Time{}
 	}
 	var row struct {
 		LastTime *time.Time
 	}
-	err := domain.DB.Model(&domain.JobLog{}).
+	err := database.DB.Model(&domain.JobLog{}).
 		Select("MAX(create_time) AS last_time").
 		Where("job_name = ? AND job_group = ?", job.Name, job.Group).
 		Scan(&row).Error

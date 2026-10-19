@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"github.com/bluefroog/admintpl/common/model/request"
 	"gorm.io/gorm"
 	"strings"
@@ -20,7 +21,7 @@ type Department struct{}
 // @return: err error, list interface{}, total int64
 func (s Department) GetList(searchParams *domain.DepartmentSearchRequest, loginUser *domain.LoginUser) (err error, list []domain.Department, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Department{})
+	db := database.DB.Model(&domain.Department{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 数据权限（部门ID列；部门表无用户ID列，不支持「仅本人」数据权限）
@@ -112,7 +113,7 @@ func (s Department) Create(data *domain.DepartmentCreateRequest) error {
 	department.UpdateBy = "" // todo 通过登录服务获取
 	department.UpdateTime = time.Now()
 
-	return domain.DB.Create(&department).Error
+	return database.DB.Create(&department).Error
 }
 
 // @author: [bluefrog](https://github.com/freewu)
@@ -146,7 +147,7 @@ func (s Department) Update(data *domain.DepartmentUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Department) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Department{}).Where("dept_id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.Department{}).Where("dept_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -159,7 +160,7 @@ func (s Department) UpdateByMap(id uint, updateMap map[string]interface{}) (err 
 // @return: err error
 func (s Department) Delete(ids []uint) (err error) {
 	// 删除区域
-	if err = domain.DB.Where("dept_id in (?) ", ids).Unscoped().Delete(&domain.Department{}).Error; err != nil {
+	if err = database.DB.Where("dept_id in (?) ", ids).Unscoped().Delete(&domain.Department{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -172,7 +173,7 @@ func (s Department) Delete(ids []uint) (err error) {
 // @return: *domain.Department,err error
 func (s Department) Detail(id uint) (*domain.Department, error) {
 	var detail domain.Department
-	db := domain.DB.Where("dept_id = ?", id)
+	db := database.DB.Where("dept_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -207,7 +208,7 @@ func (s Department) IsExist(name string, excludeIds *[]uint) bool {
 // @param: loginUser *domain.LoginUser 登录用户（认证关闭时为 nil）
 // @return: err error, list []domain.Ztree
 func (s Department) TreeData(searchParams *domain.DepartmentTreeRequest, loginUser *domain.LoginUser) (err error, list []domain.Ztree) {
-	db := domain.DB.Model(&domain.Department{})
+	db := database.DB.Model(&domain.Department{})
 	if searchParams.ParentID != nil {
 		db = db.Where("parent_id = ?", searchParams.ParentID)
 	}
@@ -234,7 +235,7 @@ func (s Department) TreeData(searchParams *domain.DepartmentTreeRequest, loginUs
 // @param: loginUser *domain.LoginUser 登录用户（认证关闭时为 nil）
 // @return: err error, list []domain.Ztree
 func (s Department) RoleDeptTreeData(roleId uint, loginUser *domain.LoginUser) (err error, list []domain.Ztree) {
-	db := domain.DB.Model(&domain.Department{})
+	db := database.DB.Model(&domain.Department{})
 	// 数据权限
 	db = DataScope{}.Apply(db, loginUser, DataScopeOptions{DeptColumn: "dept_id"})
 	var departments []domain.Department
@@ -243,7 +244,7 @@ func (s Department) RoleDeptTreeData(roleId uint, loginUser *domain.LoginUser) (
 	}
 	var checkedIds []uint
 	if roleId > 0 {
-		if err = domain.DB.Model(&domain.RoleDept{}).Where("role_id = ?", roleId).Pluck("dept_id", &checkedIds).Error; err != nil {
+		if err = database.DB.Model(&domain.RoleDept{}).Where("role_id = ?", roleId).Pluck("dept_id", &checkedIds).Error; err != nil {
 			return err, nil
 		}
 	}
@@ -257,7 +258,7 @@ func (s Department) RoleDeptTreeData(roleId uint, loginUser *domain.LoginUser) (
 // @param: req *domain.DepartmentCheckNameRequest
 // @return: err error, unique bool
 func (s Department) CheckNameUnique(req *domain.DepartmentCheckNameRequest) (err error, unique bool) {
-	db := domain.DB.Model(&domain.Department{}).
+	db := database.DB.Model(&domain.Department{}).
 		Where("dept_name = ?", req.Name).
 		Where("parent_id = ?", req.ParentID)
 	if req.ID != nil {
@@ -278,7 +279,7 @@ func (s Department) CheckNameUnique(req *domain.DepartmentCheckNameRequest) (err
 // @return: err error, has bool
 func (s Department) HasChild(deptId uint) (err error, has bool) {
 	var count int64
-	if err = domain.DB.Model(&domain.Department{}).Where("parent_id = ?", deptId).Count(&count).Error; err != nil {
+	if err = database.DB.Model(&domain.Department{}).Where("parent_id = ?", deptId).Count(&count).Error; err != nil {
 		return err, false
 	}
 	return nil, count > 0
@@ -292,7 +293,7 @@ func (s Department) HasChild(deptId uint) (err error, has bool) {
 // @return: err error, has bool
 func (s Department) HasUser(deptId uint) (err error, has bool) {
 	var count int64
-	if err = domain.DB.Model(&domain.User{}).Where("department_id = ?", deptId).Count(&count).Error; err != nil {
+	if err = database.DB.Model(&domain.User{}).Where("department_id = ?", deptId).Count(&count).Error; err != nil {
 		return err, false
 	}
 	return nil, count > 0

@@ -1,7 +1,8 @@
 package service
 
 import (
-	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/app/cron/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -17,7 +18,7 @@ type JobLog struct{}
 // @return: err error, total int64
 func (s JobLog) GetCount(searchParams *domain.JobLogSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.JobLog{})
+	db := database.DB.Model(&domain.JobLog{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -33,7 +34,7 @@ func (s JobLog) GetCount(searchParams *domain.JobLogSearchRequest) (err error, t
 // @return: err error, list interface{}, total int64
 func (s JobLog) GetList(searchParams *domain.JobLogSearchRequest) (err error, list []domain.JobLog, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.JobLog{})
+	db := database.DB.Model(&domain.JobLog{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -122,7 +123,7 @@ func (s JobLog) Create(data *domain.JobLogCreateRequest) error {
 	jobLog.Status = data.Status
 	jobLog.CreateTime = time.Now()
 
-	return domain.DB.Create(&jobLog).Error
+	return database.DB.Create(&jobLog).Error
 }
 
 // Delete 删除定时任务日志
@@ -132,7 +133,7 @@ func (s JobLog) Create(data *domain.JobLogCreateRequest) error {
 // @param: ids []uint
 // @return: err error
 func (s JobLog) Delete(ids []uint) (err error) {
-	if err = domain.DB.Where("job_log_id in (?) ", ids).Unscoped().Delete(&domain.JobLog{}).Error; err != nil {
+	if err = database.DB.Where("job_log_id in (?) ", ids).Unscoped().Delete(&domain.JobLog{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -146,9 +147,18 @@ func (s JobLog) Delete(ids []uint) (err error) {
 // @return: *domain.JobLog,err error
 func (s JobLog) Detail(id uint) (*domain.JobLog, error) {
 	var detail domain.JobLog
-	db := domain.DB.Where("job_log_id = ?", id)
+	db := database.DB.Where("job_log_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
 	return &detail, nil
+}
+
+// Clear 清空定时任务日志
+// @author: [bluefrog](https://github.com/freewu)
+// @function: Clear
+// @description: 清空定时任务日志
+// @return: err error
+func (s JobLog) Clear() (err error) {
+	return database.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&domain.JobLog{}).Error
 }

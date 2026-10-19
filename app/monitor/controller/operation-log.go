@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/bluefroog/admintpl/app/system/domain"
-	"github.com/bluefroog/admintpl/app/system/service"
+	"github.com/bluefroog/admintpl/app/monitor/domain"
+	"github.com/bluefroog/admintpl/app/monitor/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
@@ -22,7 +22,7 @@ var (
 // @Tags 操作日志管理
 // @Param data query domain.OperationLogSearchRequest true "data"
 // @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.OperationLog}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
-// @Router /system/operation-log/list [get]
+// @Router /monitor/operlog/list [get]
 // @Security
 func (u *OperationLog) List(c *gin.Context) {
 	var searchParams domain.OperationLogSearchRequest
@@ -55,7 +55,7 @@ func (u *OperationLog) List(c *gin.Context) {
 // @Tags 操作日志管理
 // @Param ids body request.IdsRequest true "{ids: [1,2']}"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/operation-log/delete [delete]
+// @Router /monitor/operlog/delete [delete]
 // @Security
 func (u *OperationLog) Delete(c *gin.Context) {
 	var data *request.IdsRequest
@@ -82,7 +82,7 @@ func (u *OperationLog) Delete(c *gin.Context) {
 // @Tags 操作日志管理
 // @Param data query request.GetById true "data"
 // @Success 0 {object} response.Response{data=domain.OperationLog} "{"code": 0, "msg":"success","data": {}}"
-// @Router /system/operation-log/detail [get]
+// @Router /monitor/operlog/detail [get]
 // @Security
 func (u *OperationLog) Detail(c *gin.Context) {
 	var param request.GetById
@@ -107,7 +107,7 @@ func (u *OperationLog) Detail(c *gin.Context) {
 // @Description 清空操作日志
 // @Tags 操作日志
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/operation-log/clear [delete]
+// @Router /monitor/operlog/clear [delete]
 // @Security
 func (u *OperationLog) Clear(c *gin.Context) {
 	if err := operationLog.Clear(); err != nil {

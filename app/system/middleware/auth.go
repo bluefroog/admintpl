@@ -25,6 +25,16 @@ var selfServicePaths = map[string]bool{
 	"system/user/avatar":   true, // 修改个人头像
 }
 
+// permissionPrefixes 参与权限校验的模块路径前缀（与若依「系统管理/系统监控/系统工具」保持一致）
+var permissionPrefixes = []string{"system/", "monitor/", "tool/"}
+
+// pathPermissionAlias 路径无法推导出权限标识时的映射（沿用若依权限标识）
+var pathPermissionAlias = map[string]string{
+	"monitor/server":     "monitor:server:list",    // 服务监控
+	"monitor/cache":      "monitor:cache:list",     // 缓存监控
+	"monitor/cache/list": "monitor:cacheList:list", // 缓存列表
+}
+
 // authService 认证服务实例（中间件内部使用）
 var authService = service.Auth{}
 
@@ -98,7 +108,17 @@ func PathPermission(path string) string {
 	if path == "" || selfServicePaths[path] {
 		return ""
 	}
-	if !strings.HasPrefix(path, "system/") {
+	if alias, exists := pathPermissionAlias[path]; exists {
+		return alias
+	}
+	matched := false
+	for _, prefix := range permissionPrefixes {
+		if strings.HasPrefix(path, prefix) {
+			matched = true
+			break
+		}
+	}
+	if !matched {
 		return ""
 	}
 	return strings.ReplaceAll(path, "/", ":")

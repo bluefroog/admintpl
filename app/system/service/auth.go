@@ -8,9 +8,12 @@ import (
 	"time"
 	"unicode"
 
+	monitorDomain "github.com/bluefroog/admintpl/app/monitor/domain"
+	monitorService "github.com/bluefroog/admintpl/app/monitor/service"
 	"github.com/bluefroog/admintpl/app/system/domain"
 	"github.com/bluefroog/admintpl/common/captcha"
 	"github.com/bluefroog/admintpl/common/config"
+	"github.com/bluefroog/admintpl/common/database"
 	"github.com/bluefroog/admintpl/common/lib"
 	log "github.com/sirupsen/logrus"
 )
@@ -46,7 +49,7 @@ func (s Auth) SignIn(req *domain.LoginRequest, ip string, userAgent string) (res
 	// 2、登录失败次数校验：lockTime 分钟内失败 maxRetry 次则锁定
 	var failed int64
 	if maxRetry > 0 && lockTime > 0 {
-		if countErr, count := (LoginLog{}).CountRecentFailure(username, lockTime); countErr == nil {
+		if countErr, count := (monitorService.LoginLog{}).CountRecentFailure(username, lockTime); countErr == nil {
 			failed = count
 		}
 		if int(failed) >= maxRetry {
@@ -80,7 +83,7 @@ func (s Auth) SignIn(req *domain.LoginRequest, ip string, userAgent string) (res
 
 	// 5、生成令牌并记录在线状态
 	token := lib.Token()
-	online := &domain.UserOnlineCreateRequest{
+	online := &monitorDomain.UserOnlineCreateRequest{
 		UUID:     lib.UUID(),
 		Token:    token,
 		UserName: user.Username,
@@ -88,7 +91,7 @@ func (s Auth) SignIn(req *domain.LoginRequest, ip string, userAgent string) (res
 		Explorer: browser,
 		OS:       osName,
 	}
-	if err = (UserOnline{}).Create(online); err != nil {
+	if err = (monitorService.UserOnline{}).Create(online); err != nil {
 		return nil, errors.New("登录失败：" + err.Error())
 	}
 
@@ -112,7 +115,7 @@ func (s Auth) SignIn(req *domain.LoginRequest, ip string, userAgent string) (res
 // @param: token string 令牌
 // @return: err error
 func (s Auth) SignOut(token string) error {
-	return UserOnline{}.DeleteByToken(token)
+	return monitorService.UserOnline{}.DeleteByToken(token)
 }
 
 // GetLoginUser 根据令牌获取登录用户信息（含角色与权限，认证中间件调用）
@@ -125,7 +128,7 @@ func (s Auth) GetLoginUser(token string) (*domain.LoginUser, error) {
 	if token == "" {
 		return nil, errors.New("认证失败，无法访问系统资源")
 	}
-	online, err := UserOnline{}.GetByToken(token)
+	online, err := monitorService.UserOnline{}.GetByToken(token)
 	if err != nil {
 		return nil, errors.New("认证失败，无法访问系统资源")
 	}
@@ -135,18 +138,18 @@ func (s Auth) GetLoginUser(token string) (*domain.LoginUser, error) {
 	if expire > 0 {
 		expireAt := int64(online.CreateTime) + int64(expire)*60*1000
 		if time.Now().UnixMilli() > expireAt {
-			_ = UserOnline{}.DeleteByToken(token)
+			_ = monitorService.UserOnline{}.DeleteByToken(token)
 			return nil, errors.New("登录状态已过期，请重新登录")
 		}
 	}
 
 	user, err := User{}.GetByUsername(online.UserName)
 	if err != nil {
-		_ = UserOnline{}.DeleteByToken(token)
+		_ = monitorService.UserOnline{}.DeleteByToken(token)
 		return nil, errors.New("认证失败，无法访问系统资源")
 	}
 	if user.Status != 1 {
-		_ = UserOnline{}.DeleteByToken(token)
+		_ = monitorService.UserOnline{}.DeleteByToken(token)
 		return nil, errors.New("您的账号已停用，请联系管理员")
 	}
 
@@ -196,7 +199,7 @@ func (s Auth) GetRouters(userID uint) ([]*domain.RouterResponse, error) {
 	}
 	routers := make([]*domain.RouterResponse, 0)
 	menus := make([]domain.Menu, 0)
-	db := domain.DB.Model(&domain.Menu{}).
+	db := database.DB.Model(&domain.Menu{}).
 		Where("menu_type in (?) and status = ?", []string{"M", "C"}, 0)
 	if !s.isAdmin(user) {
 		menuIds := s.getMenuIds(user.ID)
@@ -263,7 +266,7 @@ func (s Auth) CleanExpiredOnline() {
 		return
 	}
 	deadline := time.Now().Add(-time.Duration(expire) * time.Minute).UnixMilli()
-	if err := domain.DB.Where("create_time < ?", deadline).Unscoped().Delete(&domain.UserOnline{}).Error; err != nil {
+	if err := database.DB.Where("create_time < ?", deadline).Unscoped().Delete(&monitorDomain.UserOnline{}).Error; err != nil {
 		log.Warnf("清理过期在线用户失败：%v", err)
 	}
 }
@@ -290,7 +293,7 @@ func (s Auth) getMenuIds(userID uint) []uint {
 		return make([]uint, 0)
 	}
 	menuIds := make([]uint, 0)
-	if err := domain.DB.Model(&domain.RoleMenu{}).Where("role_id in (?)", roleIds).Pluck("menu_id", &menuIds).Error; err != nil {
+	if err := database.DB.Model(&domain.RoleMenu{}).Where("role_id in (?)", roleIds).Pluck("menu_id", &menuIds).Error; err != nil {
 		log.Warnf("查询用户角色菜单失败：%v", err)
 	}
 	return menuIds
@@ -301,7 +304,7 @@ func (s Auth) getMenuIds(userID uint) []uint {
 // @return: []uint
 func (s Auth) getRoleIds(userID uint) []uint {
 	roleIds := make([]uint, 0)
-	if err := domain.DB.Model(&domain.UserRole{}).Where("user_id = ?", userID).Pluck("role_id", &roleIds).Error; err != nil {
+	if err := database.DB.Model(&domain.UserRole{}).Where("user_id = ?", userID).Pluck("role_id", &roleIds).Error; err != nil {
 		log.Warnf("查询用户角色失败：%v", err)
 		return roleIds
 	}
@@ -309,7 +312,7 @@ func (s Auth) getRoleIds(userID uint) []uint {
 		return roleIds
 	}
 	validIds := make([]uint, 0)
-	if err := domain.DB.Model(&domain.Role{}).
+	if err := database.DB.Model(&domain.Role{}).
 		Where("role_id in (?) and status = ? and del_flag = ?", roleIds, 0, 0).
 		Pluck("role_id", &validIds).Error; err != nil {
 		log.Warnf("查询有效角色失败：%v", err)
@@ -332,7 +335,7 @@ func (s Auth) getRolesAndPermissions(user *domain.User) (roles []string, permiss
 	if len(roleIds) == 0 {
 		return roles, permissions, false
 	}
-	if err := domain.DB.Model(&domain.Role{}).
+	if err := database.DB.Model(&domain.Role{}).
 		Where("role_id in (?)", roleIds).
 		Distinct().
 		Pluck("role_key", &roles).Error; err != nil {
@@ -342,7 +345,7 @@ func (s Auth) getRolesAndPermissions(user *domain.User) (roles []string, permiss
 	if len(menuIds) == 0 {
 		return roles, permissions, false
 	}
-	if err := domain.DB.Model(&domain.Menu{}).
+	if err := database.DB.Model(&domain.Menu{}).
 		Where("menu_id in (?) and status = ? and perms <> ''", menuIds, 0).
 		Distinct().
 		Pluck("perms", &permissions).Error; err != nil {
@@ -359,8 +362,8 @@ func (s Auth) getRolesAndPermissions(user *domain.User) (roles []string, permiss
 // @param: message string 提示消息
 // @param: status uint 登录状态（0成功 1失败）
 func (s Auth) recordLoginLog(username, ip, browser, osName, message string, status uint) {
-	req := &domain.LoginLogCreateRequest{
-		LoginLogBase: domain.LoginLogBase{
+	req := &monitorDomain.LoginLogCreateRequest{
+		LoginLogBase: monitorDomain.LoginLogBase{
 			Name:      username,
 			IPAddress: ip,
 			Location:  lib.IPLocation(ip),
@@ -372,7 +375,7 @@ func (s Auth) recordLoginLog(username, ip, browser, osName, message string, stat
 			Status:    status,
 		},
 	}
-	if err := (LoginLog{}).Create(req); err != nil {
+	if err := (monitorService.LoginLog{}).Create(req); err != nil {
 		log.Warnf("记录登录日志失败：%v", err)
 	}
 }

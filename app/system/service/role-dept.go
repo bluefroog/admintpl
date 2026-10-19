@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +16,7 @@ type RoleDept struct{}
 // @return: err error, total int64
 func (s RoleDept) GetCount(searchParams *domain.RoleDeptSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.RoleDept{})
+	db := database.DB.Model(&domain.RoleDept{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -31,7 +32,7 @@ func (s RoleDept) GetCount(searchParams *domain.RoleDeptSearchRequest) (err erro
 // @return: err error, list interface{}, total int64
 func (s RoleDept) GetList(searchParams *domain.RoleDeptSearchRequest) (err error, list []domain.RoleDept, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.RoleDept{})
+	db := database.DB.Model(&domain.RoleDept{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -88,7 +89,7 @@ func (s RoleDept) Create(data *domain.RoleDeptCreateRequest) error {
 	roleDept.RoleID = data.RoleID
 	roleDept.DeptID = data.DeptID
 
-	return domain.DB.Create(&roleDept).Error
+	return database.DB.Create(&roleDept).Error
 }
 
 // Delete 删除角色部门关联
@@ -98,7 +99,7 @@ func (s RoleDept) Create(data *domain.RoleDeptCreateRequest) error {
 // @param: data *domain.RoleDeptDeleteRequest
 // @return: err error
 func (s RoleDept) Delete(data *domain.RoleDeptDeleteRequest) (err error) {
-	db := domain.DB.Model(&domain.RoleDept{})
+	db := database.DB.Model(&domain.RoleDept{})
 	// 条件过滤
 	if data.RoleID != nil { // 角色ID
 		db = db.Where("role_id = ?", data.RoleID)

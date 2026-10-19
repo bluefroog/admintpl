@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -18,7 +19,7 @@ type DictData struct{}
 // @return: err error, total int64
 func (s DictData) GetCount(searchParams *domain.DictDataSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.DictData{})
+	db := database.DB.Model(&domain.DictData{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -34,7 +35,7 @@ func (s DictData) GetCount(searchParams *domain.DictDataSearchRequest) (err erro
 // @return: err error, list interface{}, total int64
 func (s DictData) GetList(searchParams *domain.DictDataSearchRequest) (err error, list []domain.DictData, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.DictData{})
+	db := database.DB.Model(&domain.DictData{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -127,7 +128,7 @@ func (s DictData) Create(data *domain.DictDataCreateRequest) error {
 	dictData.UpdateBy = "" // todo 通过登录服务获取
 	dictData.UpdateTime = time.Now()
 
-	return domain.DB.Create(&dictData).Error
+	return database.DB.Create(&dictData).Error
 }
 
 // Update 修改字典数据
@@ -165,7 +166,7 @@ func (s DictData) Update(data *domain.DictDataUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s DictData) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.DictData{}).Where("dict_code = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.DictData{}).Where("dict_code = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -178,7 +179,7 @@ func (s DictData) UpdateByMap(id uint, updateMap map[string]interface{}) (err er
 // @param: ids []uint
 // @return: err error
 func (s DictData) Delete(ids []uint) (err error) {
-	if err = domain.DB.Where("dict_code in (?) ", ids).Unscoped().Delete(&domain.DictData{}).Error; err != nil {
+	if err = database.DB.Where("dict_code in (?) ", ids).Unscoped().Delete(&domain.DictData{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -192,7 +193,7 @@ func (s DictData) Delete(ids []uint) (err error) {
 // @return: *domain.DictData,err error
 func (s DictData) Detail(id uint) (*domain.DictData, error) {
 	var detail domain.DictData
-	db := domain.DB.Where("dict_code = ?", id)
+	db := database.DB.Where("dict_code = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -227,7 +228,7 @@ func (s DictData) LabelIsExist(dictType string, label string, excludeIds *[]uint
 // @param: req *domain.DictDataByTypeRequest
 // @return: err error, list []domain.DictData
 func (s DictData) GetByType(req *domain.DictDataByTypeRequest) (err error, list []domain.DictData) {
-	if err = domain.DB.Where("dict_type = ?", req.Type).Order("dict_sort asc").Find(&list).Error; err != nil {
+	if err = database.DB.Where("dict_type = ?", req.Type).Order("dict_sort asc").Find(&list).Error; err != nil {
 		return err, nil
 	}
 	return nil, list
@@ -242,7 +243,7 @@ func (s DictData) GetByType(req *domain.DictDataByTypeRequest) (err error, list 
 // @param: excludeIds *[]uint 排除的字典编码
 // @return: err error, unique bool
 func (s DictData) CheckUniqueLabel(dictType string, label string, excludeIds *[]uint) (err error, unique bool) {
-	db := domain.DB.Model(&domain.DictData{}).
+	db := database.DB.Model(&domain.DictData{}).
 		Where("dict_type = ?", dictType).
 		Where("dict_label = ?", label)
 	if excludeIds != nil && len(*excludeIds) > 0 {

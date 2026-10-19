@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/bluefroog/admintpl/app/system/domain"
-	"github.com/bluefroog/admintpl/app/system/service"
+	"github.com/bluefroog/admintpl/app/cron/domain"
+	"github.com/bluefroog/admintpl/app/cron/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
 	"github.com/bluefroog/admintpl/common/response"
@@ -22,7 +22,7 @@ var (
 // @Tags 定时任务管理
 // @Param data query domain.JobSearchRequest true "data"
 // @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.Job}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
-// @Router /system/job/list [get]
+// @Router /monitor/job/list [get]
 // @Security
 func (u *Job) List(c *gin.Context) {
 	var searchParams domain.JobSearchRequest
@@ -55,7 +55,7 @@ func (u *Job) List(c *gin.Context) {
 // @Tags 定时任务管理
 // @Param data body domain.JobCreateRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/job/create [post]
+// @Router /monitor/job/create [post]
 // @Security
 func (u *Job) Create(c *gin.Context) {
 	var data *domain.JobCreateRequest
@@ -82,7 +82,7 @@ func (u *Job) Create(c *gin.Context) {
 // @Tags 定时任务管理
 // @Param data body domain.JobUpdateRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/job/update [put]
+// @Router /monitor/job/update [put]
 // @Security
 func (u *Job) Update(c *gin.Context) {
 	var data *domain.JobUpdateRequest
@@ -109,7 +109,7 @@ func (u *Job) Update(c *gin.Context) {
 // @Tags 定时任务管理
 // @Param ids body request.IdsRequest true "{ids: [1,2']}"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/job/delete [delete]
+// @Router /monitor/job/delete [delete]
 // @Security
 func (u *Job) Delete(c *gin.Context) {
 	var data *request.IdsRequest
@@ -136,7 +136,7 @@ func (u *Job) Delete(c *gin.Context) {
 // @Tags 定时任务管理
 // @Param data query request.GetById true "data"
 // @Success 0 {object} response.Response{data=domain.Job} "{"code": 0, "msg":"success","data": {}}"
-// @Router /system/job/detail [get]
+// @Router /monitor/job/detail [get]
 // @Security
 func (u *Job) Detail(c *gin.Context) {
 	var param request.GetById
@@ -162,7 +162,7 @@ func (u *Job) Detail(c *gin.Context) {
 // @Tags 定时任务
 // @Param data body domain.JobChangeStatusRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/job/change-status [put]
+// @Router /monitor/job/change-status [put]
 // @Security
 func (u *Job) ChangeStatus(c *gin.Context) {
 	var param domain.JobChangeStatusRequest
@@ -187,7 +187,7 @@ func (u *Job) ChangeStatus(c *gin.Context) {
 // @Tags 定时任务管理
 // @Param data body domain.JobRunRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /system/job/run [put]
+// @Router /monitor/job/run [put]
 // @Security
 func (u *Job) Run(c *gin.Context) {
 	var param domain.JobRunRequest
@@ -211,7 +211,7 @@ func (u *Job) Run(c *gin.Context) {
 // @Tags 定时任务
 // @Param data query domain.JobCheckNameRequest true "data"
 // @Success 0 {object} response.Response{data=bool} "{"code": 0, "msg":"success","data": true}"
-// @Router /system/job/check-name [get]
+// @Router /monitor/job/check-name [get]
 // @Security
 func (u *Job) CheckNameUnique(c *gin.Context) {
 	var param domain.JobCheckNameRequest

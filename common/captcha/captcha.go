@@ -20,8 +20,12 @@ import (
 // keyPrefix 验证码在缓存中的键前缀
 const keyPrefix = "captcha:"
 
-// store 验证码内存存储（进程内有效，多实例部署时不共享）
+// store 验证码内存存储（进程内有效，多实例部署时不共享；已注册到缓存监控）
 var store = cache.New(2 * time.Minute)
+
+func init() {
+	cache.Register("captcha", store)
+}
 
 // font5x7 0-9 的 5x7 点阵字模（仅数字，用于标准库绘制验证码）
 var font5x7 = [10][7]string{

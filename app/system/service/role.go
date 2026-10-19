@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"strings"
@@ -19,7 +20,7 @@ type Role struct{}
 // @return: err error, total int64
 func (s Role) GetCount(searchParams *domain.RoleSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Role{})
+	db := database.DB.Model(&domain.Role{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -36,7 +37,7 @@ func (s Role) GetCount(searchParams *domain.RoleSearchRequest) (err error, total
 // @return: err error, list interface{}, total int64
 func (s Role) GetList(searchParams *domain.RoleSearchRequest, loginUser *domain.LoginUser) (err error, list []domain.Role, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.Role{})
+	db := database.DB.Model(&domain.Role{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 数据权限（角色自身无部门：按「角色所属用户是否在数据权限范围内」过滤）
@@ -154,7 +155,7 @@ func (s Role) Create(data *domain.RoleCreateRequest) error {
 		"UpdateTime":              time.Now(),
 	}
 
-	return domain.DB.Model(&domain.Role{}).Create(record).Error
+	return database.DB.Model(&domain.Role{}).Create(record).Error
 }
 
 // Update 修改角色
@@ -201,7 +202,7 @@ func (s Role) Update(data *domain.RoleUpdateRequest) (err error) {
 // @param: updateMap map[string]interface{}
 // @return: err error
 func (s Role) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
-	if err := domain.DB.Model(&domain.Role{}).Where("role_id = ?", id).Updates(updateMap).Error; err != nil {
+	if err := database.DB.Model(&domain.Role{}).Where("role_id = ?", id).Updates(updateMap).Error; err != nil {
 		return err
 	}
 	return err
@@ -217,7 +218,7 @@ func (s Role) Delete(ids []uint) (err error) {
 	if len(ids) == 0 {
 		return nil
 	}
-	return domain.DB.Transaction(func(tx *gorm.DB) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("role_id in (?)", ids).Unscoped().Delete(&domain.RoleMenu{}).Error; err != nil {
 			return err
 		}
@@ -239,7 +240,7 @@ func (s Role) Delete(ids []uint) (err error) {
 // @return: *domain.Role,err error
 func (s Role) Detail(id uint) (*domain.Role, error) {
 	var detail domain.Role
-	db := domain.DB.Where("role_id = ?", id)
+	db := database.DB.Where("role_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -291,7 +292,7 @@ func (s Role) KeyIsExist(key string, excludeIds *[]uint) bool {
 // @param: req *domain.RoleMenuAssignRequest
 // @return: err error
 func (s Role) AssignMenus(req *domain.RoleMenuAssignRequest) (err error) {
-	return domain.DB.Transaction(func(tx *gorm.DB) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("role_id = ?", req.ID).Delete(&domain.RoleMenu{}).Error; err != nil {
 			return err
 		}
@@ -324,7 +325,7 @@ func (s Role) AuthDataScope(req *domain.RoleDataScopeRequest) (err error) {
 	if err != nil {
 		return err
 	}
-	return domain.DB.Transaction(func(tx *gorm.DB) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
 		record := make(map[string]interface{})
 		record["DataScope"] = dataScope
 		record["UpdateBy"] = "" // todo 通过登录服务获取
@@ -359,8 +360,8 @@ func (s Role) AuthDataScope(req *domain.RoleDataScopeRequest) (err error) {
 // @param: searchParams *domain.RoleUserListRequest
 // @return: err error, list []domain.User, total int64
 func (s Role) AllocatedList(searchParams *domain.RoleUserListRequest) (err error, list []domain.User, total int64) {
-	sub := domain.DB.Model(&domain.UserRole{}).Select("user_id").Where("role_id = ?", searchParams.RoleID)
-	db := domain.DB.Model(&domain.User{}).Where("id IN (?)", sub)
+	sub := database.DB.Model(&domain.UserRole{}).Select("user_id").Where("role_id = ?", searchParams.RoleID)
+	db := database.DB.Model(&domain.User{}).Where("id IN (?)", sub)
 	if searchParams.Username != "" {
 		db = db.Where("username LIKE ?", "%"+searchParams.Username+"%")
 	}
@@ -389,8 +390,8 @@ func (s Role) AllocatedList(searchParams *domain.RoleUserListRequest) (err error
 // @param: searchParams *domain.RoleUserListRequest
 // @return: err error, list []domain.User, total int64
 func (s Role) UnallocatedList(searchParams *domain.RoleUserListRequest) (err error, list []domain.User, total int64) {
-	sub := domain.DB.Model(&domain.UserRole{}).Select("user_id").Where("role_id = ?", searchParams.RoleID)
-	db := domain.DB.Model(&domain.User{}).Where("id NOT IN (?)", sub)
+	sub := database.DB.Model(&domain.UserRole{}).Select("user_id").Where("role_id = ?", searchParams.RoleID)
+	db := database.DB.Model(&domain.User{}).Where("id NOT IN (?)", sub)
 	if searchParams.Username != "" {
 		db = db.Where("username LIKE ?", "%"+searchParams.Username+"%")
 	}
@@ -432,7 +433,7 @@ func (s Role) SelectAllUsers(req *domain.RoleUserAssignRequest) (err error) {
 	if len(userRoles) == 0 {
 		return nil
 	}
-	return domain.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&userRoles).Error
+	return database.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&userRoles).Error
 }
 
 // CancelUser 取消单个用户的角色授权
@@ -442,7 +443,7 @@ func (s Role) SelectAllUsers(req *domain.RoleUserAssignRequest) (err error) {
 // @param: req *domain.RoleUserCancelRequest
 // @return: err error
 func (s Role) CancelUser(req *domain.RoleUserCancelRequest) (err error) {
-	return domain.DB.Where("role_id = ? AND user_id = ?", req.RoleID, req.UserID).Unscoped().Delete(&domain.UserRole{}).Error
+	return database.DB.Where("role_id = ? AND user_id = ?", req.RoleID, req.UserID).Unscoped().Delete(&domain.UserRole{}).Error
 }
 
 // CancelAllUsers 批量取消用户的角色授权
@@ -455,7 +456,7 @@ func (s Role) CancelAllUsers(req *domain.RoleUserCancelAllRequest) (err error) {
 	if len(req.UserIDs) == 0 {
 		return nil
 	}
-	return domain.DB.Where("role_id = ? AND user_id IN (?)", req.RoleID, req.UserIDs).Unscoped().Delete(&domain.UserRole{}).Error
+	return database.DB.Where("role_id = ? AND user_id IN (?)", req.RoleID, req.UserIDs).Unscoped().Delete(&domain.UserRole{}).Error
 }
 
 // CheckNameUnique 校验角色名称是否唯一
@@ -465,7 +466,7 @@ func (s Role) CancelAllUsers(req *domain.RoleUserCancelAllRequest) (err error) {
 // @param: req *domain.RoleCheckNameRequest
 // @return: err error, unique bool
 func (s Role) CheckNameUnique(req *domain.RoleCheckNameRequest) (err error, unique bool) {
-	db := domain.DB.Model(&domain.Role{}).Where("role_name = ?", req.Name)
+	db := database.DB.Model(&domain.Role{}).Where("role_name = ?", req.Name)
 	if req.ID != nil {
 		db = db.Where("role_id <> ?", *req.ID)
 	}
@@ -483,7 +484,7 @@ func (s Role) CheckNameUnique(req *domain.RoleCheckNameRequest) (err error, uniq
 // @param: req *domain.RoleCheckKeyRequest
 // @return: err error, unique bool
 func (s Role) CheckKeyUnique(req *domain.RoleCheckKeyRequest) (err error, unique bool) {
-	db := domain.DB.Model(&domain.Role{}).Where("role_key = ?", req.Key)
+	db := database.DB.Model(&domain.Role{}).Where("role_key = ?", req.Key)
 	if req.ID != nil {
 		db = db.Where("role_id <> ?", *req.ID)
 	}

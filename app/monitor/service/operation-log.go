@@ -1,7 +1,8 @@
 package service
 
 import (
-	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/app/monitor/domain"
+	"github.com/bluefroog/admintpl/common/database"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -17,7 +18,7 @@ type OperationLog struct{}
 // @return: err error, total int64
 func (s OperationLog) GetCount(searchParams *domain.OperationLogSearchRequest) (err error, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.OperationLog{})
+	db := database.DB.Model(&domain.OperationLog{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -33,7 +34,7 @@ func (s OperationLog) GetCount(searchParams *domain.OperationLogSearchRequest) (
 // @return: err error, list interface{}, total int64
 func (s OperationLog) GetList(searchParams *domain.OperationLogSearchRequest) (err error, list []domain.OperationLog, total int64) {
 	// 创建db
-	db := domain.DB.Model(&domain.OperationLog{})
+	db := database.DB.Model(&domain.OperationLog{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
 	// 统计数据
@@ -133,7 +134,7 @@ func (s OperationLog) Create(data *domain.OperationLogCreateRequest) error {
 	operationLog.OperTime = time.Now()
 	operationLog.CostTime = data.CostTime
 
-	return domain.DB.Create(&operationLog).Error
+	return database.DB.Create(&operationLog).Error
 }
 
 // Delete 删除操作日志
@@ -143,7 +144,7 @@ func (s OperationLog) Create(data *domain.OperationLogCreateRequest) error {
 // @param: ids []uint
 // @return: err error
 func (s OperationLog) Delete(ids []uint) (err error) {
-	if err = domain.DB.Where("oper_id in (?) ", ids).Unscoped().Delete(&domain.OperationLog{}).Error; err != nil {
+	if err = database.DB.Where("oper_id in (?) ", ids).Unscoped().Delete(&domain.OperationLog{}).Error; err != nil {
 		return err
 	}
 	return nil
@@ -157,7 +158,7 @@ func (s OperationLog) Delete(ids []uint) (err error) {
 // @return: *domain.OperationLog,err error
 func (s OperationLog) Detail(id uint) (*domain.OperationLog, error) {
 	var detail domain.OperationLog
-	db := domain.DB.Where("oper_id = ?", id)
+	db := database.DB.Where("oper_id = ?", id)
 	if err := db.First(&detail).Error; err != nil {
 		return nil, err
 	}
@@ -170,5 +171,5 @@ func (s OperationLog) Detail(id uint) (*domain.OperationLog, error) {
 // @description: 清空操作日志
 // @return: err error
 func (s OperationLog) Clear() (err error) {
-	return domain.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&domain.OperationLog{}).Error
+	return database.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&domain.OperationLog{}).Error
 }
