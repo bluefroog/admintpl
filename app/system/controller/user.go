@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/app/system/middleware"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
@@ -36,7 +37,7 @@ func (u *User) List(c *gin.Context) {
 	if err := validate.Struct(&searchParams); err != nil {
 		response.Fail(-1, err.Error(), c)
 	}
-	err, list, total := user.GetList(&searchParams)
+	err, list, total := user.GetList(&searchParams, middleware.GetLoginUser(c))
 	if err != nil {
 		response.Fail(-1, err.Error(), c)
 	}

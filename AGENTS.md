@@ -18,6 +18,7 @@
   - 扩展动作（`tree`、`check-*`、`roles`、`menu`、`data-scope`、`clear`、`force-logout` 等）见 `docs/开发规范.md` 1.3 节。
 - 响应：成功 `response.OK(data, c)` / `response.Success("提示", c)`；失败 `response.Fail(-1, "错误", c)`。
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
+- 删除接口必须同步清理关联表（用户：`sys_user_role`/`sys_user_post`；角色：`sys_role_menu`/`sys_role_dept`/`sys_user_role`），与若依一致，避免孤儿数据。
 - 新增 `.go`/`.md`/`.http` 文件使用 **CRLF** 行尾。
 
 ## 2. 开发工具：just（开发 / 测试 / 打包 / 发布）
@@ -79,7 +80,20 @@
 - **自检**：开发完成后本地跑 `just vet` + `just test`，对已启动实例跑 `just smoke <BASE_URL>`
   （脚本会自动登录携带令牌，并校验零值字段落库、SQL 列名错配、定时任务调度等回归项）。
 
-## 6. 定时任务约定
+## 6. 数据权限约定
+
+- **实现位置**：`app/system/service/data-scope.go`；查询入口统一为 `DataScope{}.Apply(db, loginUser, DataScopeOptions{...})`，
+  角色列表用 `DataScope{}.ApplyToRoles(db, loginUser)`；列表方法一律接收 `loginUser *domain.LoginUser` 参数。
+- **语义与若依 `@DataScope` 一致**：`1` 全部（不过滤）、`2` 自定义（`sys_role_dept`）、`3` 本部门、`4` 本部门及以下（`ancestors` 递归）、`5` 仅本人；
+  多角色按 OR 合并，任一角色为 `1` 则不限制；无角色 / 超级管理员 / 未登录（`loginUser=nil`）不加条件。
+- **取值校验**：角色新增、修改、数据范围保存统一走 `NormalizeDataScope`（`0` 归一为 `1`，`1~5` 合法，其它值报「数据范围不正确」）。
+- **开关**：`system.data-scope.enabled`（`DATA_SCOPE_ENABLED`，默认 true）；关闭后列表不再过滤，便于排查「数据查不到」。
+- **新增列表接口必须接数据权限**：带部门/用户归属的业务列表在拼接查询后调用 `DataScope{}.Apply(...)`，
+  并同步给控制器方法传 `middleware.GetLoginUser(c)`；内部唯一性校验、子节点检查等场景传 `nil` 保持原有行为。
+- **约定列名**：`DataScopeOptions.DeptColumn` 用表内真实列名（用户表 `department_id`、部门表 `dept_id`），
+  `UserColumn` 仅在支持「仅本人」的表上传（部门表无用户列，传空则 `5` 恒不成立）。
+
+## 7. 定时任务约定
 
 - **cron 表达式**：统一使用 `common/cron`（若依/Quartz 语义，6~7 段 `秒 分 时 日 月 周 [年]`），
   禁止再引入 Quartz/gcron/cron 第三方库；日与周都指定时取「或」关系，周字段 `1~7` 为周日~周六（兼容 `0` 表示周日）。

@@ -140,6 +140,7 @@ content-type: application/json
 }
 
 ### delete success
+# 说明：删除角色会同步清理 sys_role_menu / sys_role_dept / sys_user_role 关联记录（与若依一致）
 DELETE http://127.0.0.1:8080/system/role/delete
 content-type: application/json
 
@@ -207,3 +208,43 @@ GET http://127.0.0.1:8080/system/role/check-name?name=普通角色
 
 ### check-key
 GET http://127.0.0.1:8080/system/role/check-key?key=common
+
+
+### data scope - 数据范围只认 1~5，其它值返回「数据范围不正确」
+# 1=全部数据权限（不过滤） 2=自定义数据权限（按 sys_role_dept 勾选的部门）
+# 3=本部门数据权限 4=本部门及以下数据权限 5=仅本人数据权限
+# 多个角色按 OR 合并；任一角色为 1 则不限制；用户无角色时不限制（与若依一致）
+# 未传 data_scope（0）按 1 处理
+PUT http://127.0.0.1:8080/system/role/data-scope
+content-type: application/json
+
+{
+  "id": 3,
+  "data_scope": 4,
+  "dept_ids": []
+}
+
+### data scope - 仅本人
+PUT http://127.0.0.1:8080/system/role/data-scope
+content-type: application/json
+
+{
+  "id": 3,
+  "data_scope": 5
+}
+
+### data scope - 非法取值应被拒绝
+PUT http://127.0.0.1:8080/system/role/data-scope
+content-type: application/json
+
+{
+  "id": 3,
+  "data_scope": 9
+}
+
+### 数据范围生效验证：以该角色的用户登录后查询下面三个接口
+# GET /system/user/list        按 sys_user.department_id 过滤
+# GET /system/department/list  按 sys_dept.dept_id 过滤（tree 同）
+# GET /system/role/list        按「角色下的用户是否在范围内」过滤
+GET http://127.0.0.1:8080/system/user/list?pageSize=10
+Authorization: Bearer {{token}}

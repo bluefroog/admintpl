@@ -127,6 +127,11 @@ func Bool(key string) bool {
 	return v.GetBool(key)
 }
 
+// 判断配置项是否存在（用于区分「未配置」与「配置为空/零值」）
+func IsSet(key string) bool {
+	return v.IsSet(key)
+}
+
 // 返回 map[string]interface{} 配置
 func Map(key string) map[string]interface{} {
 	return v.GetStringMap(key)

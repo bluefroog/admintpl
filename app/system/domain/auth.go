@@ -28,13 +28,14 @@ type CaptchaResponse struct {
 
 // LoginUser 登录用户信息（认证通过后写入请求上下文）
 type LoginUser struct {
-	UserID      uint     `json:"userId"`      // 用户ID
-	Username    string   `json:"userName"`    // 登录账号
-	Nickname    string   `json:"nickName"`    // 用户昵称
-	Token       string   `json:"token"`       // 令牌
-	IsAdmin     bool     `json:"isAdmin"`     // 是否超级管理员
-	Roles       []string `json:"roles"`       // 角色标识列表
-	Permissions []string `json:"permissions"` // 权限标识列表
+	UserID       uint     `json:"userId"`      // 用户ID
+	Username     string   `json:"userName"`    // 登录账号
+	Nickname     string   `json:"nickName"`    // 用户昵称
+	DepartmentID uint     `json:"deptId"`      // 所属部门ID（数据权限使用）
+	Token        string   `json:"token"`       // 令牌
+	IsAdmin      bool     `json:"isAdmin"`     // 是否超级管理员
+	Roles        []string `json:"roles"`       // 角色标识列表
+	Permissions  []string `json:"permissions"` // 权限标识列表
 }
 
 // UserInfoResponse 登录用户信息响应结构体

@@ -14,14 +14,17 @@ type Department struct{}
 // GetList
 // @author: [bluefrog](https://github.com/freewu)
 // @function: GetList
-// @description: 获取部门列表数据
+// @description: 获取部门列表数据（按登录用户的数据权限过滤）
 // @param: searchParams *domain.DepartmentSearchRequest
+// @param: loginUser *domain.LoginUser 登录用户（认证关闭时为 nil）
 // @return: err error, list interface{}, total int64
-func (s Department) GetList(searchParams *domain.DepartmentSearchRequest) (err error, list []domain.Department, total int64) {
+func (s Department) GetList(searchParams *domain.DepartmentSearchRequest, loginUser *domain.LoginUser) (err error, list []domain.Department, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Department{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
+	// 数据权限（部门ID列；部门表无用户ID列，不支持「仅本人」数据权限）
+	db = DataScope{}.Apply(db, loginUser, DataScopeOptions{DeptColumn: "dept_id"})
 	// 统计数据
 	err = db.Count(&total).Error
 	// 如果数据 0,也没有必要处理以下动作了
@@ -191,17 +194,19 @@ func (s Department) IsExist(name string, excludeIds *[]uint) bool {
 	if excludeIds != nil {
 		filter.IDNotIn = *excludeIds
 	}
-	_, _, total := s.GetList(filter)
+	// 唯一性校验属于内部逻辑，不受数据权限影响
+	_, _, total := s.GetList(filter, nil)
 	return total > 0
 }
 
 // TreeData 获取部门树数据（返回扁平列表，由前端 zTree 组装成树）
 // @author: [bluefrog](https://github.com/freewu)
 // @function: TreeData
-// @description: 获取部门树数据
+// @description: 获取部门树数据（按登录用户的数据权限过滤）
 // @param: searchParams *domain.DepartmentTreeRequest
+// @param: loginUser *domain.LoginUser 登录用户（认证关闭时为 nil）
 // @return: err error, list []domain.Ztree
-func (s Department) TreeData(searchParams *domain.DepartmentTreeRequest) (err error, list []domain.Ztree) {
+func (s Department) TreeData(searchParams *domain.DepartmentTreeRequest, loginUser *domain.LoginUser) (err error, list []domain.Ztree) {
 	db := domain.DB.Model(&domain.Department{})
 	if searchParams.ParentID != nil {
 		db = db.Where("parent_id = ?", searchParams.ParentID)
@@ -212,6 +217,8 @@ func (s Department) TreeData(searchParams *domain.DepartmentTreeRequest) (err er
 	if searchParams.Status != nil {
 		db = db.Where("status = ?", searchParams.Status)
 	}
+	// 数据权限
+	db = DataScope{}.Apply(db, loginUser, DataScopeOptions{DeptColumn: "dept_id"})
 	var departments []domain.Department
 	if err = db.Order("order_num asc").Find(&departments).Error; err != nil {
 		return err, nil
@@ -222,12 +229,16 @@ func (s Department) TreeData(searchParams *domain.DepartmentTreeRequest) (err er
 // RoleDeptTreeData 获取角色部门树数据（带勾选）
 // @author: [bluefrog](https://github.com/freewu)
 // @function: RoleDeptTreeData
-// @description: 根据角色ID查询部门树（数据权限）
-// @param: roleId uint
+// @description: 根据角色ID查询部门树（数据权限，按登录用户的数据权限过滤）
+// @param: roleId uint 角色ID
+// @param: loginUser *domain.LoginUser 登录用户（认证关闭时为 nil）
 // @return: err error, list []domain.Ztree
-func (s Department) RoleDeptTreeData(roleId uint) (err error, list []domain.Ztree) {
+func (s Department) RoleDeptTreeData(roleId uint, loginUser *domain.LoginUser) (err error, list []domain.Ztree) {
+	db := domain.DB.Model(&domain.Department{})
+	// 数据权限
+	db = DataScope{}.Apply(db, loginUser, DataScopeOptions{DeptColumn: "dept_id"})
 	var departments []domain.Department
-	if err = domain.DB.Order("order_num asc").Find(&departments).Error; err != nil {
+	if err = db.Order("order_num asc").Find(&departments).Error; err != nil {
 		return err, nil
 	}
 	var checkedIds []uint

@@ -132,6 +132,7 @@ func TestConfigFileExpansion(t *testing.T) {
 		"system.captcha.enabled", "system.captcha.length", "system.captcha.expire",
 		"system.seed.enabled",
 		"system.job.enabled", "system.job.log-retain-days",
+		"system.data-scope.enabled",
 	}
 	for _, key := range required {
 		if !conf.IsSet(key) {
@@ -139,11 +140,19 @@ func TestConfigFileExpansion(t *testing.T) {
 		}
 	}
 
+	// 配置项存在性判断（IsSet 用于区分「未配置」与「显式配置为 false」）
+	if !conf.IsSet("system.data-scope.enabled") {
+		t.Error("已配置的配置项 IsSet 应为 true")
+	}
+	if conf.IsSet("system.not-exist.key") {
+		t.Error("未配置的配置项 IsSet 应为 false")
+	}
+
 	// 开关型配置必须能解析为布尔值（值写错时 viper 会静默返回 false）
 	bools := []string{
 		"service.debug", "database.admin.debug", "system.auth.enabled",
 		"system.auth.permission-enabled", "system.captcha.enabled", "system.seed.enabled",
-		"system.job.enabled",
+		"system.job.enabled", "system.data-scope.enabled",
 	}
 	for _, key := range bools {
 		value := strings.ToLower(conf.GetString(key))

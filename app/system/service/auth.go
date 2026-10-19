@@ -152,13 +152,14 @@ func (s Auth) GetLoginUser(token string) (*domain.LoginUser, error) {
 
 	roles, permissions, isAdmin := s.getRolesAndPermissions(user)
 	return &domain.LoginUser{
-		UserID:      user.ID,
-		Username:    user.Username,
-		Nickname:    user.Nickname,
-		Token:       token,
-		IsAdmin:     isAdmin,
-		Roles:       roles,
-		Permissions: permissions,
+		UserID:       user.ID,
+		Username:     user.Username,
+		Nickname:     user.Nickname,
+		DepartmentID: user.DepartmentID,
+		Token:        token,
+		IsAdmin:      isAdmin,
+		Roles:        roles,
+		Permissions:  permissions,
 	}, nil
 }
 

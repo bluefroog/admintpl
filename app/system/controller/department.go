@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/app/system/middleware"
 	"github.com/bluefroog/admintpl/app/system/service"
 	"github.com/bluefroog/admintpl/common/model/request"
 	resp "github.com/bluefroog/admintpl/common/model/response"
@@ -35,7 +36,7 @@ func (u *Department) List(c *gin.Context) {
 		response.Fail(-1, err.Error(), c)
 		return
 	}
-	err, list, total := department.GetList(&searchParams)
+	err, list, total := department.GetList(&searchParams, middleware.GetLoginUser(c))
 	if err != nil {
 		response.Fail(-1, err.Error(), c)
 		return
@@ -119,10 +120,11 @@ func (u *Department) Delete(c *gin.Context) {
 		return
 	}
 	// 如果有子部门存在，禁止删除,需要先删除完子部门
+	// （存在性校验不受数据权限影响，传 nil）
 	_, _, total := department.GetList(&domain.DepartmentSearchRequest{
 		ParentIDIn: data.Ids,
 		PageInfo:   request.PageInfo{PageSize: 1},
-	})
+	}, nil)
 	if total > 0 {
 		response.Fail(-1, "存在子部门，禁止删除", c)
 		return
@@ -174,7 +176,7 @@ func (u *Department) TreeData(c *gin.Context) {
 		response.Fail(-1, err.Error(), c)
 		return
 	}
-	err, list := department.TreeData(&param)
+	err, list := department.TreeData(&param, middleware.GetLoginUser(c))
 	if err != nil {
 		response.Fail(-1, err.Error(), c)
 		return
@@ -195,7 +197,7 @@ func (u *Department) RoleDeptTree(c *gin.Context) {
 		response.Fail(-1, err.Error(), c)
 		return
 	}
-	err, list := department.RoleDeptTreeData(param.RoleID)
+	err, list := department.RoleDeptTreeData(param.RoleID, middleware.GetLoginUser(c))
 	if err != nil {
 		response.Fail(-1, err.Error(), c)
 		return

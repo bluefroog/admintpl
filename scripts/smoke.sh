@@ -258,6 +258,133 @@ else
 fi
 
 echo
+echo "===== 数据权限（角色数据范围：本部门 / 本部门及以下 / 仅本人 / 自定义）====="
+# 构造：部门A（父）→部门A2（子）、部门B（兄弟），一个「本部门」数据范围的角色，
+#       两个分属部门A/部门B的用户，并以部门A的用户登录验证数据范围过滤
+DSA="dsa$S"; DSB="dsb$S"; DSROL="dsrole$S"
+post() { curl -s -m 10 "${auth_header[@]}" -X POST "$B$1" -H 'Content-Type: application/json' -d "$2"; }
+put()  { curl -s -m 10 "${auth_header[@]}" -X PUT "$B$1" -H 'Content-Type: application/json' -d "$2"; }
+del()  { curl -s -m 10 "${auth_header[@]}" -X DELETE "$B$1" -H 'Content-Type: application/json' -d "$2"; }
+getq() { curl -s -m 10 "${auth_header[@]}" "$B$1"; }
+post /department/create "{\"parent_id\":0,\"name\":\"数据权限A$S\",\"ancestors\":\"0\",\"sort\":9,\"status\":0}" >/dev/null
+DEPA=$(pick_id "$(getq "/department/list?pageSize=1&name=数据权限A$S")")
+post /department/create "{\"parent_id\":$DEPA,\"name\":\"数据权限A2$S\",\"ancestors\":\"0,$DEPA\",\"sort\":9,\"status\":0}" >/dev/null
+DEPA2=$(pick_id "$(getq "/department/list?pageSize=1&name=数据权限A2$S")")
+post /department/create "{\"parent_id\":0,\"name\":\"数据权限B$S\",\"ancestors\":\"0\",\"sort\":9,\"status\":0}" >/dev/null
+DEPB=$(pick_id "$(getq "/department/list?pageSize=1&name=数据权限B$S")")
+post /role/create "{\"key\":\"$DSROL\",\"name\":\"数据权限角色$S\",\"sort\":9,\"status\":0,\"menu_check_strictly\":1,\"dept_check_strictly\":1,\"data_scope\":3,\"del_flag\":0}" >/dev/null
+ROLD=$(pick_id "$(getq "/role/list?pageSize=1&name=数据权限角色$S")")
+post /user/create "{\"username\":\"$DSA\",\"mobile\":\"137$S\",\"nickname\":\"数据权限用户A$S\",\"status\":1,\"email\":\"$DSA@test.com\",\"gender\":1,\"departmentID\":$DEPA,\"remark\":\"数据权限\"}" >/dev/null
+USERA=$(pick_id "$(getq "/user/list?pageSize=1&username=$DSA")")
+post /user/create "{\"username\":\"$DSB\",\"mobile\":\"136$S\",\"nickname\":\"数据权限用户B$S\",\"status\":1,\"email\":\"$DSB@test.com\",\"gender\":1,\"departmentID\":$DEPB,\"remark\":\"数据权限\"}" >/dev/null
+USERB=$(pick_id "$(getq "/user/list?pageSize=1&username=$DSB")")
+put /user/reset-pwd "{\"id\":$USERA,\"password\":\"admin123\"}" >/dev/null
+put /user/roles "{\"id\":$USERA,\"role_ids\":[$ROLD]}" >/dev/null
+TOKENA=$(curl -s -m 10 -X POST "$BASE_URL/login" -H 'Content-Type: application/json' \
+  -d "{\"username\":\"$DSA\",\"password\":\"admin123\"}" | grep -o '"token":"[^"]*"' | head -1 | cut -d'"' -f4)
+if [ -n "$DEPA" ] && [ -n "$DEPA2" ] && [ -n "$DEPB" ] && [ -n "$ROLD" ] && [ -n "$USERA" ] && [ -n "$USERB" ] && [ -n "$TOKENA" ]; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s 角色=%s 部门=%s/%s/%s 用户=%s/%s\n' '构造数据权限测试数据' "$ROLD" "$DEPA" "$DEPA2" "$DEPB" "$USERA" "$USERB"
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 角色=%s 部门=%s/%s/%s 用户=%s/%s 子账号令牌=%s\n' '构造数据权限测试数据' "$ROLD" "$DEPA" "$DEPA2" "$DEPB" "$USERA" "$USERB" "${TOKENA:0:8}"
+fi
+
+# 数据权限断言：以子账号令牌查询，校验响应中「应包含 / 不应包含」关键字
+ds_assert() {
+  local want=$1 keyword=$2 desc=$3 path=$4 out
+  out=$(curl -s -m 10 -H "Authorization: Bearer $TOKENA" "$B$path")
+  if ! echo "$out" | grep -q '"code":0'; then
+    if echo "$out" | grep -qE '1054|Unknown column'; then sqlbad=$((sqlbad+1)); else bad=$((bad+1)); fi
+    printf '\033[31mFAIL\033[0m  %-44s 请求失败：%s\n' "$desc" "$(echo "$out" | head -c 170)"
+    return
+  fi
+  if echo "$out" | grep -q "$keyword"; then
+    if [ "$want" = in ]; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "$desc"
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 不应出现 %s\n' "$desc" "$keyword"
+    fi
+  else
+    if [ "$want" = out ]; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "$desc"
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 未找到 %s：%s\n' "$desc" "$keyword" "$(echo "$out" | head -c 150)"
+    fi
+  fi
+}
+if [ -n "$TOKENA" ]; then
+  # 本部门数据权限（data_scope=3）
+  ds_assert in  "$DSA"           '数据权限-本部门：用户列表含本部门用户'   '/user/list?pageSize=200'
+  ds_assert out "$DSB"           '数据权限-本部门：用户列表不含他部门用户' '/user/list?pageSize=200'
+  ds_assert in  "数据权限A$S"     '数据权限-本部门：部门列表含本部门'     '/department/list?pageSize=200'
+  ds_assert out "数据权限A2$S"    '数据权限-本部门：部门列表不含子部门'   '/department/list?pageSize=200'
+  ds_assert out "数据权限B$S"     '数据权限-本部门：部门列表不含他部门'   '/department/list?pageSize=200'
+  ds_assert in  "数据权限角色$S"   '数据权限-角色列表：含本部门用户所属角色' '/role/list?pageSize=200'
+  # 本部门及以下数据权限（data_scope=4）
+  put /role/data-scope "{\"id\":$ROLD,\"data_scope\":4,\"dept_ids\":[]}" >/dev/null
+  ds_assert in  "数据权限A2$S"    '数据权限-本部门及以下：含子部门'       '/department/list?pageSize=200'
+  ds_assert out "数据权限B$S"     '数据权限-本部门及以下：不含他部门'     '/department/list?pageSize=200'
+  ds_assert in  "$DSA"           '数据权限-本部门及以下：用户列表含本部门用户' '/user/list?pageSize=200'
+  # 仅本人数据权限（data_scope=5）：部门表无用户ID列，该条件恒不成立
+  put /role/data-scope "{\"id\":$ROLD,\"data_scope\":5}" >/dev/null
+  ds_assert in  "$DSA"           '数据权限-仅本人：用户列表含本人'       '/user/list?pageSize=200'
+  ds_assert out "$DSB"           '数据权限-仅本人：用户列表不含他人'     '/user/list?pageSize=200'
+  ds_assert out "数据权限A$S"     '数据权限-仅本人：部门列表为空（无用户列）' '/department/list?pageSize=200'
+  # 自定义数据权限（data_scope=2，勾选部门B）
+  put /role/data-scope "{\"id\":$ROLD,\"data_scope\":2,\"dept_ids\":[$DEPB]}" >/dev/null
+  ds_assert in  "数据权限B$S"     '数据权限-自定义：部门列表含勾选部门'   '/department/list?pageSize=200'
+  ds_assert out "数据权限A$S"     '数据权限-自定义：部门列表不含未勾选部门' '/department/list?pageSize=200'
+  ds_assert in  "$DSB"           '数据权限-自定义：用户列表含勾选部门用户' '/user/list?pageSize=200'
+  ds_assert out "$DSA"           '数据权限-自定义：用户列表不含未勾选部门用户' '/user/list?pageSize=200'
+fi
+# 非法数据范围必须被拒绝（1全部 2自定义 3本部门 4本部门及以下 5仅本人）
+out=$(post /role/create "{\"key\":\"${DSROL}bad\",\"name\":\"非法数据范围角色$S\",\"data_scope\":9}")
+if echo "$out" | grep -q '数据范围不正确'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '非法数据范围被拒绝（新增角色）'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '非法数据范围被拒绝（新增角色）' "$(echo "$out" | head -c 170)"
+fi
+out=$(put /role/data-scope "{\"id\":$ROLD,\"data_scope\":9}")
+if echo "$out" | grep -q '数据范围不正确'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '非法数据范围被拒绝（修改数据权限）'
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '非法数据范围被拒绝（修改数据权限）' "$(echo "$out" | head -c 170)"
+fi
+
+# 关联数据清理校验：先建立 用户-角色 / 用户-岗位 / 角色-菜单 / 角色-部门 四类关联
+put /role/menu "{\"id\":$ROLD,\"menu_ids\":[1]}" >/dev/null
+put /user/posts "{\"id\":$USERA,\"post_ids\":[1]}" >/dev/null
+rel_total() { getq "$1" | grep -o '"total":[0-9]*' | head -1 | cut -d: -f2; }
+rel_assert() {
+  local want=$1 path=$2 desc=$3 got
+  got=$(rel_total "$path")
+  if [ "$got" = "$want" ]; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-46s 关联记录数=%s\n' "$desc" "$got"
+  else
+    bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-46s 期望 %s 实际 %s\n' "$desc" "$want" "${got:-空}"
+  fi
+}
+rel_assert 1 "/user-role/list?user_id=$USERA" '删除用户前：用户-角色关联存在'
+rel_assert 1 "/user-post/list?user_id=$USERA" '删除用户前：用户-岗位关联存在'
+rel_assert 1 "/role-menu/list?role_id=$ROLD"  '删除角色前：角色-菜单关联存在'
+rel_assert 1 "/role-dept/list?role_id=$ROLD"  '删除角色前：角色-部门关联存在'
+
+# 清理（静默）：解绑角色 → 退出登录 → 删除用户 / 角色 / 部门（顺序不可颠倒）
+put /user/roles "{\"id\":$USERA,\"role_ids\":[]}" >/dev/null
+curl -s -m 10 -X POST "$BASE_URL/logout" -H "Authorization: Bearer $TOKENA" >/dev/null
+[ -n "$USERA" ] && del /user/delete "{\"ids\":[$USERA]}" >/dev/null
+[ -n "$USERB" ] && del /user/delete "{\"ids\":[$USERB]}" >/dev/null
+[ -n "$ROLD" ] && del /role/delete "{\"ids\":[$ROLD]}" >/dev/null
+[ -n "$DEPA2" ] && del /department/delete "{\"ids\":[$DEPA2]}" >/dev/null
+[ -n "$DEPA" ] && del /department/delete "{\"ids\":[$DEPA]}" >/dev/null
+[ -n "$DEPB" ] && del /department/delete "{\"ids\":[$DEPB]}" >/dev/null
+
+# 删除用户/角色必须同步清理关联表，避免遗留孤儿关联数据（与若依一致）
+rel_assert 0 "/user-role/list?user_id=$USERA" '删除用户后：用户-角色关联已清理'
+rel_assert 0 "/user-post/list?user_id=$USERA" '删除用户后：用户-岗位关联已清理'
+rel_assert 0 "/role-menu/list?role_id=$ROLD"  '删除角色后：角色-菜单关联已清理'
+rel_assert 0 "/role-dept/list?role_id=$ROLD"  '删除角色后：角色-部门关联已清理'
+
+echo
 echo "===== 字段零值落库校验（GORM default 标签陷阱）====="
 # 带 default 标签的字段（如 menu.is_frame 默认 1、user.status 默认 1）用结构体 Create 时，
 # 显式传入的零值会被数据库默认值覆盖，这里逐项校验零值能原样落库。

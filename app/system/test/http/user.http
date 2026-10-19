@@ -39,6 +39,7 @@ content-type: application/json
 }
 
 ### delete
+# 说明：删除用户会同步清理 sys_user_role / sys_user_post 关联记录（与若依一致）
 DELETE http://127.0.0.1:8080/system/user/delete
 content-type: application/json
 
@@ -166,3 +167,8 @@ content-type: application/json
   "id": 1,
   "avatar": "/uploads/avatar.png"
 }
+
+
+### 用户列表受「数据权限」过滤（sys_user.department_id），详见 role.http 数据范围说明
+GET http://127.0.0.1:8080/system/user/list?pageSize=10
+Authorization: Bearer {{token}}

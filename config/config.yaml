@@ -37,6 +37,9 @@ system:
   job:
     enabled: "${JOB_ENABLED:-true}" # 是否启动定时任务调度器（关闭后任务不再自动触发，手动「执行一次」仍可用）
     log-retain-days: "${JOB_LOG_RETAIN_DAYS:-30}" # 定时任务日志保留天数（启动时清理，<=0 表示不清理）
+  # 数据权限（按登录用户角色的数据范围过滤列表数据）
+  data-scope:
+    enabled: "${DATA_SCOPE_ENABLED:-true}" # 是否开启数据权限过滤（关闭后所有登录用户可见全部数据，仅建议调试使用）
 
 # 环境变量清单（.env / 容器环境变量 / 系统环境变量均可注入，优先级从高到低）：
 #   SERVICE_PORT SERVICE_DEBUG
@@ -45,3 +48,4 @@ system:
 #   CAPTCHA_ENABLED CAPTCHA_LENGTH CAPTCHA_EXPIRE
 #   SEED_ENABLED
 #   JOB_ENABLED JOB_LOG_RETAIN_DAYS
+#   DATA_SCOPE_ENABLED

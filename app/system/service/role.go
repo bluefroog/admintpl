@@ -30,14 +30,17 @@ func (s Role) GetCount(searchParams *domain.RoleSearchRequest) (err error, total
 // GetList 获取角色列表数据
 // @author: [bluefrog](https://github.com/freewu)
 // @function: GetList
-// @description: 获取角色列表数据
+// @description: 获取角色列表数据（按登录用户的数据权限过滤）
 // @param: searchParams *domain.RoleSearchRequest
+// @param: loginUser *domain.LoginUser 登录用户（认证关闭时为 nil）
 // @return: err error, list interface{}, total int64
-func (s Role) GetList(searchParams *domain.RoleSearchRequest) (err error, list []domain.Role, total int64) {
+func (s Role) GetList(searchParams *domain.RoleSearchRequest, loginUser *domain.LoginUser) (err error, list []domain.Role, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.Role{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
+	// 数据权限（角色自身无部门：按「角色所属用户是否在数据权限范围内」过滤）
+	db = DataScope{}.ApplyToRoles(db, loginUser)
 	// 统计数据
 	err = db.Count(&total).Error
 	// 如果数据 0,也没有必要处理以下动作了
@@ -126,6 +129,12 @@ func (s Role) Create(data *domain.RoleCreateRequest) error {
 	if s.KeyIsExist(data.Key, nil) {
 		return errors.New("已存在相同的角色权限字符串")
 	}
+	// 校验数据范围
+	dataScope, err := NormalizeDataScope(data.DataScope)
+	if err != nil {
+		return err
+	}
+	data.DataScope = dataScope
 	// 注意：结构体方式 Create 会让带 default 标签的零值字段（如 menu_check_strictly 默认 1、
 	// dept_check_strictly 默认 1、data_scope 默认 1）被数据库默认值覆盖，显式传入的 0 会丢失，
 	// 因此与 Update 保持一致，使用 map 显式写入。
@@ -163,12 +172,17 @@ func (s Role) Update(data *domain.RoleUpdateRequest) (err error) {
 	if s.KeyIsExist(data.Key, &[]uint{data.ID}) {
 		return errors.New("已存在相同的角色权限字符串")
 	}
+	// 校验数据范围
+	dataScope, err := NormalizeDataScope(data.DataScope)
+	if err != nil {
+		return err
+	}
 	record := make(map[string]interface{})
 	record["Name"] = data.Name
 	record["Key"] = data.Key
 	record["MenuCheckStrictly"] = data.MenuCheckStrictly
 	record["DepartmentCheckStrictly"] = data.DepartmentCheckStrictly
-	record["DataScope"] = data.DataScope
+	record["DataScope"] = dataScope
 	record["DeleteFlag"] = data.DeleteFlag
 	record["Status"] = data.Status
 	record["Sort"] = data.Sort
@@ -196,14 +210,25 @@ func (s Role) UpdateByMap(id uint, updateMap map[string]interface{}) (err error)
 // Delete 删除角色
 // @author: [bluefrog](https://github.com/freewu)
 // @function: Delete
-// @description: 删除角色
+// @description: 删除角色，同时清理角色与菜单/部门/用户的关联记录（与若依一致，避免遗留孤儿数据）
 // @param: ids []uint
 // @return: err error
 func (s Role) Delete(ids []uint) (err error) {
-	if err = domain.DB.Where("role_id in (?) ", ids).Unscoped().Delete(&domain.Role{}).Error; err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	return nil
+	return domain.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("role_id in (?)", ids).Unscoped().Delete(&domain.RoleMenu{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("role_id in (?)", ids).Unscoped().Delete(&domain.RoleDept{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("role_id in (?)", ids).Unscoped().Delete(&domain.UserRole{}).Error; err != nil {
+			return err
+		}
+		return tx.Where("role_id in (?)", ids).Unscoped().Delete(&domain.Role{}).Error
+	})
 }
 
 // Detail 获取指定ID角色详情
@@ -294,9 +319,14 @@ func (s Role) AssignMenus(req *domain.RoleMenuAssignRequest) (err error) {
 // @param: req *domain.RoleDataScopeRequest
 // @return: err error
 func (s Role) AuthDataScope(req *domain.RoleDataScopeRequest) (err error) {
+	// 校验数据范围
+	dataScope, err := NormalizeDataScope(req.DataScope)
+	if err != nil {
+		return err
+	}
 	return domain.DB.Transaction(func(tx *gorm.DB) error {
 		record := make(map[string]interface{})
-		record["DataScope"] = req.DataScope
+		record["DataScope"] = dataScope
 		record["UpdateBy"] = "" // todo 通过登录服务获取
 		record["UpdateTime"] = time.Now()
 		if err := tx.Model(&domain.Role{}).Where("role_id = ?", req.ID).Updates(record).Error; err != nil {

@@ -15,10 +15,11 @@ func Initialize(r *gin.Engine) {
 	// 注册DB
 	domain.InitDB(r)
 	// 输出关键开关，便于排查“配置未随部署更新”这类问题
-	log.Infof("system 初始化：登录认证=%v 权限校验=%v 图形验证码=%v 基础数据初始化=%v 定时任务调度=%v",
+	log.Infof("system 初始化：登录认证=%v 权限校验=%v 图形验证码=%v 数据权限=%v 基础数据初始化=%v 定时任务调度=%v",
 		config.Bool("system.auth.enabled"),
 		config.Bool("system.auth.permission-enabled"),
 		config.Bool("system.captcha.enabled"),
+		config.Bool("system.data-scope.enabled"),
 		config.Bool("system.seed.enabled"),
 		config.Bool("system.job.enabled"),
 	)

@@ -13,14 +13,17 @@ type User struct{}
 
 // @author: [bluefrog](https://github.com/freewu)
 // @function: GetList
-// @description: 获取用户列表数据
+// @description: 获取用户列表数据（按登录用户的数据权限过滤）
 // @param: searchParams *domain.UserSearchRequest
+// @param: loginUser *domain.LoginUser 登录用户（认证关闭时为 nil）
 // @return: err error, list interface{}, total int64
-func (s User) GetList(searchParams *domain.UserSearchRequest) (err error, list []domain.User, total int64) {
+func (s User) GetList(searchParams *domain.UserSearchRequest, loginUser *domain.LoginUser) (err error, list []domain.User, total int64) {
 	// 创建db
 	db := domain.DB.Model(&domain.User{})
 	// 条件过滤
 	db = s.parseFilter(db, searchParams)
+	// 数据权限（部门ID列 + 用户ID列）
+	db = DataScope{}.Apply(db, loginUser, DataScopeOptions{DeptColumn: "department_id", UserColumn: "id"})
 	// 统计数据
 	err = db.Count(&total).Error
 	// 如果数据 0,也没有必要处理以下动作了
@@ -183,15 +186,23 @@ func (s User) UpdateByMap(id uint, updateMap map[string]interface{}) (err error)
 
 // @author: [bluefrog](https://github.com/freewu)
 // @function: Delete
-// @description: 删除用户
+// @description: 删除用户，同时清理用户与角色/岗位的关联记录（与若依一致，避免遗留孤儿数据）
 // @param: ids []uint
 // @return: err error
 func (s User) Delete(ids []uint) (err error) {
-	// 删除区域
-	if err = domain.DB.Where("id in (?) ", ids).Unscoped().Delete(&domain.User{}).Error; err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	return nil
+	// 删除用户与角色/岗位的关联记录（与若依一致，避免遗留孤儿数据）
+	return domain.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("user_id in (?)", ids).Unscoped().Delete(&domain.UserRole{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("user_id in (?)", ids).Unscoped().Delete(&domain.UserPost{}).Error; err != nil {
+			return err
+		}
+		return tx.Where("id in (?)", ids).Unscoped().Delete(&domain.User{}).Error
+	})
 }
 
 // @author: [bluefrog](https://github.com/freewu)

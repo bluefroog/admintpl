@@ -187,3 +187,8 @@ GET http://127.0.0.1:8080/system/department/role-dept-tree?role_id=1
 
 ### check-name
 GET http://127.0.0.1:8080/system/department/check-name?name=研发部门&parent_id=0
+
+
+### 列表与树形接口均受「数据权限」过滤（sys_dept.dept_id），详见 role.http 数据范围说明
+GET http://127.0.0.1:8080/system/department/list?pageSize=10
+Authorization: Bearer {{token}}
