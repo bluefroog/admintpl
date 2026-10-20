@@ -58,7 +58,7 @@ func newRedisStore(opts RedisOptions) (*redisStore, error) {
 			addrs = []string{opts.Addr}
 		}
 		if len(addrs) == 0 {
-			return nil, errors.New("redis 集群模式需要配置 system.cache.redis.cluster-addrs（CACHE_REDIS_CLUSTER_ADDRS）")
+			return nil, errors.New("redis 集群模式需要配置 cache.redis.cluster-addrs（CACHE_REDIS_CLUSTER_ADDRS）")
 		}
 		cluster := redis.NewClusterClient(&redis.ClusterOptions{
 			Addrs:        addrs,
@@ -83,7 +83,7 @@ func newRedisStore(opts RedisOptions) (*redisStore, error) {
 			sentinels = []string{opts.Addr}
 		}
 		if len(sentinels) == 0 {
-			return nil, errors.New("redis 哨兵模式需要配置 system.cache.redis.sentinel-addrs（CACHE_REDIS_SENTINEL_ADDRS）")
+			return nil, errors.New("redis 哨兵模式需要配置 cache.redis.sentinel-addrs（CACHE_REDIS_SENTINEL_ADDRS）")
 		}
 		client := redis.NewFailoverClient(&redis.FailoverOptions{
 			MasterName:       opts.MasterName,
@@ -109,7 +109,7 @@ func newRedisStore(opts RedisOptions) (*redisStore, error) {
 			addrs = []string{opts.Addr}
 		}
 		if len(addrs) == 0 || addrs[0] == "" {
-			return nil, errors.New("redis 主从模式需要配置 system.cache.redis.addrs（CACHE_REDIS_ADDRS，主节点在前）")
+			return nil, errors.New("redis 主从模式需要配置 cache.redis.addrs（CACHE_REDIS_ADDRS，主节点在前）")
 		}
 		nodes := make([]*redis.Client, 0, len(addrs))
 		for _, addr := range addrs {

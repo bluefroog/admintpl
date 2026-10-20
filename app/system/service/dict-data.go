@@ -34,7 +34,7 @@ func init() {
 // DictCacheEnabled 是否启用字典缓存（关闭后每次都查库，便于排查字典不生效问题）
 // @return: bool
 func DictCacheEnabled() bool {
-	return !config.IsSet("system.cache.enabled") || config.Bool("system.cache.enabled")
+	return !config.IsSet("cache.enabled") || config.Bool("cache.enabled")
 }
 
 // GetByTypeFromCache 仅从缓存读取字典数据列表（不查库）

@@ -14,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// fileName 本地缓存数据文件名（目录由 system.cache.file.dir 配置）
+// fileName 本地缓存数据文件名（目录由 cache.file.dir 配置）
 const fileName = "cache.gob"
 
 // fileItem 落盘的缓存项（payload 已是序列化后的字节，不参与 gob 的接口类型推断）

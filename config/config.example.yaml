@@ -20,15 +20,82 @@ secret:
   algorithm: "${CONFIG_SECRET_ALGORITHM:-AES}" # 新生成密文使用的算法：AES（AES-256-GCM，默认）/ SM4（国密 SM4-CBC）
   key: "${CONFIG_SECRET_KEY:-}" # 加密密钥（任意字符串，内部 SHA-256 派生密钥），建议放 .env 或容器环境变量
 
+# 数据库（多连接：connections 下每个键一套连接信息，default 指定默认连接）
+#   - 业务代码用 database.DB / database.Default() 访问默认连接；
+#     需要其它库时用 database.Get("log") 取句柄（不存在时回退默认并告警），
+#     database.Use("log") 可把全局默认切换为指定连接
+#   - type 决定 ORM 驱动（目前支持 mysql，其它类型启动即报错，避免配错却静默用错库）
+#   - dsn 留空表示不启用该连接（启动时跳过），因此可以先写多套连接、按环境填 env 即可
 database:
-  admin:
-    type: "${DB_TYPE:-mysql}" # 数据库类型
-    dsn: "${DB_DSN:-root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local}" # 连接串（可整体或仅密码部分用 ENC(...) 密文）
-    prefix: "${DB_PREFIX:-}" # 表前缀
-    max-idle: "${DB_MAX_IDLE:-10}" # 连接池最大闲置连接数
-    max-open: "${DB_MAX_OPEN:-10}" # 连接池最大打开连接数
-    max-lifetime: "${DB_MAX_LIFETIME:-30}" # 连接可复用时长（秒）
-    debug: "${DB_DEBUG:-true}" # true：打印 SQL
+  default: "${DB_DEFAULT:-admin}" # 默认连接名（对应 connections 下的键）
+  connections:
+    # 主库：系统管理 / 系统监控 / 定时任务 / 代码生成等全部内置表
+    admin:
+      type: "${DB_TYPE:-mysql}" # 数据库类型：mysql（默认）
+      dsn: "${DB_DSN:-root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local}"
+      prefix: "${DB_PREFIX:-}" # 表前缀
+      singular: "${DB_SINGULAR:-true}" # 单数表名（true：User -> user / prefix_user）
+      max-idle: "${DB_MAX_IDLE:-10}" # 连接池最大闲置的连接数
+      max-open: "${DB_MAX_OPEN:-10}" # 连接池最大打开的连接数
+      max-lifetime: "${DB_MAX_LIFETIME:-30}" # 连接对象可重复使用的时间长度(秒)
+      debug: "${DB_DEBUG:-true}" # 是否开启 sql 调试模式
+    # 示例：第二个库（日志库）。dsn 为空时启动自动跳过，不影响主库；
+    # 需要启用时在 .env 里填 DB_LOG_DSN 即可，业务代码用 database.Get("log") 取句柄
+    log:
+      type: "${DB_LOG_TYPE:-mysql}" # 数据库类型：mysql（默认）
+      dsn: "${DB_LOG_DSN:-}" # 连接串（留空表示不启用该连接）
+      prefix: "${DB_LOG_PREFIX:-}" # 表前缀
+      singular: "${DB_LOG_SINGULAR:-true}" # 单数表名（与主库保持一致）
+      max-idle: "${DB_LOG_MAX_IDLE:-10}" # 连接池最大闲置的连接数
+      max-open: "${DB_LOG_MAX_OPEN:-10}" # 连接池最大打开的连接数
+      max-lifetime: "${DB_LOG_MAX_LIFETIME:-30}" # 连接对象可重复使用的时间长度(秒)
+      debug: "${DB_LOG_DEBUG:-false}" # 是否开启 sql 调试模式
+    # 还可以继续追加任意命名的连接（键名即连接名，环境变量用 DB_<大写键名>_* 前缀）：
+    #   business:
+    #     type: mysql
+    #     dsn: "${DB_BUSINESS_DSN:-}"
+    #     prefix: "${DB_BUSINESS_PREFIX:-}"
+    #     singular: true
+    #     max-idle / max-open / max-lifetime / debug 同上
+
+# ───────────────────────────────────────────────────────────
+# 参数 / 字典缓存（sys_config 与 sys_dict）
+#   支持的后端（driver）：
+#     file     本地文件：进程内 map + gob 落盘（默认；单机部署无需外部依赖，重启不丢缓存）
+#     memory   纯进程内内存：不持久化，仅测试或临时排查使用（多实例不共享）
+#     memcache memcached：多实例共享；不支持枚举键（监控页键列表为空）；单条值最大 1MB；
+#              「清空缓存」只能 FlushAll（无法按前缀清空），多环境共用时请注意
+#     redis    多实例共享；支持 单机 / 主从 / 哨兵 / 集群 四种部署模式
+#   键的实际形式：<prefix>:<缓存名>:<业务键>，例如 admintpl:sys_config:sys.index.skinName
+# ───────────────────────────────────────────────────────────
+cache:
+  enabled: "${CACHE_ENABLED:-true}" # 是否启用参数与字典缓存（关闭后每次查询回源数据库，仅建议排查问题时使用）
+  driver: "${CACHE_DRIVER:-file}" # 缓存后端：file（默认）/ memory / memcache / redis
+  prefix: "${CACHE_PREFIX:-admintpl}" # 键前缀，多环境共用一个 memcache/redis 时用于隔离
+  file:
+    dir: "${CACHE_FILE_DIR:-runtime/cache}" # 数据目录（文件 cache.gob；容器内需可写）
+    flush-interval: "${CACHE_FILE_FLUSH_INTERVAL:-5}" # 落盘间隔（秒）；进程收到 SIGTERM/SIGINT 时立即落盘
+  memcache:
+    servers: "${CACHE_MEMCACHE_SERVERS:-127.0.0.1:11211}" # 节点列表，多个以英文逗号分隔
+    timeout: "${CACHE_MEMCACHE_TIMEOUT:-1}" # 连接与读写超时（秒）
+  redis:
+    # 部署模式：
+    #   standalone   单机：读 addrs[0] / addr
+    #   master-slave 主从：addrs 中第一个为主节点，其余为从节点（主节点连接失败时按顺序故障转移）
+    #   sentinel     哨兵：通过 sentinel-addrs + master-name 自动发现主节点
+    #   cluster      集群：cluster-addrs 为集群节点列表（键自动按槽位路由）
+    mode: "${CACHE_REDIS_MODE:-standalone}"
+    addr: "${CACHE_REDIS_ADDR:-127.0.0.1:6379}" # 单机地址；主从/哨兵未配节点列表时作为主节点/哨兵地址
+    addrs: "${CACHE_REDIS_ADDRS:-}" # 主从节点列表（主节点在前，逗号分隔）
+    cluster-addrs: "${CACHE_REDIS_CLUSTER_ADDRS:-}" # 集群节点列表（逗号分隔）
+    master-name: "${CACHE_REDIS_MASTER_NAME:-mymaster}" # 哨兵模式的主节点名
+    sentinel-addrs: "${CACHE_REDIS_SENTINEL_ADDRS:-}" # 哨兵节点列表（逗号分隔）
+    sentinel-password: "${CACHE_REDIS_SENTINEL_PASSWORD:-}" # 哨兵自身密码（哨兵未开认证时留空）
+    username: "${CACHE_REDIS_USERNAME:-}" # redis 6+ ACL 用户名（未启用 ACL 时留空）
+    password: "${CACHE_REDIS_PASSWORD:-}" # redis 密码（可用 ENC(...) 密文）
+    db: "${CACHE_REDIS_DB:-0}" # 逻辑库编号（单机/主从/哨兵有效，集群固定 0）
+    timeout: "${CACHE_REDIS_TIMEOUT:-1}" # 连接与读写超时（秒）
+    pool-size: "${CACHE_REDIS_POOL_SIZE:-10}" # 连接池大小
 
 # 文件存储（统一文件上传/下载能力，common/s3；业务代码通过 s3.Default() 获取实例）
 #   驱动可选（driver）：
@@ -103,45 +170,6 @@ system:
   data-scope:
     enabled: "${DATA_SCOPE_ENABLED:-true}" # 是否开启数据权限过滤（关闭后所有登录用户可见全部数据，仅建议调试使用）
 
-  # ───────────────────────────────────────────────────────────
-  # 参数 / 字典缓存（sys_config 与 sys_dict）
-  #   支持的后端（driver）：
-  #     file     本地文件：进程内 map + gob 落盘（默认；单机部署无需外部依赖，重启不丢缓存）
-  #     memory   纯进程内内存：不持久化，仅测试或临时排查使用（多实例不共享）
-  #     memcache memcached：多实例共享；不支持枚举键（监控页键列表为空）；单条值最大 1MB；
-  #              「清空缓存」只能 FlushAll（无法按前缀清空），多环境共用时请注意
-  #     redis    多实例共享；支持 单机 / 主从 / 哨兵 / 集群 四种部署模式
-  #   键的实际形式：<prefix>:<缓存名>:<业务键>，例如 admintpl:sys_config:sys.index.skinName
-  # ───────────────────────────────────────────────────────────
-  cache:
-    enabled: "${CACHE_ENABLED:-true}" # 是否启用参数与字典缓存（关闭后每次查询回源数据库，仅建议排查问题时使用）
-    driver: "${CACHE_DRIVER:-file}" # 缓存后端：file（默认）/ memory / memcache / redis
-    prefix: "${CACHE_PREFIX:-admintpl}" # 键前缀，多环境共用一个 memcache/redis 时用于隔离
-    file:
-      dir: "${CACHE_FILE_DIR:-runtime/cache}" # 数据目录（文件 cache.gob；容器内需可写）
-      flush-interval: "${CACHE_FILE_FLUSH_INTERVAL:-5}" # 落盘间隔（秒）；进程收到 SIGTERM/SIGINT 时立即落盘
-    memcache:
-      servers: "${CACHE_MEMCACHE_SERVERS:-127.0.0.1:11211}" # 节点列表，多个以英文逗号分隔
-      timeout: "${CACHE_MEMCACHE_TIMEOUT:-1}" # 连接与读写超时（秒）
-    redis:
-      # 部署模式：
-      #   standalone   单机：读 addrs[0] / addr
-      #   master-slave 主从：addrs 中第一个为主节点，其余为从节点（主节点连接失败时按顺序故障转移）
-      #   sentinel     哨兵：通过 sentinel-addrs + master-name 自动发现主节点
-      #   cluster      集群：cluster-addrs 为集群节点列表（键自动按槽位路由）
-      mode: "${CACHE_REDIS_MODE:-standalone}"
-      addr: "${CACHE_REDIS_ADDR:-127.0.0.1:6379}" # 单机地址；主从/哨兵未配节点列表时作为主节点/哨兵地址
-      addrs: "${CACHE_REDIS_ADDRS:-}" # 主从节点列表（主节点在前，逗号分隔）
-      cluster-addrs: "${CACHE_REDIS_CLUSTER_ADDRS:-}" # 集群节点列表（逗号分隔）
-      master-name: "${CACHE_REDIS_MASTER_NAME:-mymaster}" # 哨兵模式的主节点名
-      sentinel-addrs: "${CACHE_REDIS_SENTINEL_ADDRS:-}" # 哨兵节点列表（逗号分隔）
-      sentinel-password: "${CACHE_REDIS_SENTINEL_PASSWORD:-}" # 哨兵自身密码（哨兵未开认证时留空）
-      username: "${CACHE_REDIS_USERNAME:-}" # redis 6+ ACL 用户名（未启用 ACL 时留空）
-      password: "${CACHE_REDIS_PASSWORD:-}" # redis 密码（可用 ENC(...) 密文）
-      db: "${CACHE_REDIS_DB:-0}" # 逻辑库编号（单机/主从/哨兵有效，集群固定 0）
-      timeout: "${CACHE_REDIS_TIMEOUT:-1}" # 连接与读写超时（秒）
-      pool-size: "${CACHE_REDIS_POOL_SIZE:-10}" # 连接池大小
-
   # 代码生成（导入数据库表 -> 维护生成配置 -> 预览/下载代码）
   gen:
     package-name: "${GEN_PACKAGE_NAME:-github.com/bluefroog/admintpl}" # 生成代码的包路径（Go module 前缀）
@@ -154,7 +182,8 @@ system:
 # 环境变量清单（.env / 容器环境变量 / 系统环境变量均可注入，优先级从高到低）
 #   CONFIG_ENCRYPT_ENABLED CONFIG_SECRET_ALGORITHM CONFIG_SECRET_KEY
 #   SERVICE_PORT SERVICE_DEBUG
-#   DB_TYPE DB_DSN DB_PREFIX DB_MAX_IDLE DB_MAX_OPEN DB_MAX_LIFETIME DB_DEBUG
+#   DB_DEFAULT DB_TYPE DB_DSN DB_PREFIX DB_SINGULAR DB_MAX_IDLE DB_MAX_OPEN DB_MAX_LIFETIME DB_DEBUG
+#   DB_LOG_TYPE DB_LOG_DSN DB_LOG_PREFIX DB_LOG_SINGULAR DB_LOG_MAX_IDLE DB_LOG_MAX_OPEN DB_LOG_MAX_LIFETIME DB_LOG_DEBUG
 #   AUTH_ENABLED AUTH_TOKEN_EXPIRE AUTH_MAX_RETRY AUTH_LOCK_TIME AUTH_PERMISSION_ENABLED
 #   CAPTCHA_ENABLED CAPTCHA_LENGTH CAPTCHA_EXPIRE
 #   SEED_ENABLED

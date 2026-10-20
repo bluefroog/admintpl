@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// 缓存后端驱动（system.cache.driver / CACHE_DRIVER）
+// 缓存后端驱动（cache.driver / CACHE_DRIVER）
 const (
 	// DriverFile 本地文件：进程内 map + gob 落盘（默认，单机部署无需外部依赖）
 	DriverFile = "file"
@@ -23,7 +23,7 @@ const (
 	DriverRedis = "redis"
 )
 
-// redis 部署模式（system.cache.redis.mode / CACHE_REDIS_MODE）
+// redis 部署模式（cache.redis.mode / CACHE_REDIS_MODE）
 const (
 	// RedisModeStandalone 单机
 	RedisModeStandalone = "standalone"
@@ -48,47 +48,47 @@ const (
 	DefaultRedisPoolSize    = 10
 )
 
-// 缓存后端配置项（config/config.yaml -> system.cache.*）
+// 缓存后端配置项（config/config.yaml -> cache.*）
 const (
 	// KeyDriver 后端驱动：file / memory / memcache / redis
-	KeyDriver = "system.cache.driver"
+	KeyDriver = "cache.driver"
 	// KeyPrefix 缓存键前缀（多环境共用一个 memcache/redis 时用于隔离）
-	KeyPrefix = "system.cache.prefix"
+	KeyPrefix = "cache.prefix"
 
 	// KeyFileDir 本地文件目录
-	KeyFileDir = "system.cache.file.dir"
+	KeyFileDir = "cache.file.dir"
 	// KeyFileFlushInterval 本地文件落盘间隔（秒）
-	KeyFileFlushInterval = "system.cache.file.flush-interval"
+	KeyFileFlushInterval = "cache.file.flush-interval"
 
 	// KeyMemcacheServers memcache 节点列表（逗号分隔）
-	KeyMemcacheServers = "system.cache.memcache.servers"
+	KeyMemcacheServers = "cache.memcache.servers"
 	// KeyMemcacheTimeout memcache 超时（秒）
-	KeyMemcacheTimeout = "system.cache.memcache.timeout"
+	KeyMemcacheTimeout = "cache.memcache.timeout"
 
 	// KeyRedisMode redis 部署模式：standalone / master-slave / sentinel / cluster
-	KeyRedisMode = "system.cache.redis.mode"
+	KeyRedisMode = "cache.redis.mode"
 	// KeyRedisAddr redis 单机/主节点地址
-	KeyRedisAddr = "system.cache.redis.addr"
+	KeyRedisAddr = "cache.redis.addr"
 	// KeyRedisAddrs redis 主从节点列表（主节点在前，逗号分隔）
-	KeyRedisAddrs = "system.cache.redis.addrs"
+	KeyRedisAddrs = "cache.redis.addrs"
 	// KeyRedisClusterAddrs redis 集群节点列表（逗号分隔）
-	KeyRedisClusterAddrs = "system.cache.redis.cluster-addrs"
+	KeyRedisClusterAddrs = "cache.redis.cluster-addrs"
 	// KeyRedisMasterName 哨兵模式的主节点名
-	KeyRedisMasterName = "system.cache.redis.master-name"
+	KeyRedisMasterName = "cache.redis.master-name"
 	// KeyRedisSentinelAddrs 哨兵节点列表（逗号分隔）
-	KeyRedisSentinelAddrs = "system.cache.redis.sentinel-addrs"
+	KeyRedisSentinelAddrs = "cache.redis.sentinel-addrs"
 	// KeyRedisSentinelPassword 哨兵自身密码
-	KeyRedisSentinelPassword = "system.cache.redis.sentinel-password"
+	KeyRedisSentinelPassword = "cache.redis.sentinel-password"
 	// KeyRedisUsername redis 6+ ACL 用户名
-	KeyRedisUsername = "system.cache.redis.username"
+	KeyRedisUsername = "cache.redis.username"
 	// KeyRedisPassword redis 密码
-	KeyRedisPassword = "system.cache.redis.password"
+	KeyRedisPassword = "cache.redis.password"
 	// KeyRedisDB 逻辑库编号（单机/主从/哨兵有效，集群固定 0）
-	KeyRedisDB = "system.cache.redis.db"
+	KeyRedisDB = "cache.redis.db"
 	// KeyRedisTimeout 连接/读写超时（秒）
-	KeyRedisTimeout = "system.cache.redis.timeout"
+	KeyRedisTimeout = "cache.redis.timeout"
 	// KeyRedisPoolSize 连接池大小
-	KeyRedisPoolSize = "system.cache.redis.pool-size"
+	KeyRedisPoolSize = "cache.redis.pool-size"
 )
 
 var (
@@ -176,7 +176,7 @@ type Options struct {
 	Redis    RedisOptions    // redis 配置
 }
 
-// LoadOptions 从配置文件（system.cache.*）读取缓存后端配置
+// LoadOptions 从配置文件（cache.*）读取缓存后端配置
 // @return: Options 缓存后端配置
 func LoadOptions() Options {
 	fileFlush := config.Int(KeyFileFlushInterval)

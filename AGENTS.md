@@ -103,6 +103,10 @@
   开启 `AUTH_PERMISSION_ENABLED` 前需在 `pathPermissionAlias` 中补齐这类映射，否则非超管角色会被拒绝。
 - **配置**：新增开关必须同时改 `config/config.yaml`（`${KEY:-默认值}` 占位符）与 `.env.dev` / `.env.pro`；
   `config/config.yaml` 末尾维护变量清单，`common/config/config_test.go` 会校验代码读取的键在配置文件中存在，缺失即测试失败。
+- **多数据库**：配置写在 `database.connections.<连接名>.*`，`database.default` 指定默认连接（默认 `admin`）；
+  默认连接继续用全局 `database.DB`，其它库用 `database.Get("log")`（缺失回退默认并告警）/ `database.Conn("log")`（严格返回 `ErrUnknownConnection`），
+  `database.Use("log")` 切换全局默认。`dsn` 为空的连接启动时跳过（可先写多套按环境启用），连接名是动态的，
+  枚举一律走 `config.Keys("database.connections")`，不要写死。业务代码禁止直接 `gorm.Open`，新增驱动在 `common/database` 内注册。
 - **GORM 写入零值陷阱**：带 `default:` 标签的列在「结构体方式 Create」时，若字段取零值会被数据库默认值覆盖
   （如 `sys_menu.is_frame` 默认 1、`sys_user.status` 默认 1、`sys_role.menu_check_strictly` 默认 1）。
   此类表的 Create 必须使用 `map[string]interface{}` 显式写入（参考 `service/menu.go`、`service/user.go`、`service/role.go`），
@@ -140,8 +144,10 @@
 
 ## 8. 参数 / 字典缓存约定
 
+- **配置位置**：缓存的 `config/config.yaml` 段是**顶层 `cache:`**（与 `system`、`database`、`s3` 平级，不在 `system` 下），
+  键形如 `cache.driver` / `cache.redis.mode`；新增缓存配置项同样写在顶层 `cache` 段。
 - **缓存介质**：`common/cache`（可插拔后端：`file` 本地文件（默认）/ `memory` 内存 / `memcache` / `redis` 单机·主从·哨兵·集群），
-  由 `system.cache.driver`（`CACHE_DRIVER`）选择，业务代码不感知后端；参数缓存名 `sys_config`（`config_key -> config_value`），
+  由 `cache.driver`（`CACHE_DRIVER`）选择，业务代码不感知后端；参数缓存名 `sys_config`（`config_key -> config_value`），
   字典缓存名 `sys_dict`（`dict_type -> []DictData`），两者都注册到缓存监控。
 - **键格式**：`<CACHE_PREFIX>:<缓存名>:<业务键>`（如 `admintpl:sys_config:sys.index.skinName`）；`Cache` 内部统一补 `:`，
   禁止手写前缀拼接；清空/枚举只作用于本缓存实例的前缀。
@@ -159,7 +165,7 @@
   字典类型修改/删除后清理相关字典缓存。新增「修改配置/字典」的接口时不要绕过 service。
 - **启动预热**：`app/system/initialize.go` 在 `CACHE_ENABLED=true` 时调用 `LoadCache` 并打印条目数；
   刷新接口 `DELETE /system/config/refresh-cache`、`DELETE /system/dict-type/refresh-cache`（返回缓存条目数）。
-- **排查**：`system.cache.enabled`（`CACHE_ENABLED`）置 false 时全部查询回源数据库；
+- **排查**：`cache.enabled`（`CACHE_ENABLED`）置 false 时全部查询回源数据库；
   缓存内容可在「缓存监控 / 缓存列表」按 `sys_config` / `sys_dict` 过滤查看。
 
 ## 9. 代码生成（app/gen）约定
@@ -203,3 +209,17 @@
 - **对象键**：必须经 `NormalizeKey` 校验（拒绝绝对路径与 `..`，非法返回 `s3.ErrInvalidKey`）；上传名用 `GenerateKey(filename)` 生成 `yyyy/mm/dd/<hex><ext>`。
 - **配置**：`config/config.yaml` 的 `s3:` 段只写 `${S3_*}` 占位符，具体值放 `.env.dev` / `.env.pro`；密钥类支持 `ENC(...)` 密文。
   新增后端 = `DriverXxx` 常量 + Options 字段 + `storage_<driver>.go` + `Open` 分支 + `storage_test.go` 用例。
+
+## 12. 数据库连接约定（common/database）
+
+- **配置结构**：`database.default`（默认连接名，环境变量 `DB_DEFAULT`）+ `database.connections.<名字>.*`；
+  单连接字段 `type`（目前仅 `mysql`，其它类型启动即报错）/ `dsn` / `prefix` / `singular`（单数表名，默认 true）/
+  `max-idle` / `max-open` / `max-lifetime`（秒）/ `debug`。主库沿用无前缀的 `DB_TYPE` / `DB_DSN` 等环境变量，
+  其它库为 `DB_<大写连接名>_*`（如 `DB_LOG_DSN`）。
+- **空 dsn 跳过**：`dsn` 为空的连接启动时跳过（Debug 日志），默认连接不可用时自动回退到排序后的第一个可用连接（Warn 日志）；
+  示例配置见 `config/config.example.yaml` 的 `log` 连接。
+- **接口**：`DB`（默认连接，既有模块不需要改）/ `Default()` / `DefaultName()` / `Names()` / `Get(name)` / `Conn(name)` / `Use(name)` / `Close()`；
+  `InitDB()` 由 `bootstrap.Bootstrap` 调用，`Close()` 由 `main.go` 在 `SIGTERM`/`SIGINT` 时调用。
+- **迁移**：`database.AutoMigrateAll(...)` 只作用于默认连接，内置模块表都在默认库；业务自建表若在其它库，需显式用对应句柄迁移。
+- **测试**：`common/database/database_test.go` 通过可替换的 `Source` 配置来源覆盖解析/选择逻辑，不依赖真实数据库；
+  新增驱动需同步补用例（`validateType` + `open` 拨号器）。

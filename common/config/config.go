@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/bluefroog/admintpl/common/secret"
@@ -197,6 +198,31 @@ func IsSet(key string) bool {
 // 返回 map[string]interface{} 配置
 func Map(key string) map[string]interface{} {
 	return v.GetStringMap(key)
+}
+
+// Keys 返回某个配置节点下的直属子键名（排序后返回，用于多连接/多实例这类动态命名节点）
+//
+// 例如 config 中 database.connections.{admin,log}.dsn，则 Keys("database.connections") 返回 [admin log]。
+func Keys(key string) []string {
+	sub := v.Sub(key)
+	if sub == nil {
+		return nil
+	}
+	seen := make(map[string]bool)
+	names := make([]string, 0, 4)
+	for _, k := range sub.AllKeys() {
+		name := k
+		if idx := strings.Index(k, "."); idx > 0 {
+			name = k[:idx]
+		}
+		if name == "" || seen[name] {
+			continue
+		}
+		seen[name] = true
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 // 返回 字符型数组 配置

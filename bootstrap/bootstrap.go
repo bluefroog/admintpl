@@ -16,7 +16,7 @@ import (
 
 // Bootstrap 应用启动：数据库 -> 表结构迁移 -> 各业务模块初始化
 func Bootstrap(r *gin.Engine) error {
-	// 数据库连接（database.admin.*）
+	// 数据库连接（database.default + database.connections.*，可配置多个库按名选择）
 	database.InitDB()
 	// 表结构迁移（各模块 domain.Models() 声明自己的表）
 	database.AutoMigrateAll(

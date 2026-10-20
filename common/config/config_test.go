@@ -114,11 +114,11 @@ func TestConfigFileExpansion(t *testing.T) {
 	if conf.GetString("service.port") == "" {
 		t.Fatal("service.port 为空")
 	}
-	if conf.GetString("database.admin.dsn") == "" {
-		t.Fatal("database.admin.dsn 为空")
+	if conf.GetString("database.connections.admin.dsn") == "" {
+		t.Fatal("database.connections.admin.dsn 为空")
 	}
-	if conf.GetInt("database.admin.max-idle") <= 0 {
-		t.Fatalf("database.admin.max-idle 解析失败: %d", conf.GetInt("database.admin.max-idle"))
+	if conf.GetInt("database.connections.admin.max-idle") <= 0 {
+		t.Fatalf("database.connections.admin.max-idle 解析失败: %d", conf.GetInt("database.connections.admin.max-idle"))
 	}
 
 	// 代码读取的配置项必须全部存在于配置文件中：
@@ -126,9 +126,11 @@ func TestConfigFileExpansion(t *testing.T) {
 	required := []string{
 		"secret.enabled", "secret.key", "secret.algorithm",
 		"service.port", "service.debug",
-		"database.admin.type", "database.admin.dsn", "database.admin.prefix",
-		"database.admin.max-idle", "database.admin.max-open", "database.admin.max-lifetime",
-		"database.admin.debug",
+		"database.default",
+		"database.connections.admin.type", "database.connections.admin.dsn", "database.connections.admin.prefix",
+		"database.connections.admin.singular",
+		"database.connections.admin.max-idle", "database.connections.admin.max-open", "database.connections.admin.max-lifetime",
+		"database.connections.admin.debug",
 		"system.auth.enabled", "system.auth.token-expire", "system.auth.max-retry",
 		"system.auth.lock-time", "system.auth.permission-enabled",
 		"system.captcha.enabled", "system.captcha.length", "system.captcha.expire",
@@ -145,14 +147,14 @@ func TestConfigFileExpansion(t *testing.T) {
 		"s3.cos.secret-key", "s3.cos.domain",
 		"s3.oss.endpoint", "s3.oss.access-key-id", "s3.oss.access-key-secret",
 		"s3.oss.bucket", "s3.oss.domain",
-		"system.cache.enabled", "system.cache.driver", "system.cache.prefix",
-		"system.cache.file.dir", "system.cache.file.flush-interval",
-		"system.cache.memcache.servers", "system.cache.memcache.timeout",
-		"system.cache.redis.mode", "system.cache.redis.addr", "system.cache.redis.addrs",
-		"system.cache.redis.cluster-addrs", "system.cache.redis.master-name",
-		"system.cache.redis.sentinel-addrs", "system.cache.redis.sentinel-password",
-		"system.cache.redis.username", "system.cache.redis.password",
-		"system.cache.redis.db", "system.cache.redis.timeout", "system.cache.redis.pool-size",
+		"cache.enabled", "cache.driver", "cache.prefix",
+		"cache.file.dir", "cache.file.flush-interval",
+		"cache.memcache.servers", "cache.memcache.timeout",
+		"cache.redis.mode", "cache.redis.addr", "cache.redis.addrs",
+		"cache.redis.cluster-addrs", "cache.redis.master-name",
+		"cache.redis.sentinel-addrs", "cache.redis.sentinel-password",
+		"cache.redis.username", "cache.redis.password",
+		"cache.redis.db", "cache.redis.timeout", "cache.redis.pool-size",
 		"system.gen.package-name", "system.gen.module-name", "system.gen.author",
 		"system.gen.auto-remove-pre", "system.gen.table-prefix",
 	}
@@ -173,9 +175,9 @@ func TestConfigFileExpansion(t *testing.T) {
 	// 开关型配置必须能解析为布尔值（值写错时 viper 会静默返回 false）
 	bools := []string{
 		"secret.enabled",
-		"service.debug", "database.admin.debug", "system.auth.enabled",
+		"service.debug", "database.connections.admin.debug", "system.auth.enabled",
 		"system.auth.permission-enabled", "system.captcha.enabled", "system.seed.enabled",
-		"system.job.enabled", "system.data-scope.enabled", "system.cache.enabled",
+		"system.job.enabled", "system.data-scope.enabled", "cache.enabled",
 		"system.gen.auto-remove-pre",
 		"s3.enabled", "s3.minio.secure", "s3.minio.path-style",
 		"s3.rustfs.secure", "s3.rustfs.path-style",
@@ -318,5 +320,38 @@ func TestDecryptAll(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestKeys 校验按节点枚举直属子键名（多连接配置按名字读取）
+func TestKeys(t *testing.T) {
+	saved := v
+	v = viper.New()
+	v.SetConfigType("yaml")
+	if err := v.ReadConfig(strings.NewReader(`
+database:
+  default: admin
+  connections:
+    log:
+      dsn: ""
+    admin:
+      dsn: "root:123456@tcp(127.0.0.1:3306)/admintpl"
+      prefix: ""
+cache:
+  driver: file
+`)); err != nil {
+		t.Fatalf("解析测试配置失败: %v", err)
+	}
+	t.Cleanup(func() { v = saved })
+
+	got := Keys("database.connections")
+	if len(got) != 2 || got[0] != "admin" || got[1] != "log" {
+		t.Fatalf("Keys(database.connections) = %v, want [admin log]", got)
+	}
+	if got = Keys("not-exist"); got != nil {
+		t.Fatalf("不存在的节点应返回 nil，实际 %v", got)
+	}
+	if got = Keys("cache.driver"); got != nil {
+		t.Fatalf("标量节点应返回 nil，实际 %v", got)
 	}
 }

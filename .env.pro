@@ -17,9 +17,11 @@ SERVICE_PORT=:8080
 SERVICE_DEBUG=false
 
 # ---- 数据库 ----
+DB_DEFAULT=admin
 DB_TYPE=mysql
 DB_DSN=root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local
 DB_PREFIX=
+DB_SINGULAR=true
 DB_MAX_IDLE=50
 DB_MAX_OPEN=100
 DB_MAX_LIFETIME=3600

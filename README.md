@@ -22,6 +22,7 @@
 * [已实现]代码生成：数据库表结构导入、生成配置维护（表配置/字段配置/树表参数）、同步数据库表结构。
 * [已实现]代码生成模板渲染：按生成配置渲染 domain/service/controller/接口测试/建表语句/接入说明，支持在线预览与 zip 下载。
 * [已实现]文件存储：统一 `common/s3` 接口，支持本地目录 / MinIO / RustFS / 腾讯云 COS / 阿里云 OSS 五种后端，切换后端不改业务代码。
+* [已实现]多数据库：`database.connections.<名字>` 声明多个连接，`database.DB` 走默认连接，`database.Get("log")` 按名选择，空 dsn 自动跳过。
 
 # 项目初始化
 ```bash
@@ -219,7 +220,8 @@ url := st.URL(obj.Key)              // 公开访问地址
 
 # 缓存后端（本地文件 / 内存 / memcache / redis）
 
-缓存介质由 `system.cache.driver`（环境变量 `CACHE_DRIVER`）选择，默认 **本地文件**；业务代码只依赖 `common/cache` 接口，切换后端不需要改代码。
+缓存配置位于 `config/config.yaml` 的**顶层 `cache:` 段**（与 `system` / `database` / `s3` 平级，不在 `system` 下）。
+缓存介质由 `cache.driver`（环境变量 `CACHE_DRIVER`）选择，默认 **本地文件**；业务代码只依赖 `common/cache` 接口，切换后端不需要改代码。
 
 | driver | 说明 | 适用场景 | 注意事项 |
 | ---- | ---- | ---- | ---- |
@@ -228,7 +230,7 @@ url := st.URL(obj.Key)              // 公开访问地址
 | `memcache` | memcached 集群（`gomemcache`） | 多实例共享的简单缓存 | 不支持枚举键（监控页键列表为空）；单条值最大 1MB；清空只能 FlushAll |
 | `redis` | 单机 / 主从 / 哨兵 / 集群（`go-redis v9`） | 多实例共享、需要高可用 | 见下方模式说明 |
 
-Redis 四种部署模式（`system.cache.redis.mode`，环境变量 `CACHE_REDIS_MODE`）：
+Redis 四种部署模式（`cache.redis.mode`，环境变量 `CACHE_REDIS_MODE`）：
 
 | mode | 配置项 | 说明 |
 | ---- | ---- | ---- |
@@ -242,6 +244,49 @@ Redis 四种部署模式（`system.cache.redis.mode`，环境变量 `CACHE_REDIS
 * **启动自检**：后端初始化失败时回退本地文件 → 内存并打印告警；redis/memcache 连接失败只告警不阻塞启动，缓存读写失败自动回源数据库（业务不中断）；
 * **优雅退出**：进程收到 `SIGTERM`/`SIGINT` 时把本地文件缓存立即落盘并关闭连接（容器 `docker stop` 同样生效）；
 * **配置示例**：`config/config.example.yaml`（全部配置项与文字说明）、`.env.example`（全部环境变量与说明）。
+
+# 数据库（多连接 / 按名选择）
+
+ORM 支持在配置里声明多个库（`database.connections.<连接名>`），默认用 `database.default` 指定的连接；
+业务代码默认继续用全局 `database.DB`（既有模块无需改动），需要别的库时按名字取句柄：
+
+```yaml
+database:
+  default: admin            # 默认连接名
+  connections:
+    admin:                  # 主库：内置模块表
+      type: mysql
+      dsn: "${DB_DSN:-root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local}"
+      prefix: ""
+      singular: true        # 单数表名（User -> user）
+      max-idle: 10
+      max-open: 10
+      max-lifetime: 30      # 秒
+      debug: true
+    log:                    # 示例：第二个库（dsn 留空则启动跳过）
+      type: mysql
+      dsn: "${DB_LOG_DSN:-}"
+      prefix: ""
+      singular: true
+```
+
+```go
+db := database.DB              // 默认连接（= database.Default()）
+logs := database.Get("log")    // 指定连接：不存在时回退默认连接并打印告警
+strict, err := database.Conn("log") // 严格模式：不存在返回 database.ErrUnknownConnection
+_ = database.Use("log")        // 需要时把全局默认切换为 log 连接
+database.Names()               // 已初始化的连接名（排序）
+```
+
+* **环境变量**：主库沿用 `DB_TYPE` / `DB_DSN` / `DB_PREFIX` / `DB_SINGULAR` / `DB_MAX_IDLE` / `DB_MAX_OPEN` / `DB_MAX_LIFETIME` / `DB_DEBUG`；
+  其它库为 `DB_<大写连接名>_*`（如 `DB_LOG_DSN`），默认连接名由 `DB_DEFAULT` 指定；
+* **空 dsn 跳过**：`dsn` 留空的连接启动时跳过（不会导致启动失败），可以先把多套连接写进配置，再按环境用环境变量逐个启用；
+* **默认连接回退**：默认连接不可用（未配置 / dsn 为空）时自动改用排序后的第一个可用连接，并打印告警；
+* **类型校验**：`type` 目前支持 `mysql`，其它取值启动即报错（避免配错却静默连错库）；
+* **连接池**：`max-idle` / `max-open` / `max-lifetime`（秒）按连接独立配置；`debug: true` 时该连接打印 SQL；
+* **生命周期**：`bootstrap` 启动时初始化全部连接并迁移内置模块表（默认连接），进程收到 `SIGTERM`/`SIGINT` 时关闭全部连接池；
+* **配置示例**：`config/config.example.yaml`（含第二个库示例）、`.env.example`（`DB_DEFAULT` / `DB_LOG_*`）。
+* **升级提示**：旧结构 `database.admin.*` 已改为 `database.connections.admin.*`（键名、字段均不变），`database.default` 未配置时默认就是 `admin`。
 
 # 代码生成
 

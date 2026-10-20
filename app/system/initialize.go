@@ -29,7 +29,7 @@ func Initialize(r *gin.Engine) {
 	if config.Bool("system.seed.enabled") {
 		service.Seed{}.Ensure()
 	}
-	// 参数 / 字典缓存预热（system.cache.enabled=false 时跳过，每次查询直接回源数据库）
+	// 参数 / 字典缓存预热（cache.enabled=false 时跳过，每次查询直接回源数据库）
 	if cacheEnabled {
 		if err, total := (service.Config{}).LoadCache(); err != nil {
 			log.Errorf("参数缓存预热失败：%v", err)

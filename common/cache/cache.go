@@ -40,7 +40,7 @@ type Stats struct {
 // 这样多个缓存实例可以共用同一个 memcache/redis，且清空时只影响自己。
 type Cache struct {
 	name            string
-	keyPrefix       string // 配置的全局键前缀（system.cache.prefix）
+	keyPrefix       string // 配置的全局键前缀（cache.prefix）
 	cleanupInterval time.Duration
 	createdAt       time.Time
 	store           Store
@@ -53,7 +53,7 @@ type Cache struct {
 	expired         uint64
 }
 
-// New 按配置（system.cache.*）创建缓存实例
+// New 按配置（cache.*）创建缓存实例
 // @param: cleanupInterval time.Duration 过期清理间隔（<=0 表示不主动清理）
 // @return: *Cache
 func New(cleanupInterval time.Duration) *Cache {

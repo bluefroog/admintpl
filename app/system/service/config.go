@@ -32,7 +32,7 @@ func init() {
 // ConfigCacheEnabled 是否启用参数缓存（关闭后每次都查库，便于排查配置不生效问题）
 // @return: bool
 func ConfigCacheEnabled() bool {
-	return !config.IsSet("system.cache.enabled") || config.Bool("system.cache.enabled")
+	return !config.IsSet("cache.enabled") || config.Bool("cache.enabled")
 }
 
 // GetByKeyFromCache 仅从缓存读取参数键值（不查库）
