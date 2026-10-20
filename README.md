@@ -21,6 +21,7 @@
 * [已实现]定时任务：任务配置（增删改查/启停/立即执行一次）+ 调度执行 + 任务日志；cron 表达式为 Quartz 语义，调用目标只能在已注册的方法集合内调用。
 * [已实现]代码生成：数据库表结构导入、生成配置维护（表配置/字段配置/树表参数）、同步数据库表结构。
 * [已实现]代码生成模板渲染：按生成配置渲染 domain/service/controller/接口测试/建表语句/接入说明，支持在线预览与 zip 下载。
+* [已实现]文件存储：统一 `common/s3` 接口，支持本地目录 / MinIO / RustFS / 腾讯云 COS / 阿里云 OSS 五种后端，切换后端不改业务代码。
 
 # 项目初始化
 ```bash
@@ -187,6 +188,35 @@ testTask.test1() / testTask.test2('hello')     # job_args 传参示例任务
 * **启动预热**：服务启动时把参数表与字典数据全量加载进缓存（`CACHE_ENABLED=true`），并打印预热条目数；
 * **排查手段**：`CACHE_ENABLED=false` 时全部查询直接回源数据库；缓存内容可在「缓存监控 / 缓存列表」页面查看（按 `sys_config` / `sys_dict` 名称过滤）。
 
+# 文件存储（本地目录 / MinIO / RustFS / 腾讯云 COS / 阿里云 OSS）
+
+文件存储能力封装在 `common/s3`，业务代码只依赖 `s3.Storage` 接口，切换后端不需要改代码：
+
+```go
+st, err := s3.Default() // 进程内单例，读取 config 的 s3.* 配置
+if err != nil {
+    // S3_ENABLED=false 时返回 s3.ErrDisabled，按需降级（例如禁用上传入口）
+    return
+}
+key := s3.GenerateKey("avatar.png") // yyyy/mm/dd/<32位hex>.png
+obj, err := st.Put(ctx, key, file, fileSize, "image/png")
+url := st.URL(obj.Key)              // 公开访问地址
+```
+
+| driver | 说明 | 必要配置 | 备注 |
+| ---- | ---- | ---- | ---- |
+| `local`（默认） | 本地目录 | `S3_LOCAL_DIR`、`S3_LOCAL_URL_PREFIX` | 需自挂静态路由或 nginx 反向代理把 `S3_LOCAL_URL_PREFIX` 映射到 `S3_LOCAL_DIR`；不支持签名 URL |
+| `minio` | MinIO（S3 协议） | `S3_MINIO_ENDPOINT`/`ACCESS_KEY`/`SECRET_KEY`/`BUCKET` | endpoint 为 IP 时建议 `S3_MINIO_PATH_STYLE=true` |
+| `rustfs` | RustFS（S3 协议） | `S3_RUSTFS_*` | 默认 `region=us-east-1`、路径风格寻址 |
+| `cos` | 腾讯云 COS | `S3_COS_BUCKET_URL` 或 `S3_COS_BUCKET`+`S3_COS_REGION`、`S3_COS_SECRET_ID`/`SECRET_KEY` | 可选 `S3_COS_DOMAIN` 走 CDN |
+| `oss` | 阿里云 OSS | `S3_OSS_ENDPOINT`/`ACCESS_KEY_ID`/`ACCESS_KEY_SECRET`/`BUCKET` | 可选 `S3_OSS_DOMAIN` 走 CDN |
+
+* **接口**：`Kind`/`Put`/`Get`/`Delete`/`Exists`/`Stat`/`List`/`URL`/`PresignGet`/`PresignPut`/`Close`；
+* **错误语义**：对象不存在统一返回 `s3.ErrNotFound`；本地后端不支持签名返回 `s3.ErrUnsupported`；非法对象键返回 `s3.ErrInvalidKey`（拒绝 `..` 与绝对路径）；
+* **访问地址**：`s3.public-base-url` > 各后端自有域名（`local.url-prefix` / `cos.domain` / `oss.domain` > `bucket-url` / `<bucket>.<endpoint>`）；
+* **密钥**：`S3_*_SECRET_KEY` 等可用 `just encrypt '<明文>'` 生成 `ENC(...)` 密文写入 `.env`；
+* **配置示例**：`config/config.example.yaml`、`.env.example`（全部配置项与说明）。
+
 # 缓存后端（本地文件 / 内存 / memcache / redis）
 
 缓存介质由 `system.cache.driver`（环境变量 `CACHE_DRIVER`）选择，默认 **本地文件**；业务代码只依赖 `common/cache` 接口，切换后端不需要改代码。
@@ -260,6 +290,7 @@ app/gen       代码生成（表结构导入/生成配置/同步数据库表结�
 common/database  数据库初始化与迁移（DB/InitDB/AutoMigrateAll/TableEmpty）
 common/sysinfo   服务器指标采集（标准库 /proc 实现）
 common/cache     进程内内存缓存（含监控统计与注册表）
+common/s3        文件存储（本地目录 / MinIO / RustFS / 腾讯云 COS / 阿里云 OSS）
 common/secret    配置敏感值加解密（crypto-go AES/GCM，ENC(...) 密文）
 cmd/encrypt      配置值加密/解密命令行（just encrypt / decrypt 调用）
 bootstrap     启动编排：初始化数据库 → 迁移各模块模型 → 依次注册各模块路由

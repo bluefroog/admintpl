@@ -32,5 +32,6 @@ func Bootstrap(r *gin.Engine) error {
 	cron.Initialize(r)    // 定时任务服务
 	gen.Initialize(r)     // 代码生成服务
 	swagger.Initialize(r) // swagger 服务
+	MountLocalStatic(r)   // 文件存储：本地目录后端挂静态路由（云存储后端无需）
 	return nil
 }

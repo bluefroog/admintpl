@@ -191,3 +191,15 @@
 - **缓存监控** `/monitor/cache`、`/monitor/cache/list`、`/monitor/cache/clear`（权限 `monitor:cache:list`、`monitor:cache-list:list`）：
   基于进程内内存缓存 `common/cache`（无 Redis）；新增业务缓存后用 `cache.Register("名称", 实例)` 注册即会被监控页面列出，
   缓存列表只展示未过期条目，缓存值超过 200 字符截断。
+
+## 11. 文件存储约定（common/s3）
+
+- **实现位置**：`common/s3`（`storage.go` 接口 + `storage_local.go` / `storage_minio.go` / `storage_cos.go` / `storage_oss.go` 分后端 + `key.go` 对象键工具）。
+- **驱动**：`local`（本地目录，默认）/ `minio` / `rustfs` / `cos`（腾讯云）/ `oss`（阿里云），由 `S3_DRIVER` 选择；
+  `NormalizeDriver` 归一别名与未知值（回退 `local` 并告警）。**禁止在业务模块里直接调用对象存储 SDK**，一律走 `Storage` 接口。
+- **获取实例**：`s3.Default()`（单例）/ `s3.Open(opts)`（临时实例）；`S3_ENABLED=false` 时返回 `s3.ErrDisabled`，调用方自行降级。
+- **接口**：`Kind`/`Put`/`Get`/`Delete`/`Exists`/`Stat`/`List`/`URL`/`PresignGet`/`PresignPut`/`Close`；
+  本地后端不支持签名 URL（返回 `s3.ErrUnsupported`）；对象不存在统一为 `s3.ErrNotFound`，不要判断各 SDK 错误码。
+- **对象键**：必须经 `NormalizeKey` 校验（拒绝绝对路径与 `..`，非法返回 `s3.ErrInvalidKey`）；上传名用 `GenerateKey(filename)` 生成 `yyyy/mm/dd/<hex><ext>`。
+- **配置**：`config/config.yaml` 的 `s3:` 段只写 `${S3_*}` 占位符，具体值放 `.env.dev` / `.env.pro`；密钥类支持 `ENC(...)` 密文。
+  新增后端 = `DriverXxx` 常量 + Options 字段 + `storage_<driver>.go` + `Open` 分支 + `storage_test.go` 用例。

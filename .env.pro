@@ -46,6 +46,46 @@ JOB_LOG_RETAIN_DAYS=30
 
 # ---- 数据权限 ----
 DATA_SCOPE_ENABLED=true
+# ---- 文件存储（本地目录 / minio / rustfs / 腾讯云 cos / 阿里云 oss） ----
+# 是否启用文件存储（关闭时 s3.New()/s3.Default() 返回 ErrDisabled）
+S3_ENABLED=false
+# 存储驱动：local 本地目录（默认）/ minio / rustfs / cos / oss
+S3_DRIVER=local
+# 对象访问地址公共前缀（CDN / 反向代理域名），留空各后端使用自身默认值
+S3_PUBLIC_BASE_URL=
+# 本地目录后端：文件目录与对外访问前缀（需静态路由或反向代理映射到该目录）
+S3_LOCAL_DIR=runtime/uploads
+S3_LOCAL_URL_PREFIX=/uploads
+# minio 后端
+S3_MINIO_ENDPOINT=127.0.0.1:9000
+S3_MINIO_ACCESS_KEY=
+S3_MINIO_SECRET_KEY=
+S3_MINIO_BUCKET=admintpl
+S3_MINIO_REGION=
+S3_MINIO_SECURE=false
+S3_MINIO_PATH_STYLE=false
+# rustfs 后端（S3 兼容，默认路径风格寻址）
+S3_RUSTFS_ENDPOINT=127.0.0.1:9000
+S3_RUSTFS_ACCESS_KEY=
+S3_RUSTFS_SECRET_KEY=
+S3_RUSTFS_BUCKET=admintpl
+S3_RUSTFS_REGION=us-east-1
+S3_RUSTFS_SECURE=false
+S3_RUSTFS_PATH_STYLE=true
+# 腾讯云 cos 后端（bucket-url 优先，留空则用 bucket + region 拼接访问域名）
+S3_COS_BUCKET_URL=
+S3_COS_BUCKET=
+S3_COS_REGION=
+S3_COS_SECRET_ID=
+S3_COS_SECRET_KEY=
+S3_COS_DOMAIN=
+# 阿里云 oss 后端
+S3_OSS_ENDPOINT=oss-cn-hangzhou.aliyuncs.com
+S3_OSS_ACCESS_KEY_ID=
+S3_OSS_ACCESS_KEY_SECRET=
+S3_OSS_BUCKET=admintpl
+S3_OSS_DOMAIN=
+
 # ---- 参数 / 字典缓存 ----
 # 是否启用缓存（关闭后每次查询回源数据库，仅建议排查问题时使用）
 CACHE_ENABLED=true

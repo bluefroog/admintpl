@@ -135,6 +135,16 @@ func TestConfigFileExpansion(t *testing.T) {
 		"system.seed.enabled",
 		"system.job.enabled", "system.job.log-retain-days",
 		"system.data-scope.enabled",
+		"s3.enabled", "s3.driver", "s3.public-base-url",
+		"s3.local.dir", "s3.local.url-prefix",
+		"s3.minio.endpoint", "s3.minio.access-key", "s3.minio.secret-key", "s3.minio.bucket",
+		"s3.minio.region", "s3.minio.secure", "s3.minio.path-style",
+		"s3.rustfs.endpoint", "s3.rustfs.access-key", "s3.rustfs.secret-key", "s3.rustfs.bucket",
+		"s3.rustfs.region", "s3.rustfs.secure", "s3.rustfs.path-style",
+		"s3.cos.bucket-url", "s3.cos.bucket", "s3.cos.region", "s3.cos.secret-id",
+		"s3.cos.secret-key", "s3.cos.domain",
+		"s3.oss.endpoint", "s3.oss.access-key-id", "s3.oss.access-key-secret",
+		"s3.oss.bucket", "s3.oss.domain",
 		"system.cache.enabled", "system.cache.driver", "system.cache.prefix",
 		"system.cache.file.dir", "system.cache.file.flush-interval",
 		"system.cache.memcache.servers", "system.cache.memcache.timeout",
@@ -167,6 +177,8 @@ func TestConfigFileExpansion(t *testing.T) {
 		"system.auth.permission-enabled", "system.captcha.enabled", "system.seed.enabled",
 		"system.job.enabled", "system.data-scope.enabled", "system.cache.enabled",
 		"system.gen.auto-remove-pre",
+		"s3.enabled", "s3.minio.secure", "s3.minio.path-style",
+		"s3.rustfs.secure", "s3.rustfs.path-style",
 	}
 	for _, key := range bools {
 		value := strings.ToLower(conf.GetString(key))
