@@ -33,6 +33,7 @@ var pathPermissionAlias = map[string]string{
 	"monitor/server":     "monitor:server:list",    // 服务监控
 	"monitor/cache":      "monitor:cache:list",     // 缓存监控
 	"monitor/cache/list": "monitor:cacheList:list", // 缓存列表
+	"tool/gen/download":  "tool:gen:code",          // 下载生成代码（沿用若依「生成代码」权限）
 }
 
 // authService 认证服务实例（中间件内部使用）

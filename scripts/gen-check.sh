@@ -83,7 +83,38 @@ chk "status 列 -> radio 且必填" "$det" "\"column_name\":\"demo_status\".*?\"
 chk "同步后已移除列被清理（remark 列不存在）" "$(echo "$det" | grep -c '"column_name":"remark"')" '^0$'
 chk "列类型变化后 Go 类型重新推导" "$det" "\"column_name\":\"demo_name\".*?\"column_type\":\"varchar\(128\)\".*?\"go_type\":\"string\""
 
-# ---- 3. 参数与过滤校验 ----
+# ---- 3. 模板渲染：预览 / 下载 ----
+pv=$(curl -s -m 10 "${AUTH[@]}" "$T/preview?id=$gid")
+chk "预览返回 Go 实体代码" "$pv" 'package domain'
+chk "预览类名取自表配置" "$pv" 'type SmokeGenDemo struct'
+chk "表无 create_by 时不嵌入审计列" "$pv" '未嵌入 .core\.RuoyiModel.'
+chk "预览返回业务逻辑" "$pv" 'func \(s SmokeGenDemo\) GetList\('
+chk "预览返回控制器（含 swag 路由注解）" "$pv" '@Router /system/smoke_gen_demo/list'
+chk "预览返回建表语句" "$pv" 'DROP TABLE IF EXISTS .smoke_gen_demo'
+chk "预览返回接口测试用例" "$pv" 'Bearer \{\{token\}\}'
+chk "预览返回接入说明" "$pv" '代码生成接入说明'
+out=$(curl -s -m 10 "${AUTH[@]}" "$T/preview")
+chk "预览缺少编号被拒绝" "$out" '"code":-1'
+out=$(curl -s -m 10 "${AUTH[@]}" "$T/preview?id=999999")
+chk "预览不存在的表被拒绝" "$out" '"code":-1'
+zip_file=$(mktemp)
+zip_meta=$(curl -s -m 20 "${AUTH[@]}" -o "$zip_file" -w '%{http_code} %{content_type}' "$T/download?id=$gid")
+chk "下载 zip 返回 200 + application/zip" "$zip_meta" '^200 application/zip'
+chk "下载内容是 zip（魔数 PK）" "$(head -c 2 "$zip_file")" '^PK$'
+chk "zip 内含生成文件" "$(wc -c <"$zip_file" | tr -d ' ')" '^[1-9][0-9]*$'
+rm -f "$zip_file"
+out=$(curl -s -m 10 "${AUTH[@]}" "$T/download?id=999999")
+chk "下载不存在的表被拒绝" "$out" '"code":-1'
+
+# ---- 3.1 树表模板：tpl_category=tree 时按树编码升序 ----
+out=$(curl -s -m 10 "${AUTH[@]}" -X PUT "$T/update" -H 'Content-Type: application/json' \
+  -d "{\"id\":$gid,\"table_name\":\"$DEMO_TABLE\",\"class_name\":\"SmokeGenDemo\",\"tpl_category\":\"tree\",\"module_name\":\"system\",\"function_name\":\"冒烟\",\"tree_code\":\"demo_id\",\"tree_parent_code\":\"parent_id\",\"tree_name\":\"demo_name\"}")
+chk "切换为树表模板" "$out" '"code":0'
+pv=$(curl -s -m 10 "${AUTH[@]}" "$T/preview?id=$gid")
+chk "树表列表按树编码升序" "$pv" 'db\.Order\(\\"demo_id asc\\"\)'
+chk "树表接入说明输出树参数" "$pv" 'treeCode=demo_id.*treeParentCode=parent_id.*treeName=demo_name'
+
+# ---- 4. 参数与过滤校验 ----
 out=$(curl -s -m 10 "${AUTH[@]}" "$T/db-list?table_name=$DEMO_TABLE")
 chk "已导入的表不再出现在 db-list" "$out" '"total":0'
 out=$(curl -s -m 10 "${AUTH[@]}" "$T/detail?id=999999")
@@ -93,7 +124,7 @@ chk "导入不存在的表被拒绝" "$out" '"code":-1'
 out=$(curl -s -m 10 "${AUTH[@]}" -X POST "$T/synch-db" -H 'Content-Type: application/json' -d '{"id":999999}')
 chk "同步不存在的表被拒绝" "$out" '"code":-1'
 
-# ---- 4. 清理（接口删除 + 物理表删除） ----
+# ---- 5. 清理（接口删除 + 物理表删除） ----
 out=$(curl -s -m 10 "${AUTH[@]}" -X DELETE "$T/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$gid]}")
 chk "删除代码生成配置" "$out" '"code":0'
 chk "字段配置已级联清理" "$(MYSQL "SELECT count(*) FROM gen_table_column WHERE table_id=$gid;")" '^0$'

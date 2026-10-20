@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/bluefroog/admintpl/app/gen/domain"
 	"github.com/bluefroog/admintpl/app/gen/service"
 	"github.com/bluefroog/admintpl/app/system/middleware"
@@ -14,7 +16,8 @@ import (
 type Gen struct{}
 
 var (
-	genTable = service.Table{}
+	genTable    = service.Table{}
+	genGenerate = service.Generate{}
 )
 
 // List 获取代码生成表列表
@@ -242,6 +245,59 @@ func (g *Gen) Delete(c *gin.Context) {
 		return
 	}
 	response.Success("删除成功", c)
+}
+
+// Preview 预览生成代码
+// @Summary 预览生成代码
+// @Description 按 gen_table / gen_table_column 的配置渲染模板，返回「文件相对路径 -> 文件内容」
+// @Tags 代码生成管理
+// @Param data query request.GetById true "data"
+// @Success 0 {object} response.Response{data=map[string]string} "{"code": 0, "msg":"success","data": {"app/system/domain/post.go": "package domain..."}}"
+// @Router /tool/gen/preview [get]
+// @Security
+func (g *Gen) Preview(c *gin.Context) {
+	var param request.GetById
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	data, err := genGenerate.Preview(param.ID)
+	if err != nil {
+		response.Fail(-1, "生成代码失败: "+err.Error(), c)
+		return
+	}
+	response.OK(data, c)
+}
+
+// Download 下载生成代码（zip）
+// @Summary 下载生成代码
+// @Description 生成代码并打包为 zip 下载（文件名取自表名去前缀后的蛇形名）
+// @Tags 代码生成管理
+// @Param data query request.GetById true "data"
+// @Success 200 {file} file "代码压缩包"
+// @Router /tool/gen/download [get]
+// @Security
+func (g *Gen) Download(c *gin.Context) {
+	var param request.GetById
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	fileName, content, err := genGenerate.Download(param.ID)
+	if err != nil {
+		response.Fail(-1, "生成代码失败: "+err.Error(), c)
+		return
+	}
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Data(http.StatusOK, "application/zip", content)
 }
 
 // normalizePage 归一化分页参数（页码最小 1，每页最小 1 条，未传时默认 20 条）

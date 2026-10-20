@@ -6516,6 +6516,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/tool/gen/download": {
+            "get": {
+                "security": [],
+                "description": "生成代码并打包为 zip 下载（文件名取自表名去前缀后的蛇形名）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "下载生成代码",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "代码压缩包",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
         "/tool/gen/import": {
             "post": {
                 "security": [],
@@ -6641,6 +6668,48 @@ const docTemplate = `{
                                                     }
                                                 }
                                             ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/tool/gen/preview": {
+            "get": {
+                "security": [],
+                "description": "按 gen_table / gen_table_column 的配置渲染模板，返回「文件相对路径 -\u003e 文件内容」",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "预览生成代码",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {\"app/system/domain/post.go\": \"package domain...\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
                                         }
                                     }
                                 }

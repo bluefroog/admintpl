@@ -6527,6 +6527,24 @@ paths:
       summary: 获取代码生成表详情
       tags:
       - 代码生成管理
+  /tool/gen/download:
+    get:
+      description: 生成代码并打包为 zip 下载（文件名取自表名去前缀后的蛇形名）
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: 代码压缩包
+          schema:
+            type: file
+      security: []
+      summary: 下载生成代码
+      tags:
+      - 代码生成管理
   /tool/gen/import:
     post:
       description: 按表名导入数据库表结构到代码生成业务表（已导入的表自动跳过）
@@ -6608,6 +6626,32 @@ paths:
               type: object
       security: []
       summary: 获取代码生成表列表
+      tags:
+      - 代码生成管理
+  /tool/gen/preview:
+    get:
+      description: 按 gen_table / gen_table_column 的配置渲染模板，返回「文件相对路径 -> 文件内容」
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {"app/system/domain/post.go":
+            "package domain..."}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+      security: []
+      summary: 预览生成代码
       tags:
       - 代码生成管理
   /tool/gen/synch-db:

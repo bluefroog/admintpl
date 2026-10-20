@@ -678,6 +678,52 @@ if [ -n "$imp_table" ]; then
       bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '同步数据库表结构' "$(echo "$out" | head -c 170)"
     fi
 
+    # 预览生成代码（配置中 class_name/function_name 已改成 SmokeGen / 冒烟测试）
+    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/preview?id=$gen_id")
+    if echo "$out" | grep -q '"code":0' && echo "$out" | grep -q 'package domain' \
+      && echo "$out" | grep -q 'type SmokeGen struct' && echo "$out" | grep -q '@Router /system/'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '预览生成代码（实体/控制器/路由注解）'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '预览生成代码（实体/控制器/路由注解）' "$(echo "$out" | head -c 170)"
+    fi
+    # 预览内容包含业务逻辑与建表语句、接入说明
+    if echo "$out" | grep -q 'func (s SmokeGen) GetList(' && echo "$out" | grep -q 'DROP TABLE IF EXISTS' \
+      && echo "$out" | grep -q '代码生成接入说明' && echo "$out" | grep -q 'Bearer {{token}}'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '预览生成代码（service/SQL/http/接入说明）'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '预览生成代码（service/SQL/http/接入说明）' "$(echo "$out" | head -c 170)"
+    fi
+    # 预览缺少编号被拒绝
+    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/preview")
+    if echo "$out" | grep -q '"code":-1'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '预览生成代码缺少编号被拒绝'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '预览生成代码缺少编号被拒绝' "$(echo "$out" | head -c 170)"
+    fi
+    # 预览不存在的表被拒绝
+    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/preview?id=999999")
+    if echo "$out" | grep -q '"code":-1'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '预览不存在的表被拒绝'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '预览不存在的表被拒绝' "$(echo "$out" | head -c 170)"
+    fi
+    # 下载 zip（校验状态码、内容类型与 zip 魔数 PK）
+    gen_zip=$(mktemp)
+    zip_meta=$(curl -s -m 20 "${auth_header[@]}" -o "$gen_zip" -w '%{http_code} %{content_type}' "$T/gen/download?id=$gen_id")
+    if echo "$zip_meta" | grep -q '^200 application/zip' && [ "$(head -c 2 "$gen_zip")" = "PK" ]; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s 字节\n' '下载生成代码 zip' "$(wc -c <"$gen_zip" | tr -d ' ')"
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '下载生成代码 zip' "$zip_meta"
+    fi
+    rm -f "$gen_zip"
+    # 下载缺少编号被拒绝（返回 JSON 错误而不是 zip）
+    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/download")
+    if echo "$out" | grep -q '"code":-1'; then
+      ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '下载生成代码缺少编号被拒绝'
+    else
+      bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '下载生成代码缺少编号被拒绝' "$(echo "$out" | head -c 170)"
+    fi
+
     # 删除导入记录（同时清理列信息）
     out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$T/gen/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$gen_id]}")
     if echo "$out" | grep -q '"code":0'; then

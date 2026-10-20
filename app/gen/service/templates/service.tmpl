@@ -1,0 +1,187 @@
+package service
+
+import (
+{{- if .ImportStrings}}
+	"strings"
+{{- end}}
+{{- if .ServiceTime}}
+	"time"
+{{- end}}
+
+	"{{.PackageName}}/app/{{.ModuleName}}/domain"
+	"{{.PackageName}}/common/database"
+	"gorm.io/gorm"
+)
+
+// {{.ClassName}} {{.FunctionName}}业务逻辑
+// 由代码生成器生成（表 {{.TableName}}），请按业务需要补充唯一性校验与关联清理逻辑
+type {{.ClassName}} struct{}
+
+// GetCount 获取{{.FunctionName}}列表数据数量
+// @function: GetCount
+// @description: 获取{{.FunctionName}}列表数据数量
+// @param: searchParams *domain.{{.ClassName}}SearchRequest
+// @return: err error, total int64
+func (s {{.ClassName}}) GetCount(searchParams *domain.{{.ClassName}}SearchRequest) (err error, total int64) {
+	// 创建db
+	db := database.DB.Model(&domain.{{.ClassName}}{})
+	// 条件过滤
+	db = s.parseFilter(db, searchParams)
+	// 统计数据
+	err = db.Count(&total).Error
+	return err, total
+}
+
+// GetList 获取{{.FunctionName}}列表数据
+// @function: GetList
+// @description: 获取{{.FunctionName}}列表数据
+// @param: searchParams *domain.{{.ClassName}}SearchRequest
+// @return: err error, list []domain.{{.ClassName}}, total int64
+func (s {{.ClassName}}) GetList(searchParams *domain.{{.ClassName}}SearchRequest) (err error, list []domain.{{.ClassName}}, total int64) {
+	// 创建db
+	db := database.DB.Model(&domain.{{.ClassName}}{})
+	// 条件过滤
+	db = s.parseFilter(db, searchParams)
+	// 统计数据
+	err = db.Count(&total).Error
+	// 如果数据 0,也没有必要处理以下动作了
+	if total > 0 {
+		// 排序
+		db.Order("{{.Pk.ColumnName}}{{if .IsTree}} asc{{else}} desc{{end}}")
+		if searchParams.OrderBy != "" {
+			db.Order(searchParams.OrderBy)
+		}
+		// 分页
+		if searchParams.PageSize > 0 {
+			limit := searchParams.PageSize
+			offset := searchParams.PageSize * (searchParams.Page - 1)
+			db.Limit(limit).Offset(offset)
+		}
+		err = db.Find(&list).Error
+	}
+	return err, list, total
+}
+
+// parseFilter {{.FunctionName}}列表搜索条件过滤
+// @function: parseFilter
+// @description: {{.FunctionName}}列表搜索条件过滤
+// @param: db *gorm.DB
+// @param: searchParams *domain.{{.ClassName}}SearchRequest
+// @return: *gorm.DB
+func (s {{.ClassName}}) parseFilter(db *gorm.DB, searchParams *domain.{{.ClassName}}SearchRequest) *gorm.DB {
+	// 条件过滤
+	if searchParams.ID != nil { // 主键
+		db = db.Where("{{.Pk.ColumnName}} = ?", *searchParams.ID)
+	}
+	if len(searchParams.IDIn) > 0 { // 主键 数组
+		db = db.Where("{{.Pk.ColumnName}} IN (?)", searchParams.IDIn)
+	}
+	if len(searchParams.IDNotIn) > 0 { // 主键 排除数组
+		db = db.Where("{{.Pk.ColumnName}} NOT IN (?)", searchParams.IDNotIn)
+	}
+{{- range .QueryField}}
+{{- if .IsRange}}
+	if searchParams.Begin{{.GoField}} != "" { // {{.Comment}}（起始）
+		db = db.Where("{{.ColumnName}} >= ?", searchParams.Begin{{.GoField}})
+	}
+	if searchParams.End{{.GoField}} != "" { // {{.Comment}}（结束）
+		db = db.Where("{{.ColumnName}} <= ?", searchParams.End{{.GoField}})
+	}
+{{- else if eq .SearchType "string"}}
+	if searchParams.{{.GoField}} != "" { // {{.Comment}}
+		db = db.Where("{{.ColumnName}} {{.QueryOp}} ?"{{if eq .QueryOp "LIKE"}}, "%"+searchParams.{{.GoField}}+"%"{{else}}, searchParams.{{.GoField}}{{end}})
+	}
+{{- else}}
+	if searchParams.{{.GoField}} != nil { // {{.Comment}}
+		db = db.Where("{{.ColumnName}} {{.QueryOp}} ?", *searchParams.{{.GoField}})
+	}
+{{- end}}
+{{- end}}
+{{- if .KeyField}}
+	if searchParams.Keyword != "" { // 关键词
+		k := strings.Trim(searchParams.Keyword, " \t\r\n")
+		k1 := "%" + k + "%"
+		db = db.Where("({{range $i, $f := .KeyField}}{{if $i}} OR {{end}}`{{$f.ColumnName}}` LIKE ?{{end}})", {{range $i, $f := .KeyField}}{{if $i}}, {{end}}k1{{end}})
+	}
+{{- end}}
+{{- if .UseRuoYiModel}}
+	if searchParams.CreateBy != "" { // 创建者
+		db = db.Where("create_by LIKE ?", "%"+searchParams.CreateBy+"%")
+	}
+	if searchParams.UpdateBy != "" { // 更新者
+		db = db.Where("update_by LIKE ?", "%"+searchParams.UpdateBy+"%")
+	}
+{{- end}}
+	return db
+}
+
+// Create 添加{{.FunctionName}}数据
+// @function: Create
+// @description: 添加{{.FunctionName}}数据
+// @param: data *domain.{{.ClassName}}CreateRequest
+// @return: error
+func (s {{.ClassName}}) Create(data *domain.{{.ClassName}}CreateRequest) error {
+	record := new(domain.{{.ClassName}})
+{{- range .InsertField}}
+	record.{{.GoField}} = data.{{.GoField}}
+{{- end}}
+{{- if .UseRuoYiModel}}
+	record.Remark = data.Remark
+	record.CreateBy = "" // TODO 如需记录操作人，可在此传入登录用户名
+	record.CreateTime = time.Now()
+	record.UpdateBy = ""
+	record.UpdateTime = time.Now()
+{{- end}}
+	return database.DB.Create(record).Error
+}
+
+// Update 修改{{.FunctionName}}
+// @function: Update
+// @description: 修改{{.FunctionName}}
+// @param: data *domain.{{.ClassName}}UpdateRequest
+// @return: err error
+func (s {{.ClassName}}) Update(data *domain.{{.ClassName}}UpdateRequest) (err error) {
+	// 使用 map 更新，保证零值（0 / 空字符串）也能落库
+	record := make(map[string]interface{})
+{{- range .EditField}}
+	record["{{.GoField}}"] = data.{{.GoField}}
+{{- end}}
+{{- if .UseRuoYiModel}}
+	record["Remark"] = data.Remark
+	record["UpdateBy"] = ""
+	record["UpdateTime"] = time.Now()
+{{- end}}
+	return s.UpdateByMap(data.ID, record)
+}
+
+// UpdateByMap 更新指定ID的{{.FunctionName}}信息
+// @function: UpdateByMap
+// @description: 更新指定ID的{{.FunctionName}}信息
+// @param: id uint
+// @param: updateMap map[string]interface{}
+// @return: err error
+func (s {{.ClassName}}) UpdateByMap(id uint, updateMap map[string]interface{}) (err error) {
+	return database.DB.Model(&domain.{{.ClassName}}{}).Where("{{.Pk.ColumnName}} = ?", id).Updates(updateMap).Error
+}
+
+// Delete 删除{{.FunctionName}}
+// @function: Delete
+// @description: 删除{{.FunctionName}}
+// @param: ids []uint
+// @return: err error
+func (s {{.ClassName}}) Delete(ids []uint) (err error) {
+	return database.DB.Where("{{.Pk.ColumnName}} in (?)", ids).Unscoped().Delete(&domain.{{.ClassName}}{}).Error
+}
+
+// Detail 获取指定ID{{.FunctionName}}详情
+// @function: Detail
+// @description: 获取指定ID{{.FunctionName}}详情
+// @param: id uint
+// @return: *domain.{{.ClassName}}, err error
+func (s {{.ClassName}}) Detail(id uint) (*domain.{{.ClassName}}, error) {
+	var detail domain.{{.ClassName}}
+	if err := database.DB.Where("{{.Pk.ColumnName}} = ?", id).First(&detail).Error; err != nil {
+		return nil, err
+	}
+	return &detail, nil
+}

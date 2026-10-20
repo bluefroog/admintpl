@@ -174,15 +174,7 @@ func ClassName(tableName string) string {
 // @param: tablePrefix string 表前缀，多个以英文逗号分隔
 // @return: string
 func classNameBy(tableName string, autoRemovePre bool, tablePrefix string) string {
-	if autoRemovePre && tablePrefix != "" {
-		for _, prefix := range strings.Split(tablePrefix, ",") {
-			prefix = strings.TrimSpace(prefix)
-			if prefix != "" {
-				tableName = strings.ReplaceAll(tableName, prefix, "")
-			}
-		}
-	}
-	return CamelCase(tableName)
+	return CamelCase(TrimTablePrefix(tableName, autoRemovePre, tablePrefix))
 }
 
 // BusinessName 获取业务名（表名最后一个下划线之后的部分，如 sys_user_role -> role）
@@ -371,6 +363,13 @@ func SetPkColumn(table *domain.Table) {
 	if len(table.Columns) > 0 {
 		table.PkColumn = &table.Columns[0]
 	}
+}
+
+// IsTextType 判断数据库类型是否为大文本类型（生成代码时为文本框）
+// @param: columnType string 列类型
+// @return: bool
+func IsTextType(columnType string) bool {
+	return IsExistInArray(strings.ToLower(DbType(columnType)), []string{"tinytext", "text", "mediumtext", "longtext"})
 }
 
 // ParseOptions 解析表扩展选项（树表模板参数）

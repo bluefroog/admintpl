@@ -96,6 +96,18 @@ Content-Type: application/json
   "id": 1
 }
 
+### 预览生成代码（返回「文件相对路径 -> 文件内容」，含 domain/service/controller/http/sql/接入说明）
+GET http://127.0.0.1:8080/tool/gen/preview?id=1
+Authorization: Bearer {{token}}
+
+### 预览生成代码（缺少 id 应被拒绝）
+GET http://127.0.0.1:8080/tool/gen/preview
+Authorization: Bearer {{token}}
+
+### 下载生成代码（zip，文件名取自表名去前缀后的蛇形名）
+GET http://127.0.0.1:8080/tool/gen/download?id=1
+Authorization: Bearer {{token}}
+
 ### 删除代码生成配置（同时清理字段配置）
 DELETE http://127.0.0.1:8080/tool/gen/delete
 Authorization: Bearer {{token}}
@@ -125,6 +137,19 @@ Content-Type: application/json
 #             "pk_column": { "column_name": "notice_id", "is_pk": "1" },
 #             "tree_code": "", "tree_parent_code": "", "tree_name": "" } }
 #
+# /tool/gen/preview
+# { "code": 0, "msg": "success",
+#   "data": {
+#     "github.com/bluefroog/admintpl/app/system/domain/notice.go": "package domain\n\nimport (...",
+#     "github.com/bluefroog/admintpl/app/system/service/notice.go": "package service\n\n...",
+#     "github.com/bluefroog/admintpl/app/system/controller/notice.go": "package controller\n\n...",
+#     "github.com/bluefroog/admintpl/app/system/test/http/notice.http": "### 通知公告 - 列表...",
+#     "docs/sql/notice.sql": "-- 通知公告（sys_notice）...",
+#     "github.com/bluefroog/admintpl/app/system/notice.register.md": "# 通知公告（sys_notice）代码生成接入说明..."
+#   } }
+#
+# /tool/gen/download  -> Content-Type: application/zip，Content-Disposition: attachment; filename=notice.zip
+
 # /tool/gen/db-list
 # { "code": 0, "msg": "success",
 #   "data": { "list": [ { "table_name": "sys_notice", "table_comment": "通知公告表",

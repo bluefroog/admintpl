@@ -1,0 +1,30 @@
+-- ----------------------------
+-- {{.FunctionName}}（{{.TableName}}）
+-- 由代码生成器生成（作者：{{.Author}}，生成时间：{{.DateTime}}）
+-- 字段类型与注释来自 gen_table_column 的导入结果，请按数据库实际情况核对
+-- ----------------------------
+DROP TABLE IF EXISTS `{{.TableName}}`;
+CREATE TABLE `{{.TableName}}` (
+{{- range .AllField}}
+  `{{.ColumnName}}` {{.ColumnType}}{{if eq .IsPk "1"}} NOT NULL AUTO_INCREMENT{{else if eq .IsRequired "1"}} NOT NULL{{else}} DEFAULT NULL{{end}} COMMENT '{{.Comment}}',
+{{- end}}
+  PRIMARY KEY (`{{.Pk.ColumnName}}`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='{{.TableComment}}';
+
+-- ----------------------------
+-- 菜单与按钮权限（本框架菜单由 app/{{.ModuleName}}/service/seed.go 初始化，
+-- 因此以下语句默认注释，需要时可手工执行后调整 parent_id / order_num）
+-- 权限标识由路由推导：{{.PermissionPre}}:list / create / update / delete / detail
+-- ----------------------------
+-- INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+-- VALUES ('{{.FunctionName}}', 0, 10, '{{.FileName}}', '{{.ModuleName}}/{{.FileName}}/index', 1, 0, 'C', '0', '0', '{{.PermissionPre}}:list', 'system', 'admin', now(), '', now(), '{{.FunctionName}}菜单');
+-- INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+-- VALUES ('{{.FunctionName}}查询', LAST_INSERT_ID(), 1, '', '', 1, 0, 'F', '0', '0', '{{.PermissionPre}}:list', '#', 'admin', now(), '', now(), '');
+-- INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+-- VALUES ('{{.FunctionName}}新增', LAST_INSERT_ID(), 2, '', '', 1, 0, 'F', '0', '0', '{{.PermissionPre}}:create', '#', 'admin', now(), '', now(), '');
+-- INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+-- VALUES ('{{.FunctionName}}修改', LAST_INSERT_ID(), 3, '', '', 1, 0, 'F', '0', '0', '{{.PermissionPre}}:update', '#', 'admin', now(), '', now(), '');
+-- INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+-- VALUES ('{{.FunctionName}}删除', LAST_INSERT_ID(), 4, '', '', 1, 0, 'F', '0', '0', '{{.PermissionPre}}:delete', '#', 'admin', now(), '', now(), '');
+-- INSERT INTO `sys_menu` (`menu_name`, `parent_id`, `order_num`, `path`, `component`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`)
+-- VALUES ('{{.FunctionName}}详情', LAST_INSERT_ID(), 5, '', '', 1, 0, 'F', '0', '0', '{{.PermissionPre}}:detail', '#', 'admin', now(), '', now(), '');

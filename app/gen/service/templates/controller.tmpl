@@ -1,0 +1,159 @@
+package controller
+
+import (
+	"{{.PackageName}}/app/{{.ModuleName}}/domain"
+	"{{.PackageName}}/app/{{.ModuleName}}/service"
+	"{{.PackageName}}/common/model/request"
+	resp "{{.PackageName}}/common/model/response"
+	"{{.PackageName}}/common/response"
+	"{{.PackageName}}/common/validate"
+	"github.com/gin-gonic/gin"
+)
+
+// {{.ClassName}} {{.FunctionName}}控制器
+// 由代码生成器生成（表 {{.TableName}}），路由需注册到 app/{{.ModuleName}}/controller/init.go
+type {{.ClassName}} struct{}
+
+var (
+	{{.ClassNameLower}} = service.{{.ClassName}}{}
+)
+
+// List 获取{{.FunctionName}}列表
+// @Summary 获取{{.FunctionName}}列表
+// @Description {{.FunctionName}}列表（支持关键字与各查询字段过滤）
+// @Tags {{.FunctionName}}管理
+// @Param data query domain.{{.ClassName}}SearchRequest true "data"
+// @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.{{.ClassName}}}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
+// @Router {{.RoutePrefix}}/{{.FileName}}/list [get]
+// @Security
+func (u *{{.ClassName}}) List(c *gin.Context) {
+	var searchParams domain.{{.ClassName}}SearchRequest
+	// 获取查询参数
+	if err := c.Bind(&searchParams); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	// 验证参数
+	if err := validate.Struct(&searchParams); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	err, list, total := {{.ClassNameLower}}.GetList(&searchParams)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(resp.PageResult{
+		List:     list,
+		Total:    total,
+		Page:     searchParams.Page,
+		PageSize: searchParams.PageSize,
+	}, c)
+}
+
+// Create 添加{{.FunctionName}}
+// @Summary 添加{{.FunctionName}}
+// @Description 添加{{.FunctionName}}
+// @Tags {{.FunctionName}}管理
+// @Param data body domain.{{.ClassName}}CreateRequest true "data"
+// @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
+// @Router {{.RoutePrefix}}/{{.FileName}}/create [post]
+// @Security
+func (u *{{.ClassName}}) Create(c *gin.Context) {
+	var data *domain.{{.ClassName}}CreateRequest
+	// 获取参数
+	if err := c.Bind(&data); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	// 验证参数
+	if err := validate.Struct(data); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := {{.ClassNameLower}}.Create(data); err != nil {
+		response.Fail(-1, "添加失败: "+err.Error(), c)
+	} else {
+		response.Success("添加成功", c)
+	}
+}
+
+// Update 修改{{.FunctionName}}
+// @Summary 修改{{.FunctionName}}
+// @Description 修改{{.FunctionName}}
+// @Tags {{.FunctionName}}管理
+// @Param data body domain.{{.ClassName}}UpdateRequest true "data"
+// @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
+// @Router {{.RoutePrefix}}/{{.FileName}}/update [put]
+// @Security
+func (u *{{.ClassName}}) Update(c *gin.Context) {
+	var data *domain.{{.ClassName}}UpdateRequest
+	// 获取参数
+	if err := c.Bind(&data); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	// 参数验证
+	if err := validate.Struct(data); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if err := {{.ClassNameLower}}.Update(data); err != nil {
+		response.Fail(-1, "修改失败: "+err.Error(), c)
+	} else {
+		response.Success("修改成功", c)
+	}
+}
+
+// Delete 删除{{.FunctionName}}
+// @Summary 删除{{.FunctionName}}
+// @Description 删除{{.FunctionName}}
+// @Tags {{.FunctionName}}管理
+// @Param ids body request.IdsRequest true "{ids: [1,2]}"
+// @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
+// @Router {{.RoutePrefix}}/{{.FileName}}/delete [delete]
+// @Security
+func (u *{{.ClassName}}) Delete(c *gin.Context) {
+	var data *request.IdsRequest
+	// 获取参数
+	if err := c.Bind(&data); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	if len(data.Ids) == 0 {
+		response.Fail(-1, "参数不能为空", c)
+		return
+	}
+	if err := {{.ClassNameLower}}.Delete(data.Ids); err != nil {
+		response.Fail(-1, "删除失败: "+err.Error(), c)
+		return
+	}
+	response.Success("删除成功", c)
+}
+
+// Detail 获取指定ID的{{.FunctionName}}详情
+// @Summary 获取指定ID的{{.FunctionName}}详情
+// @Description 获取指定ID的{{.FunctionName}}详情
+// @Tags {{.FunctionName}}管理
+// @Param data query request.GetById true "data"
+// @Success 0 {object} response.Response{data=domain.{{.ClassName}}} "{"code": 0, "msg":"success","data": {}}"
+// @Router {{.RoutePrefix}}/{{.FileName}}/detail [get]
+// @Security
+func (u *{{.ClassName}}) Detail(c *gin.Context) {
+	var param request.GetById
+	if err := c.Bind(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	// 验证参数
+	if err := validate.Struct(&param); err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	record, err := {{.ClassNameLower}}.Detail(param.ID)
+	if err != nil {
+		response.Fail(-1, err.Error(), c)
+		return
+	}
+	response.OK(record, c)
+}

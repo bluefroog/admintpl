@@ -1,0 +1,113 @@
+### {{.FunctionName}} - 列表（默认分页）
+GET http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/list
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+### {{.FunctionName}} - 列表（分页参数）
+GET http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/list?page=1&pageSize=10
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+{{- if .KeyField}}
+
+### {{.FunctionName}} - 列表（关键字模糊查询）
+GET http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/list?keyword=关键字
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+{{- end}}
+{{- range .QueryField}}
+{{- if .IsRange}}
+
+### {{$.FunctionName}} - 列表（{{.Comment}} 区间）
+GET http://127.0.0.1:8080{{$.RoutePrefix}}/{{$.FileName}}/list?begin_{{.ColumnName}}=2024-01-01 00:00:00&end_{{.ColumnName}}=2024-12-31 23:59:59
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+{{- else if eq .SearchType "string"}}
+
+### {{$.FunctionName}} - 列表（{{.Comment}}）
+GET http://127.0.0.1:8080{{$.RoutePrefix}}/{{$.FileName}}/list?{{.ColumnName}}={{.Comment}}
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+{{- else}}
+
+### {{$.FunctionName}} - 列表（{{.Comment}}）
+GET http://127.0.0.1:8080{{$.RoutePrefix}}/{{$.FileName}}/list?{{.ColumnName}}=1
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+{{- end}}
+{{- end}}
+
+### {{.FunctionName}} - 详情
+GET http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/detail?id=1
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+### {{.FunctionName}} - 详情（缺少 id 应被拒绝）
+GET http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/detail
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+### {{.FunctionName}} - 添加
+POST http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/create
+content-type: application/json
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+{
+{{- range $i, $f := .InsertField}}
+{{- if $i}},{{end}}
+{{- if eq $f.GoTypeDecl "string"}}
+  "{{$f.ColumnName}}": "{{$f.Comment}}"
+{{- else if eq $f.GoTypeDecl "time.Time"}}
+  "{{$f.ColumnName}}": "2024-01-01 00:00:00"
+{{- else if eq $f.GoTypeDecl "bool"}}
+  "{{$f.ColumnName}}": false
+{{- else if eq $f.GoTypeDecl "float64"}}
+  "{{$f.ColumnName}}": 0.0
+{{- else}}
+  "{{$f.ColumnName}}": 1
+{{- end}}
+{{- end}}
+{{- if .UseRuoYiModel}},
+  "remark": "备注"
+{{- end}}
+}
+
+### {{.FunctionName}} - 添加（必填字段为空应被拒绝）
+POST http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/create
+content-type: application/json
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+{
+}
+
+### {{.FunctionName}} - 修改
+PUT http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/update
+content-type: application/json
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+{
+  "id": 1{{range .EditField}},
+{{- if eq .GoTypeDecl "string"}}
+  "{{.ColumnName}}": "{{.Comment}}"
+{{- else if eq .GoTypeDecl "time.Time"}}
+  "{{.ColumnName}}": "2024-01-01 00:00:00"
+{{- else if eq .GoTypeDecl "bool"}}
+  "{{.ColumnName}}": false
+{{- else if eq .GoTypeDecl "float64"}}
+  "{{.ColumnName}}": 0.0
+{{- else}}
+  "{{.ColumnName}}": 0
+{{- end}}
+{{- end}}
+{{- if .UseRuoYiModel}},
+  "remark": "备注"
+{{- end}}
+}
+
+### {{.FunctionName}} - 删除
+DELETE http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/delete
+content-type: application/json
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+{
+  "ids": [1]
+}
+
+### {{.FunctionName}} - 删除（缺少 ids 应被拒绝）
+DELETE http://127.0.0.1:8080{{.RoutePrefix}}/{{.FileName}}/delete
+content-type: application/json
+Authorization: Bearer {{"{{"}}token{{"}}"}}
+
+{
+}

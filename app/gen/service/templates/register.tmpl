@@ -1,0 +1,71 @@
+# {{.FunctionName}}（{{.TableName}}）代码生成接入说明
+
+- 作者：{{.Author}}
+- 生成时间：{{.DateTime}}
+- 包名：`{{.PackageName}}`
+- 模块：`app/{{.ModuleName}}`（路由前缀 `{{.RoutePrefix}}`）
+
+## 1. 生成文件清单
+
+| 文件 | 说明 |
+| --- | --- |
+| `app/{{.ModuleName}}/domain/{{.FileName}}.go` | 实体 `{{.ClassName}}` + 搜索/新增/编辑请求结构体 |
+| `app/{{.ModuleName}}/service/{{.FileName}}.go` | 业务逻辑 `{{.ClassName}}`（GetCount/GetList/parseFilter/Create/Update/Delete/Detail） |
+| `app/{{.ModuleName}}/controller/{{.FileName}}.go` | HTTP 控制器（含 swag 注解） |
+| `app/{{.ModuleName}}/test/http/{{.FileName}}.http` | 接口测试用例 |
+| `docs/sql/{{.FileName}}.sql` | 建表语句 + 菜单语句（菜单语句默认注释） |
+
+## 2. 注册实体
+
+编辑 `app/{{.ModuleName}}/domain/init.go`，把实体加入 `autoMigrate`：
+
+```go
+		domain.{{.ClassName}}{}, // {{.FunctionName}}
+```
+
+## 3. 注册路由
+
+编辑 `app/{{.ModuleName}}/controller/init.go`，在对应分组内追加：
+
+```go
+		// {{.FunctionName}}相关接口
+		{{.ClassNameLower}} := {{.ClassName}}{}
+		group.GET("/{{.FileName}}/list", {{.ClassNameLower}}.List)
+		group.POST("/{{.FileName}}/create", {{.ClassNameLower}}.Create)
+		group.PUT("/{{.FileName}}/update", {{.ClassNameLower}}.Update)
+		group.DELETE("/{{.FileName}}/delete", {{.ClassNameLower}}.Delete)
+		group.GET("/{{.FileName}}/detail", {{.ClassNameLower}}.Detail)
+```
+
+## 4. 权限标识
+
+权限标识由路由路径推导（`middleware.PathPermission`），无需额外配置：
+
+| 接口 | 权限标识 |
+| --- | --- |
+| `{{.RoutePrefix}}/{{.FileName}}/list` | `{{.PermissionPre}}:list` |
+| `{{.RoutePrefix}}/{{.FileName}}/create` | `{{.PermissionPre}}:create` |
+| `{{.RoutePrefix}}/{{.FileName}}/update` | `{{.PermissionPre}}:update` |
+| `{{.RoutePrefix}}/{{.FileName}}/delete` | `{{.PermissionPre}}:delete` |
+| `{{.RoutePrefix}}/{{.FileName}}/detail` | `{{.PermissionPre}}:detail` |
+
+## 5. 字段与查询条件
+
+| 列名 | Go 字段 | Go 类型 | 查询方式 | 列表 | 编辑 | 新增 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `{{.Pk.ColumnName}}` | `ID` | `uint` | 主键精确匹配 | - | - | - |
+{{- range .Fields}}
+| `{{.ColumnName}}` | `{{.GoField}}` | `{{.GoTypeDecl}}` | {{if eq .IsQuery "1"}}{{if .IsRange}}区间{{else}}{{.QueryOp}}{{end}}{{else}}-{{end}} | {{if eq .IsList "1"}}是{{else}}否{{end}} | {{if eq .IsEdit "1"}}是{{else}}否{{end}} | {{if eq .IsInsert "1"}}是{{else}}否{{end}} |
+{{- end}}
+
+{{if .KeyField}}关键字 `keyword` 会在这几列上做模糊匹配：{{range $i, $f := .KeyField}}{{if $i}}、{{end}}`{{$f.ColumnName}}`{{end}}。
+{{end}}
+## 6. 注意事项
+
+1. **唯一性校验**：生成代码不含唯一索引校验，如 `{{.TableName}}` 存在业务唯一键，请在 `Create` / `Update` 中补充查重（参考 `app/system/service/post.go` 的 `Create` / `Update`）。
+2. **关联表清理**：若该表存在中间表（如 `xxx_yyy`），删除时需在同一事务内清理关联数据（参考 `app/system/service/user.go` 的 `Delete`）。
+3. **零值落库**：`Update` 使用 `map[string]interface{}` 更新，键为 Go 字段名，可正确写入 `0` / `""` 等零值。
+4. **公共审计列**：{{if .UseRuoYiModel}}该表含 `create_by` / `update_by`，实体嵌入 `core.RuoyiModel`，审计列由 service 自动填充。{{else}}该表不含 `create_by` / `update_by`，未嵌入 `core.RuoyiModel`，如需审计请自行加列并补充赋值。{{end}}
+{{- if .IsTree}}
+5. **树表**：模板为 `tree`（`treeCode={{.TreeCode}}`、`treeParentCode={{.TreeParentCode}}`、`treeName={{.TreeName}}`），列表已按 `{{.TreeCode}}` 升序排列；如需父子层级与删除前子节点校验，请参考 `app/system/service/department.go`、`app/system/service/menu.go` 补充 `GetTreeList` 与 `Delete` 校验逻辑。
+{{- end}}

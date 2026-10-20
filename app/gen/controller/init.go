@@ -24,5 +24,8 @@ func InitRouter(r *gin.Engine) {
 		group.GET("/column-list", gen.ColumnList)
 		// 同步数据库表结构
 		group.POST("/synch-db", gen.SynchDb)
+		// 预览 / 下载生成代码
+		group.GET("/preview", gen.Preview)
+		group.GET("/download", gen.Download)
 	}
 }

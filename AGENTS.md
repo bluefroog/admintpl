@@ -12,7 +12,7 @@
 | 系统管理 | `app/system` | `/system/...` | 用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证 |
 | 系统监控 | `app/monitor` | `/monitor/...` | 在线用户/登录日志/操作日志/服务监控/缓存监控 |
 | 定时任务 | `app/cron` | `/monitor/job...`、`/monitor/jobLog/...` | 任务配置/调度器/任务日志/内置调用目标 |
-| 代码生成 | `app/gen` | `/tool/gen/...` | 表结构导入/生成配置/同步数据库表结构 |
+| 代码生成 | `app/gen` | `/tool/gen/...` | 表结构导入/生成配置/同步数据库表结构/模板渲染与下载 |
 
 每个模块包含 `domain/`（实体 + 请求结构体）、`service/`（业务逻辑）、`controller/`（HTTP 控制器）、`initialize.go`（初始化入口，负责注册路由与模块级启动逻辑）、`test/http/`（接口测试文件）。
 
@@ -145,7 +145,11 @@
   按「一表一套文件」建立 `domain/gen-table.go`、`domain/gen-table-column.go`、`service/table.go`、`controller/table.go`，
   模型在 `app/gen/domain/init.go` 的 `Models()` 中声明（`bootstrap` 汇总迁移，新增模块无需改迁移逻辑）。
 - **接口**：`/tool/gen/list`、`/tool/gen/db-list`、`/tool/gen/column-list`、`/tool/gen/detail`、`/tool/gen/import`、
-  `/tool/gen/update`、`/tool/gen/synch-db`、`/tool/gen/delete`；`gen_table` 只能由导入接口写入，**不提供 create 接口**。
+  `/tool/gen/update`、`/tool/gen/synch-db`、`/tool/gen/delete`、`/tool/gen/preview`、`/tool/gen/download`；
+  `gen_table` 只能由导入接口写入，**不提供 create 接口**。
+- **模板渲染**：`app/gen/service/render.go` + `app/gen/service/templates/*.tmpl`（`embed.FS` 内置，**只用标准库 `text/template`**，
+  **禁止引入模板引擎/代码生成库**）；渲染结果按「项目约定」产出 domain/service/controller/接口测试/建表 SQL/接入说明，
+  Go 代码必须经 `go/format` 格式化（语法错误直接报错）。新增模板必须同步补 `render_test.go` 断言与 `scripts/gen-check.sh` 校验。
 - **表结构读取**：一律通过 `information_schema.tables` / `information_schema.columns` 原始查询（GORM `Table(...)`），
   不要引入第三方元数据表；已导入表用子查询排除，`qrtz_%`、`gen_%` 前缀表不参与导入。
 - **默认配置推导**：字段类型/必填/编辑/列表/查询/显示类型的推导集中在 `app/gen/service/field.go`

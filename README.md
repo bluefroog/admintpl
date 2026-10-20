@@ -20,7 +20,7 @@
 * [已实现]数据权限：按角色划分数据范围（全部/自定义/本部门/本部门及以下/仅本人），作用于用户、部门、角色列表。
 * [已实现]定时任务：任务配置（增删改查/启停/立即执行一次）+ 调度执行 + 任务日志；cron 表达式与调用目标均为若依（Quartz）语义。
 * [已实现]代码生成：数据库表结构导入、生成配置维护（表配置/字段配置/树表参数）、同步数据库表结构。
-* [待实现]代码生成模板渲染：按生成配置渲染各层代码并预览/下载（zip）。
+* [已实现]代码生成模板渲染：按生成配置渲染 domain/service/controller/接口测试/建表语句/接入说明，支持在线预览与 zip 下载。
 
 # 项目初始化
 ```bash
@@ -197,6 +197,15 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 | `/tool/gen/update` | PUT | 修改生成配置：表配置与字段配置（`columns` 可省略），树表参数写入 `options` |
 | `/tool/gen/synch-db` | POST | 同步数据库表结构：新增列、删除已移除列、列类型变化时重置列配置 |
 | `/tool/gen/delete` | DELETE | 删除生成配置：同一事务内清理 `gen_table_column` |
+| `/tool/gen/preview` | GET | 预览生成代码：返回「文件相对路径 -> 文件内容」映射（domain/service/controller/接口测试/建表 SQL/接入说明） |
+| `/tool/gen/download` | GET | 下载生成代码：`application/zip` 附件，文件名取自表名去前缀后的蛇形名（如 `notice.zip`） |
+
+- **渲染约定**：`app/gen/service/render.go` + `app/gen/service/templates/*.tmpl`（`embed.FS` 内置，**只用标准库 `text/template`**）；
+  生成的 Go 代码经 `go/format` 格式化，语法错误会在预览/下载时直接报错；
+- **命名来源**：类名/功能名/作者优先取 `gen_table` 中按表配置的值（页面可编辑），缺失时回落到 `system.gen.*` 与表名推导；
+  文件名固定为「表名去前缀后的蛇形名」，与「一表一套文件」约定一致；
+- **主键要求**：仅支持整型主键（`bigint`/`int`），主键实体字段统一为 `ID uint`，否则生成时报错；
+- **生成内容**：`create_by` 与 `update_by` 同时存在时实体嵌入 `core.RuoyiModel`，并在 service 中填充审计列。
 
 * **表结构来源**：字段名称/类型/主键/自增/必填全部来自 `information_schema.columns`（按 `ordinal_position` 排序），表描述来自 `information_schema.tables`，不依赖任何第三方元数据表；
 * **默认配置推导（与若依一致）**：字符串 -> `string`（`text` 系列或长度 >= 500 为 `textarea`，否则 `input`）、时间 -> `Time`/`datetime`、数字 -> `int`/`int64`/`float64`；列名含 `name`/`status` 默认必填，`status` 列默认 `radio`，`type`/`sex` 结尾的列默认 `select`，`*name` 列默认 `LIKE` 查询；`id`/`create_by`/`create_time`/`del_flag`/`update_by`/`update_time` 默认不参与编辑、列表（`remark` 不参与查询）；
@@ -219,7 +228,7 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 app/system    系统管理（用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证）
 app/monitor   系统监控（在线用户/登录日志/操作日志/服务监控/缓存监控）
 app/cron      定时任务（任务配置/调度器/任务日志/内置调用目标）
-app/gen       代码生成（表结构导入/生成配置/同步数据库表结构）
+app/gen       代码生成（表结构导入/生成配置/同步数据库表结构/模板渲染与下载）
 common/database  数据库初始化与迁移（DB/InitDB/AutoMigrateAll/TableEmpty）
 common/sysinfo   服务器指标采集（标准库 /proc 实现）
 common/cache     进程内内存缓存（含监控统计与注册表）

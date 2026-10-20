@@ -69,6 +69,10 @@ func TestPathPermission(t *testing.T) {
 		"/monitor/cache":       "monitor:cache:list",
 		"/monitor/cache/list":  "monitor:cacheList:list",
 		"/monitor/cache/clear": "monitor:cache:clear",
+		// 代码生成：下载接口沿用若依「生成代码」权限标识
+		"/tool/gen/list":     "tool:gen:list",
+		"/tool/gen/preview":  "tool:gen:preview",
+		"/tool/gen/download": "tool:gen:code",
 	}
 	for path, want := range cases {
 		if got := PathPermission(path); got != want {
