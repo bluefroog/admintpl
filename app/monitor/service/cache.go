@@ -12,7 +12,7 @@ import (
 
 // Cache 缓存监控服务
 //
-// 说明：与若依基于 Redis 的缓存监控不同，本项目使用进程内内存缓存（common/cache），
+// 说明：本项目使用进程内内存缓存（common/cache），不依赖 Redis，
 // 因此这里统计的是各内存缓存实例的键数量与读写情况
 type Cache struct{}
 

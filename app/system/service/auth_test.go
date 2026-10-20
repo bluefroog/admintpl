@@ -56,7 +56,7 @@ func TestMenuListToRouters(t *testing.T) {
 		{ID: 1, MenuBase: domain.MenuBase{Name: "系统管理", ParentID: 0, Path: "system", MenuType: "M", Icon: "system", IsFrame: 1, Visible: "0"}},
 		{ID: 100, MenuBase: domain.MenuBase{Name: "用户管理", ParentID: 1, Path: "user", Component: "system/user/index", MenuType: "C", Perms: "system:user:list", IsFrame: 1, Visible: "0", IsCache: 1}},
 		{ID: 101, MenuBase: domain.MenuBase{Name: "角色管理", ParentID: 1, Path: "role", Component: "system/role/index", MenuType: "C", IsFrame: 1, Visible: "1"}},
-		{ID: 4, MenuBase: domain.MenuBase{Name: "若依官网", ParentID: 0, Path: "http://ruoyi.vip", MenuType: "M", IsFrame: 0, Visible: "0"}},
+		{ID: 4, MenuBase: domain.MenuBase{Name: "项目主页", ParentID: 0, Path: "https://github.com/bluefroog/admintpl", MenuType: "M", IsFrame: 0, Visible: "0"}},
 		{ID: 108, MenuBase: domain.MenuBase{Name: "日志管理", ParentID: 1, Path: "log", MenuType: "M", IsFrame: 1, Visible: "0"}},
 		{ID: 500, MenuBase: domain.MenuBase{Name: "操作日志", ParentID: 108, Path: "operlog", Component: "monitor/operlog/index", MenuType: "C", IsFrame: 1, Visible: "0"}},
 	}
@@ -107,7 +107,7 @@ func TestMenuListToRouters(t *testing.T) {
 
 	// 外链菜单
 	guide := routers[1]
-	if guide.Path != "/" || guide.Meta.Link != "http://ruoyi.vip" {
+	if guide.Path != "/" || guide.Meta.Link != "https://github.com/bluefroog/admintpl" {
 		t.Errorf("外链菜单应为 path=/ 且 meta.link 为外链地址，实际 %+v", guide)
 	}
 

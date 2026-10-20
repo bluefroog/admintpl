@@ -24,7 +24,7 @@ type DictTypeBase struct {
 	Type   string `json:"type" form:"type" validate:"required" gorm:"column:dict_type;type:varchar(100);not null;comment:字典类型"` // 字典类型
 	Status uint   `json:"status" form:"status" gorm:"column:status;type:char(1);default:0;comment:状态（0正常 1停用）"`                 // 状态（0正常 1停用）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // DictTypeSearchRequest 字典类型搜索请求结构体
@@ -41,7 +41,7 @@ type DictTypeSearchRequest struct {
 	IDNotIn []uint `json:"idNotIn"` // 不包含的ID列表
 	IDIn    []uint `json:"idIn"`    // 包含的ID列表
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // DictTypeCreateRequest 字典类型添加请求结构体

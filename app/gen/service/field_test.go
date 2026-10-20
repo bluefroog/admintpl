@@ -142,7 +142,7 @@ func TestInitColumnField(t *testing.T) {
 		t.Errorf("列归属信息错误: %+v", nameColumn)
 	}
 
-	// 主键列：不参与编辑、列表与查询（与若依一致）
+	// 主键列：不参与编辑、列表与查询（与既有约定一致）
 	pkColumn := newColumn("user_id", "bigint(20)")
 	pkColumn.IsPk = "1"
 	pkColumn.IsIncrement = "1"

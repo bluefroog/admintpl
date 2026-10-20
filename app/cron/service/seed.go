@@ -25,21 +25,21 @@ type jobSeed struct {
 	status         uint
 }
 
-// jobSeeds 若依内置示例任务（默认「暂停」，不会自动执行；可在定时任务页面启用或立即执行一次）
+// jobSeeds 内置示例任务（默认「暂停」，不会自动执行；可在定时任务页面启用或立即执行一次）
 var jobSeeds = []jobSeed{
 	{
 		name: "系统默认（无参）", group: "default", executor: "default",
-		invokeTarget: "ryTask.ryNoParams()", cronExpression: "0/10 * * * * ?",
+		invokeTarget: "demoTask.noParams()", cronExpression: "0/10 * * * * ?",
 		misfirePolicy: JobMisfireDoNothing, concurrent: JobConcurrentRefuse, status: JobStatusPaused,
 	},
 	{
 		name: "系统默认（有参）", group: "default", executor: "default",
-		invokeTarget: "ryTask.ryParams('ry')", cronExpression: "0/15 * * * * ?",
+		invokeTarget: "demoTask.params('demo')", cronExpression: "0/15 * * * * ?",
 		misfirePolicy: JobMisfireDoNothing, concurrent: JobConcurrentRefuse, status: JobStatusPaused,
 	},
 	{
 		name: "系统默认（多参）", group: "default", executor: "default",
-		invokeTarget: "ryTask.ryMultipleParams('ry', true, 2000, 1.0)", cronExpression: "0/20 * * * * ?",
+		invokeTarget: "demoTask.multipleParams('demo', true, 2000, 1.0)", cronExpression: "0/20 * * * * ?",
 		misfirePolicy: JobMisfireDoNothing, concurrent: JobConcurrentRefuse, status: JobStatusPaused,
 	},
 	{

@@ -1,12 +1,12 @@
 // Package task 定时任务「调用目标」注册表。
 //
-// 调用目标字符串格式与若依保持一致：beanName.methodName(args)，例如：
+// 调用目标字符串格式：beanName.methodName(args)，例如：
 //
-//	ryTask.ryNoParams()                            // 无参
-//	ryTask.ryParams('ry')                          // 单个字符串参数
-//	ryTask.ryMultipleParams('ry', true, 2000, 1.0) // 多类型参数
+//	demoTask.noParams()                            // 无参
+//	demoTask.params('demo')                          // 单个字符串参数
+//	demoTask.multipleParams('demo', true, 2000, 1.0) // 多类型参数
 //
-// 与若依通过反射调用 Spring Bean 不同，这里只在「显式注册」的方法集合内查找并调用
+// 这里只在「显式注册」的方法集合内查找并调用
 // （见 Register），未注册的调用目标直接报错，天然避免任意方法调用。
 package task
 
@@ -25,7 +25,7 @@ type RunFunc func(args []interface{}) error
 
 // Entry 一个已注册的调用目标
 type Entry struct {
-	Bean   string  // 目标对象名（相当于若依的 bean 名）
+	Bean   string  // 目标对象名
 	Method string  // 方法名
 	Remark string  // 说明
 	Run    RunFunc // 执行函数
@@ -178,7 +178,7 @@ func LookupTarget(target string) (*Entry, []interface{}, error) {
 // Invoke 执行调用目标
 //
 // extraArgs 为任务表中 job_args（以 | 分隔）解析出的位置参数，仅在调用目标字符串本身不带参数时使用，
-// 用于兼容 yjgo 的任务参数写法。
+// 用于兼容「调用目标本身不带参数」的任务写法。
 func Invoke(target string, extraArgs ...interface{}) error {
 	entry, args, err := LookupTarget(target)
 	if err != nil {
@@ -204,20 +204,20 @@ func SplitJobArgs(jobArgs string) []interface{} {
 }
 
 func init() {
-	// 若依内置示例任务（对应 com.ruoyi.quartz.task.RyTask）
-	Register("ryTask", "ryNoParams", "无参示例任务", func(args []interface{}) error {
-		log.Infof("[定时任务] ryTask.ryNoParams 执行，无参数")
+	// 内置示例任务
+	Register("demoTask", "noParams", "无参示例任务", func(args []interface{}) error {
+		log.Infof("[定时任务] demoTask.noParams 执行，无参数")
 		return nil
 	})
-	Register("ryTask", "ryParams", "一个参数的示例任务", func(args []interface{}) error {
-		log.Infof("[定时任务] ryTask.ryParams 执行，参数：%v", args)
+	Register("demoTask", "params", "一个参数的示例任务", func(args []interface{}) error {
+		log.Infof("[定时任务] demoTask.params 执行，参数：%v", args)
 		return nil
 	})
-	Register("ryTask", "ryMultipleParams", "多个参数的示例任务", func(args []interface{}) error {
-		log.Infof("[定时任务] ryTask.ryMultipleParams 执行，参数：%v", args)
+	Register("demoTask", "multipleParams", "多个参数的示例任务", func(args []interface{}) error {
+		log.Infof("[定时任务] demoTask.multipleParams 执行，参数：%v", args)
 		return nil
 	})
-	// 迁移自 yjgo 的示例任务
+	// job_args 传参示例任务
 	Register("testTask", "test1", "无参测试任务", func(args []interface{}) error {
 		log.Infof("[定时任务] testTask.test1 执行，无参数")
 		return nil

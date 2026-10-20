@@ -31,7 +31,7 @@ type JobBase struct {
 	Concurrent     string `json:"concurrent" form:"concurrent" gorm:"column:concurrent;type:char(1);default:'1';comment:是否并发执行（0允许 1禁止）"`                             // 是否并发执行（0允许 1禁止）
 	Status         uint   `json:"status" form:"status" gorm:"column:status;type:char(1);default:0;comment:状态（0正常 1暂停）"`                                               // 状态（0正常 1暂停）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // JobSearchRequest 定时任务搜索请求结构体
@@ -50,7 +50,7 @@ type JobSearchRequest struct {
 	IDNotIn []uint `json:"idNotIn"` // 不包含的ID列表
 	IDIn    []uint `json:"idIn"`    // 包含的ID列表
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // JobCreateRequest 定时任务添加请求结构体
@@ -72,7 +72,7 @@ type JobChangeStatusRequest struct {
 
 // JobRunRequest 定时任务立即执行一次请求结构体
 //
-// 与若依「执行一次」接口一致：状态为暂停的任务同样可以手动执行一次。
+// 与「执行一次」接口语义一致：状态为暂停的任务同样可以手动执行一次。
 type JobRunRequest struct {
 	ID uint `json:"id" form:"id" validate:"required"` // 任务ID
 }

@@ -220,7 +220,7 @@ func (u *DictType) CheckTypeUnique(c *gin.Context) {
 
 // RefreshCache 刷新字典缓存
 // @Summary 刷新字典缓存
-// @Description 清空并按当前数据库内容重新加载字典数据缓存（若依「刷新缓存」等价实现）
+// @Description 清空并按当前数据库内容重新加载字典数据缓存（刷新缓存）
 // @Tags 字典类型
 // @Success 0 {object} response.Response{data=int} "{"code": 0, "msg":"success","data": 12}"
 // @Router /system/dict-type/refresh-cache [delete]

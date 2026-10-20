@@ -14,11 +14,11 @@ func TestParseTarget(t *testing.T) {
 		method string
 		args   []interface{}
 	}{
-		{"ryTask.ryNoParams()", "ryTask", "ryNoParams", nil},
-		{"ryTask.ryParams('ry')", "ryTask", "ryParams", []interface{}{"ry"}},
-		{"ryTask.ryParams(\"ry\")", "ryTask", "ryParams", []interface{}{"ry"}},
-		{" ryTask.ryMultipleParams('ry', true, 2000, 1.0) ", "ryTask", "ryMultipleParams",
-			[]interface{}{"ry", true, int64(2000), 1.0}},
+		{"demoTask.noParams()", "demoTask", "noParams", nil},
+		{"demoTask.params('demo')", "demoTask", "params", []interface{}{"demo"}},
+		{"demoTask.params(\"demo\")", "demoTask", "params", []interface{}{"demo"}},
+		{" demoTask.multipleParams('demo', true, 2000, 1.0) ", "demoTask", "multipleParams",
+			[]interface{}{"demo", true, int64(2000), 1.0}},
 		{"testTask.test2('hello, world')", "testTask", "test2", []interface{}{"hello, world"}},
 		{"testTask.test2('')", "testTask", "test2", []interface{}{""}},
 	}
@@ -47,15 +47,15 @@ func TestParseTarget(t *testing.T) {
 func TestParseTargetInvalid(t *testing.T) {
 	targets := []string{
 		"",
-		"ryTask",
-		"ryTask.ryNoParams",
-		"ryTask.ryNoParams(",
-		".ryNoParams()",
-		"ryTask.()",
-		"ryTask.ryParams('ry'",
-		"ryTask.ryParams(a)",
-		"ryTask.ryParams('ry',)",
-		"ryTask.ryParams('ry') extra",
+		"demoTask",
+		"demoTask.noParams",
+		"demoTask.noParams(",
+		".noParams()",
+		"demoTask.()",
+		"demoTask.params('demo'",
+		"demoTask.params(a)",
+		"demoTask.params('demo',)",
+		"demoTask.params('demo') extra",
 	}
 	for _, target := range targets {
 		if _, _, _, err := ParseTarget(target); err == nil {
@@ -66,8 +66,8 @@ func TestParseTargetInvalid(t *testing.T) {
 
 // TestLookupAndInvoke 注册、查找与执行
 func TestLookupAndInvoke(t *testing.T) {
-	if _, ok := Lookup("ryTask", "ryNoParams"); !ok {
-		t.Fatal("内置示例任务 ryTask.ryNoParams 应当已注册")
+	if _, ok := Lookup("demoTask", "noParams"); !ok {
+		t.Fatal("内置示例任务 demoTask.noParams 应当已注册")
 	}
 	if _, ok := Lookup("notExists", "nothing"); ok {
 		t.Fatal("未注册的目标不应被找到")
@@ -123,7 +123,7 @@ func TestRunError(t *testing.T) {
 	}
 }
 
-// TestSplitJobArgs job_args 解析（兼容 yjgo 的 | 分隔写法）
+// TestSplitJobArgs job_args 解析（| 分隔写法）
 func TestSplitJobArgs(t *testing.T) {
 	if got := SplitJobArgs(""); got != nil {
 		t.Errorf("空 job_args 应返回 nil，实际 %v", got)

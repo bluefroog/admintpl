@@ -32,7 +32,7 @@ type ConfigBase struct {
 
 	Type string `json:"type" form:"type" gorm:"column:config_type;type:char(1);default:'N';comment:系统内置（Y是 | N否）"` // 是否系统内置（Y是 | N否）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // ConfigSearchRequest 后台系统配置搜索请求结构体
@@ -50,7 +50,7 @@ type ConfigSearchRequest struct {
 	IDNotIn []uint `json:"idNotIn"` // 不包含的ID列表
 	IDIn    []uint `json:"idIn"`    // 包含的ID列表
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // ConfigCreateRequest 系统配置添加请求结构体

@@ -31,7 +31,7 @@ POST http://127.0.0.1:8080/monitor/job/create
 content-type: application/json
 
 {
-  "invoke_target": "ryTask.ryNoParams()",
+  "invoke_target": "demoTask.noParams()",
   "name": ""
 }
 
@@ -50,7 +50,7 @@ content-type: application/json
 
 {
   "name": "job-name-1",
-  "invoke_target": "ryTask.ryNoParams()"
+  "invoke_target": "demoTask.noParams()"
 }
 
 ### create success 1
@@ -60,7 +60,7 @@ content-type: application/json
 {
   "name": "job-name-2",
   "group": "default",
-  "invoke_target": "ryTask.ryParams('ry')",
+  "invoke_target": "demoTask.params('demo')",
   "cron_expression": "0/5 * * * * ?",
   "status": 1
 }
@@ -71,7 +71,7 @@ content-type: application/json
 
 {
   "name": "job-name-1",
-  "invoke_target": "ryTask.ryMultipleParams('ry', true, 2000, 1.0)"
+  "invoke_target": "demoTask.multipleParams('demo', true, 2000, 1.0)"
 }
 
 ### update empty
@@ -88,7 +88,7 @@ content-type: application/json
 {
   "id": 0,
   "name": "定时任务",
-  "invoke_target": "ryTask.ryNoParams()"
+  "invoke_target": "demoTask.noParams()"
 }
 
 ### update empty name
@@ -97,7 +97,7 @@ content-type: application/json
 
 {
   "id": 1,
-  "invoke_target": "ryTask.ryNoParams()",
+  "invoke_target": "demoTask.noParams()",
   "name": ""
 }
 
@@ -109,7 +109,7 @@ content-type: application/json
   "id": 1,
   "name": "job-name-111",
   "group": "default",
-  "invoke_target": "ryTask.ryNoParams()",
+  "invoke_target": "demoTask.noParams()",
   "cron_expression": "0/10 * * * * ?",
   "status": 0
 }
@@ -162,7 +162,7 @@ content-type: application/json
 }
 
 ### check-name
-GET http://127.0.0.1:8080/monitor/job/check-name?name=ryTask
+GET http://127.0.0.1:8080/monitor/job/check-name?name=demoTask
 
 ### ===== 定时任务调度 =====
 # 说明：以下用例需先在本文件中执行上面的 login 用例获取令牌（AUTH_ENABLED=true 时）
@@ -186,7 +186,7 @@ Authorization: Bearer {{jobLogin.response.body.$.data.token}}
   "name": "非法cron任务",
   "group": "default",
   "executor": "default",
-  "invoke_target": "ryTask.ryNoParams()",
+  "invoke_target": "demoTask.noParams()",
   "cron_expression": "0 0 0 * *",
   "misfire_policy": "3",
   "concurrent": "1",
@@ -218,7 +218,7 @@ Authorization: Bearer {{jobLogin.response.body.$.data.token}}
   "name": "调度演示任务",
   "group": "default",
   "executor": "default",
-  "invoke_target": "ryTask.ryMultipleParams('ry', true, 2000, 1.0)",
+  "invoke_target": "demoTask.multipleParams('demo', true, 2000, 1.0)",
   "job_args": "hello|2000",
   "job_kwargs": "",
   "cron_expression": "*/2 * * * * ?",

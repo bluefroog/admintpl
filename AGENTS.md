@@ -19,7 +19,7 @@
 - 每张表对应一套文件，文件名 = 表名（蛇形），放置位置（`<模块>` 取上表目录）：
   - `<模块>/controller/<table>.go` — HTTP 控制器（只做：绑定参数 → `validate.Struct` 校验 → 调 service → 返回响应）
   - `<模块>/service/<table>.go` — 业务逻辑（用 `common/database`.DB，标准方法：GetCount/GetList/parseFilter/Create/Update/Delete/Detail + 唯一性校验）
-  - `<模块>/domain/<table>.go` — 实体（`ID uint` + `XxxBase` 嵌入 `core.RuoyiModel` + `TableName()`）与请求结构体（`XxxSearchRequest` 嵌入 `request.PageInfo/SortInfo/core.RouyiSearchRequest`、`XxxCreateRequest`、`XxxUpdateRequest` 嵌入 `request.GetById`）
+  - `<模块>/domain/<table>.go` — 实体（`ID uint` + `XxxBase` 嵌入 `core.AuditModel` + `TableName()`）与请求结构体（`XxxSearchRequest` 嵌入 `request.PageInfo/SortInfo/core.AuditSearchRequest`、`XxxCreateRequest`、`XxxUpdateRequest` 嵌入 `request.GetById`）
   - `<模块>/test/http/<table>.http` — 接口测试文件（`###` 分隔用例）
 - 新增表模型必须注册到所属模块 `domain/init.go` 的 `Models()`；路由必须注册到所属模块 `controller/init.go`。
   `bootstrap/bootstrap.go` 统一执行「数据库初始化 → `AutoMigrateAll(各模块 Models()...)` → 各模块 Initialize」，新增模块时在 `bootstrap` 中追加两行即可。
@@ -30,7 +30,7 @@
   - 扩展动作（`tree`、`check-*`、`roles`、`menu`、`data-scope`、`clear`、`force-logout` 等）见 `docs/开发规范.md` 1.3 节。
 - 响应：成功 `response.OK(data, c)` / `response.Success("提示", c)`；失败 `response.Fail(-1, "错误", c)`。
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
-- 删除接口必须同步清理关联表（用户：`sys_user_role`/`sys_user_post`；角色：`sys_role_menu`/`sys_role_dept`/`sys_user_role`），与若依一致，避免孤儿数据。
+- 删除接口必须同步清理关联表（用户：`sys_user_role`/`sys_user_post`；角色：`sys_role_menu`/`sys_role_dept`/`sys_user_role`）；事务内执行，避免孤儿数据。
 - 新增 `.go`/`.md`/`.http` 文件使用 **CRLF** 行尾。
 - 其它模块（工具类，如 `app/gen` 的代码生成、`/tool/build` 表单构建、`/tool/swagger` 系统接口）按同一模块划分方式新建 `app/<模块>`，不要塞进 `app/system`。
 
@@ -45,7 +45,7 @@
   - `just smoke [BASE_URL]` — 冒烟：对已启动实例跑读接口 + 全模块 CRUD 回归（默认 `http://127.0.0.1:8080`，脚本 `scripts/smoke.sh`）
   - `just gen-check [BASE_URL] [MYSQL_CMD]` — 代码生成深度校验：建临时表 → 导入 → 校验列配置推导 → 同步数据库 → 清理（脚本 `scripts/gen-check.sh`）
   - `just env dev` / `just env pro` — 环境切换：将 `.env.dev` / `.env.pro` 复制为 `.env`
-  - `just build` — 打包：编译供镜像使用的 linux/amd64 静态二进制 `rouyi-go-service`
+  - `just build` — 打包：编译供镜像使用的 linux/amd64 静态二进制 `admintpl-server`
   - `just release` — 发布：构建 Docker 镜像并推送远程仓库
   - `just docs` — 生成 swagger 文档
   - `just` / `just --list` — 查看全部命令
@@ -86,7 +86,7 @@
   参与校验的前缀为 `system/`、`monitor/`、`tool/`（`app/system/middleware/auth.go` 的 `PathPermission`），
   无法由路径推导的（如 `/monitor/server`、`/monitor/cache`、`/monitor/cache/list`）在 `pathPermissionAlias` 中显式映射；
   `system/user/profile|password|avatar` 为登录用户自助接口，不参与权限校验。
-  注意：种子菜单的按钮权限沿用若依命名（`xxx:remove` / `xxx:edit` / `monitor:job:changeStatus` 等），
+  注意：种子菜单的按钮权限命名（`xxx:remove` / `xxx:edit` / `monitor:job:changeStatus` 等），
   开启 `AUTH_PERMISSION_ENABLED` 前需在 `pathPermissionAlias` 中补齐这类映射，否则非超管角色会被拒绝。
 - **配置**：新增开关必须同时改 `config/config.yaml`（`${KEY:-默认值}` 占位符）与 `.env.dev` / `.env.pro`；
   `config/config.yaml` 末尾维护变量清单，`common/config/config_test.go` 会校验代码读取的键在配置文件中存在，缺失即测试失败。
@@ -103,7 +103,7 @@
 
 - **实现位置**：`app/system/service/data-scope.go`；查询入口统一为 `DataScope{}.Apply(db, loginUser, DataScopeOptions{...})`，
   角色列表用 `DataScope{}.ApplyToRoles(db, loginUser)`；列表方法一律接收 `loginUser *domain.LoginUser` 参数。
-- **语义与若依 `@DataScope` 一致**：`1` 全部（不过滤）、`2` 自定义（`sys_role_dept`）、`3` 本部门、`4` 本部门及以下（`ancestors` 递归）、`5` 仅本人；
+- **数据范围语义**：`1` 全部（不过滤）、`2` 自定义（`sys_role_dept`）、`3` 本部门、`4` 本部门及以下（`ancestors` 递归）、`5` 仅本人；
   多角色按 OR 合并，任一角色为 `1` 则不限制；无角色 / 超级管理员 / 未登录（`loginUser=nil`）不加条件。
 - **取值校验**：角色新增、修改、数据范围保存统一走 `NormalizeDataScope`（`0` 归一为 `1`，`1~5` 合法，其它值报「数据范围不正确」）。
 - **开关**：`system.data-scope.enabled`（`DATA_SCOPE_ENABLED`，默认 true）；关闭后列表不再过滤，便于排查「数据查不到」。
@@ -114,10 +114,10 @@
 
 ## 7. 定时任务约定
 
-- **cron 表达式**：统一使用 `common/cron`（若依/Quartz 语义，6~7 段 `秒 分 时 日 月 周 [年]`），
+- **cron 表达式**：统一使用 `common/cron`（Quartz 语义，6~7 段 `秒 分 时 日 月 周 [年]`），
   禁止再引入 Quartz/gcron/cron 第三方库；日与周都指定时取「或」关系，周字段 `1~7` 为周日~周六（兼容 `0` 表示周日）。
 - **调用目标**：`bean.method(args)` 形式，只能调用在 `app/cron/task/task.go` 中通过 `task.Register(...)` 显式注册的方法；
-  新增任务目标 = 注册目标方法 + 建任务并启用，未注册的目标会在新增/修改时被拒绝（等价于若依的调用目标白名单）。
+  新增任务目标 = 注册目标方法 + 建任务并启用，未注册的目标会在新增/修改时被拒绝（调用目标白名单校验）。
 - **调度器**：`app/cron/service/job-scheduler.go`（按表命名规范之外的模块级文件），按秒扫描、独立协程执行、
   并发策略与错过执行补偿按 `sys_job.concurrent` / `sys_job.misfire_policy` 生效，执行结果写入 `sys_job_log`；
   开关 `system.job.enabled`（`JOB_ENABLED`）。
@@ -125,7 +125,7 @@
   （`service/job.go` 已内置）；新任务表的 Create 同样使用 map 写入（`concurrent`/`status`/`misfire_policy` 有默认值）。
 - **任务日志写入**：使用 map 写入（`status=0`、`exception_info=''` 是零值）；日志清理天数由 `JOB_LOG_RETAIN_DAYS` 控制。
 
-## 8. 参数 / 字典缓存约定（若依缓存语义）
+## 8. 参数 / 字典缓存约定
 
 - **缓存介质**：进程内内存缓存 `common/cache`（无 Redis）；参数缓存名 `sys_config`（`config_key -> config_value`），
   字典缓存名 `sys_dict`（`dict_type -> []DictData`），两者都注册到缓存监控。
@@ -153,7 +153,7 @@
 - **表结构读取**：一律通过 `information_schema.tables` / `information_schema.columns` 原始查询（GORM `Table(...)`），
   不要引入第三方元数据表；已导入表用子查询排除，`qrtz_%`、`gen_%` 前缀表不参与导入。
 - **默认配置推导**：字段类型/必填/编辑/列表/查询/显示类型的推导集中在 `app/gen/service/field.go`
-  （`InitTable`/`InitColumnField`/`SetPkColumn`），保持与若依一致；修改推导规则必须同步补 `field_test.go` 用例。
+  （`InitTable`/`InitColumnField`/`SetPkColumn`）；修改推导规则必须同步补 `field_test.go` 用例。
 - **命名冲突**：`domain.Table` 已有 GORM 需要的 `TableName()` 方法，因此表名字段命名为 `Name`（JSON 仍为 `table_name`），
   不要再添加同名方法/字段。
 - **事务与清理**：导入、修改、同步、删除都在事务内完成；删除与同步必须同时维护 `gen_table_column`（不留孤儿字段配置）。
@@ -164,7 +164,7 @@
 
 - **服务监控** `/monitor/server`（权限 `monitor:server:list`）：采集逻辑在 `common/sysinfo`，**只用标准库**（Linux 读 `/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts` + `syscall.Statfs`），
   禁止引入 `gopsutil`；平台相关代码用构建标签拆分（`sysinfo_linux.go` / `sysinfo_other.go`），字符串解析逻辑放在平台无关文件以便单测；
-  返回字段名与若依前端一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles` 等），单位 MB、使用率 %。
+  返回字段名与前端监控页面约定一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles` 等），单位 MB、使用率 %。
 - **缓存监控** `/monitor/cache`、`/monitor/cache/list`、`/monitor/cache/clear`（权限 `monitor:cache:list`、`monitor:cacheList:list`）：
   基于进程内内存缓存 `common/cache`（无 Redis）；新增业务缓存后用 `cache.Register("名称", 实例)` 注册即会被监控页面列出，
   缓存列表只展示未过期条目，缓存值超过 200 字符截断。

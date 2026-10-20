@@ -39,7 +39,7 @@ content-type: application/json
 }
 
 ### delete
-# 说明：删除用户会同步清理 sys_user_role / sys_user_post 关联记录（与若依一致）
+# 说明：删除用户会同步清理 sys_user_role / sys_user_post 关联记录
 DELETE http://127.0.0.1:8080/system/user/delete
 content-type: application/json
 

@@ -35,7 +35,7 @@ type MenuBase struct {
 	Perms     string `json:"perms" form:"perms" gorm:"column:perms;type:varchar(100);comment:权限标识"`                                // 权限标识
 	Icon      string `json:"icon" form:"icon" gorm:"column:icon;type:varchar(100);default:'#';comment:菜单图标"`                       // 菜单图标
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // MenuSearchRequest 菜单搜索请求结构体
@@ -56,7 +56,7 @@ type MenuSearchRequest struct {
 	IDIn       []uint `json:"idIn"`       // 包含的ID列表
 	ParentIDIn []uint `json:"parentIDIn"` // 父菜单ID 数组
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // MenuCreateRequest 菜单添加请求结构体

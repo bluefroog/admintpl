@@ -4,14 +4,14 @@
 # 用途：对「已启动」的服务实例做一轮 代码生成 端到端校验：
 #       建临时表 -> 导入表结构 -> 校验列配置推导 -> 修改数据库结构 -> 同步数据库 -> 校验 -> 清理
 # 用法：./scripts/gen-check.sh [BASE_URL] [MYSQL_CMD]
-#       MYSQL_CMD 形如：mysql -h127.0.0.1 -uroot -p123456 --batch --skip-column-names ruoyi -e
-#       默认值：docker exec mysql mysql -uroot -p123456 --batch --skip-column-names ruoyi -e
+#       MYSQL_CMD 形如：mysql -h127.0.0.1 -uroot -p123456 --batch --skip-column-names admintpl -e
+#       默认值：docker exec mysql mysql -uroot -p123456 --batch --skip-column-names admintpl -e
 # 依赖：bash、curl、mysql 客户端（脚本会自建自删临时表；不会修改业务表数据）
 # ─────────────────────────────────────────────────────────────
 set -u
 
 BASE_URL="${1:-${BASE_URL:-http://127.0.0.1:8080}}"
-MYSQL_CMD="${2:-${MYSQL_CMD:-docker exec mysql mysql -uroot -p123456 --batch --skip-column-names ruoyi -e}}"
+MYSQL_CMD="${2:-${MYSQL_CMD:-docker exec mysql mysql -uroot -p123456 --batch --skip-column-names admintpl -e}}"
 MYSQL() { $MYSQL_CMD "$1" 2>/dev/null; }
 
 T="$BASE_URL/tool/gen"
@@ -87,7 +87,7 @@ chk "列类型变化后 Go 类型重新推导" "$det" "\"column_name\":\"demo_na
 pv=$(curl -s -m 10 "${AUTH[@]}" "$T/preview?id=$gid")
 chk "预览返回 Go 实体代码" "$pv" 'package domain'
 chk "预览类名取自表配置" "$pv" 'type SmokeGenDemo struct'
-chk "表无 create_by 时不嵌入审计列" "$pv" '未嵌入 .core\.RuoyiModel.'
+chk "表无 create_by 时不嵌入审计列" "$pv" '未嵌入 .core\.AuditModel.'
 chk "预览返回业务逻辑" "$pv" 'func \(s SmokeGenDemo\) GetList\('
 chk "预览返回控制器（含 swag 路由注解）" "$pv" '@Router /system/smoke_gen_demo/list'
 chk "预览返回建表语句" "$pv" 'DROP TABLE IF EXISTS .smoke_gen_demo'

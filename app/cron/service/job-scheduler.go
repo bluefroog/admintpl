@@ -181,7 +181,7 @@ func (s JobScheduler) Remove(id uint) {
 	delete(jobSchedulerJobs, id)
 }
 
-// RunOnce 立即执行一次任务（与任务状态无关，与若依「执行一次」一致）
+// RunOnce 立即执行一次任务（与任务状态无关）
 func (s JobScheduler) RunOnce(id uint) error {
 	if database.DB == nil {
 		return errors.New("数据库未初始化，无法执行任务")

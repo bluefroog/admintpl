@@ -216,7 +216,7 @@ func (s Job) Delete(ids []uint) (err error) {
 	for _, id := range ids {
 		JobScheduler{}.Remove(id)
 	}
-	// 与若依一致：删除任务时同时清理其执行日志（日志表没有 job_id，按 任务名称+任务组 匹配）
+	// 删除任务时同时清理其执行日志（日志表没有 job_id，按 任务名称+任务组 匹配）
 	var jobs []domain.Job
 	if err = database.DB.Where("job_id in (?) ", ids).Find(&jobs).Error; err == nil {
 		for _, job := range jobs {
@@ -284,7 +284,7 @@ func (s Job) ChangeStatus(req *domain.JobChangeStatusRequest) (err error) {
 	return nil
 }
 
-// Run 立即执行一次任务（与任务状态无关，与若依「执行一次」一致）
+// Run 立即执行一次任务（与任务状态无关）
 // @author: [bluefrog](https://github.com/freewu)
 // @function: Run
 // @description: 立即执行一次任务，执行结果写入 sys_job_log
@@ -307,7 +307,7 @@ func (s Job) ValidateJob(data *domain.JobBase) error {
 	if _, err := cron.Parse(data.CronExpression); err != nil {
 		return errors.New("Cron 表达式不正确：" + err.Error())
 	}
-	// 调用目标必须是已注册的目标（与若依的白名单校验等价，避免任意方法调用）
+	// 调用目标必须是已注册的目标（白名单校验，避免任意方法调用）
 	if _, _, err := task.LookupTarget(data.InvokeTarget); err != nil {
 		return errors.New("调用目标字符串错误：" + err.Error())
 	}

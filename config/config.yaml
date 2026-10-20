@@ -11,7 +11,7 @@ service:
 database:
   admin:
     type: "${DB_TYPE:-mysql}"
-    dsn: "${DB_DSN:-root:123456@tcp(127.0.0.1:3306)/ruoyi?charset=utf8mb4&parseTime=True&loc=Local}"
+    dsn: "${DB_DSN:-root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local}"
     prefix: "${DB_PREFIX:-}" # 表前缀
     max-idle: "${DB_MAX_IDLE:-10}" # 连接池最大闲置的连接数
     max-open: "${DB_MAX_OPEN:-10}" # 连接池最大打开的连接数

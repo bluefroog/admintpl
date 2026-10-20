@@ -16,13 +16,13 @@ type CacheStats struct {
 	Uptime          string `json:"uptime"`          // 运行时长
 }
 
-// CacheCommandStat 缓存读写命令统计（与若依缓存监控结构保持一致）
+// CacheCommandStat 缓存读写命令统计
 type CacheCommandStat struct {
 	Name  string `json:"name"`  // 命令名称
 	Value uint64 `json:"value"` // 执行次数
 }
 
-// CacheInfo 缓存监控信息（与若依缓存监控结构保持一致）
+// CacheInfo 缓存监控信息
 type CacheInfo struct {
 	Info         []CacheStats       `json:"info"`         // 各缓存统计
 	DbSize       int                `json:"dbSize"`       // 缓存键总数
@@ -30,7 +30,7 @@ type CacheInfo struct {
 	Names        []string           `json:"names"`        // 缓存名称列表
 }
 
-// CacheItem 缓存列表条目（与若依缓存列表结构保持一致）
+// CacheItem 缓存列表条目
 type CacheItem struct {
 	CacheName  string `json:"cacheName"`  // 缓存名称
 	CacheKey   string `json:"cacheKey"`   // 缓存键

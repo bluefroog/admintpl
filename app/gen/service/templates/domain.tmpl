@@ -5,7 +5,7 @@ import (
 	"time"
 {{- end}}
 
-	"{{.PackageName}}/common/model/request"{{if .UseRuoYiModel}}
+	"{{.PackageName}}/common/model/request"{{if .UseAuditModel}}
 	"{{.PackageName}}/common/model/core"{{end}}
 )
 
@@ -27,9 +27,9 @@ type {{.ClassName}}Base struct {
 {{- range .Fields}}
 	{{.GoField}} {{.GoTypeDecl}} `json:"{{.ColumnName}}" form:"{{.ColumnName}}"{{if and (eq .IsRequired "1") (eq .GoTypeDecl "string")}} validate:"required"{{end}} gorm:"column:{{.ColumnName}};type:{{.ColumnType}}{{if eq .IsRequired "1"}};not null{{end}};comment:{{.Comment}}"` // {{.Comment}}
 {{- end}}
-{{- if .UseRuoYiModel}}
+{{- if .UseAuditModel}}
 
-	core.RuoyiModel
+	core.AuditModel
 {{- end}}
 }
 
@@ -54,9 +54,9 @@ type {{.ClassName}}SearchRequest struct {
 
 	IDNotIn []uint `json:"idNotIn"` // 不包含的主键列表
 	IDIn    []uint `json:"idIn"`    // 包含的主键列表
-{{- if .UseRuoYiModel}}
+{{- if .UseAuditModel}}
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 {{- end}}
 }
 

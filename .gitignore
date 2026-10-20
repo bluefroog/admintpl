@@ -1,5 +1,5 @@
 /.idea
 /go.sum
-/rouyi-go-service
+/admintpl-server
 /.env
 /.env.local

@@ -100,8 +100,8 @@ func TestBuildRenderData(t *testing.T) {
 	if data.PermissionPre != "system:demo" {
 		t.Errorf("PermissionPre = %q, want %q", data.PermissionPre, "system:demo")
 	}
-	if !data.UseRuoYiModel {
-		t.Errorf("UseRuoYiModel = %v, want true", data.UseRuoYiModel)
+	if !data.UseAuditModel {
+		t.Errorf("UseAuditModel = %v, want true", data.UseAuditModel)
 	}
 	// 存在 datetime 字段，实体与 service 都需要 import "time"
 	if !data.ImportTime || !data.ServiceTime {
@@ -223,7 +223,7 @@ func TestRenderAll(t *testing.T) {
 		"func (m *Demo) TableName() string {",
 		`return "demo"`,
 		"type DemoBase struct {",
-		"core.RuoyiModel",
+		"core.AuditModel",
 		"type DemoSearchRequest struct {",
 		"type DemoCreateRequest struct {",
 		"type DemoUpdateRequest struct {",
@@ -401,7 +401,7 @@ func TestCleanComment(t *testing.T) {
 	}
 }
 
-// TestRenderWithoutAuditColumns 无审计列的表不嵌入 core.RuoyiModel、不 import "time"
+// TestRenderWithoutAuditColumns 无审计列的表不嵌入 core.AuditModel、不 import "time"
 func TestRenderWithoutAuditColumns(t *testing.T) {
 	table := newDemoTable()
 	columns := make([]domain.TableColumn, 0, len(table.Columns))
@@ -418,16 +418,16 @@ func TestRenderWithoutAuditColumns(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildRenderData 失败: %v", err)
 	}
-	if data.UseRuoYiModel || data.ImportTime || data.ServiceTime {
-		t.Errorf("无审计列的表不应标记审计/时间依赖: useRuoYiModel=%v importTime=%v serviceTime=%v",
-			data.UseRuoYiModel, data.ImportTime, data.ServiceTime)
+	if data.UseAuditModel || data.ImportTime || data.ServiceTime {
+		t.Errorf("无审计列的表不应标记审计/时间依赖: useAuditModel=%v importTime=%v serviceTime=%v",
+			data.UseAuditModel, data.ImportTime, data.ServiceTime)
 	}
 	files, err := renderAll(data)
 	if err != nil {
 		t.Fatalf("renderAll 失败: %v", err)
 	}
 	domainFile := strings.Join(strings.Fields(files[data.PackageName+"/app/system/domain/demo.go"]), " ")
-	if strings.Contains(domainFile, "core.RuoyiModel") || strings.Contains(domainFile, "\"time\"") {
+	if strings.Contains(domainFile, "core.AuditModel") || strings.Contains(domainFile, "\"time\"") {
 		t.Error("无审计列实体的导入不应包含 core / time")
 	}
 	serviceFile := strings.Join(strings.Fields(files[data.PackageName+"/app/system/service/demo.go"]), " ")

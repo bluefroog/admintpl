@@ -35,7 +35,7 @@ type DepartmentBase struct {
 	Phone  string `json:"phone" form:"phone" gorm:"column:phone;type:varchar(11);comment:联系电话"`   // 联系电话
 	EMail  string `json:"email" form:"email" gorm:"column:email;type:varchar(50);comment:邮箱"`     // 邮箱
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // DepartmentSearchRequest 部门查询请求结构体

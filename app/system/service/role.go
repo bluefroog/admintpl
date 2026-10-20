@@ -211,7 +211,7 @@ func (s Role) UpdateByMap(id uint, updateMap map[string]interface{}) (err error)
 // Delete 删除角色
 // @author: [bluefrog](https://github.com/freewu)
 // @function: Delete
-// @description: 删除角色，同时清理角色与菜单/部门/用户的关联记录（与若依一致，避免遗留孤儿数据）
+// @description: 删除角色，同时清理角色与菜单/部门/用户的关联记录（避免遗留孤儿数据）
 // @param: ids []uint
 // @return: err error
 func (s Role) Delete(ids []uint) (err error) {

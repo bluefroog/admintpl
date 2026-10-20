@@ -24,7 +24,7 @@ type PostBase struct {
 	Sort   uint   `json:"sort" form:"sort" gorm:"column:post_sort;type:int(11);not null;comment:显示顺序"`                         // 显示顺序
 	Status uint   `json:"status" form:"status" gorm:"column:status;type:char(1);not null;comment:状态(0正常 1停用)"`                 // 状态（0正常 1停用）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // PostSearchRequest 后台职位搜索请求结构体
@@ -41,7 +41,7 @@ type PostSearchRequest struct {
 	IDNotIn []uint `json:"idNotIn"` // 不包含的ID列表
 	IDIn    []uint `json:"idIn"`    // 包含的ID列表
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // PostCreateRequest 职位添加请求结构体

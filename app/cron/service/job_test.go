@@ -19,7 +19,7 @@ func TestValidateJob(t *testing.T) {
 	// 合法任务：默认值自动补全
 	data := &domain.JobBase{
 		Name:           "测试任务",
-		InvokeTarget:   "ryTask.ryNoParams()",
+		InvokeTarget:   "demoTask.noParams()",
 		CronExpression: "0/10 * * * * ?",
 	}
 	if err := job.ValidateJob(data); err != nil {
@@ -38,13 +38,13 @@ func TestValidateJob(t *testing.T) {
 		data domain.JobBase
 		want string
 	}{
-		{"cron 为空", domain.JobBase{InvokeTarget: "ryTask.ryNoParams()"}, "Cron 表达式不能为空"},
-		{"cron 非法", domain.JobBase{CronExpression: "0 0 0 * *", InvokeTarget: "ryTask.ryNoParams()"}, "Cron 表达式不正确"},
+		{"cron 为空", domain.JobBase{InvokeTarget: "demoTask.noParams()"}, "Cron 表达式不能为空"},
+		{"cron 非法", domain.JobBase{CronExpression: "0 0 0 * *", InvokeTarget: "demoTask.noParams()"}, "Cron 表达式不正确"},
 		{"调用目标未注册", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "hack.exec('rm -rf /')"}, "调用目标字符串错误"},
-		{"调用目标格式错误", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "ryTask"}, "调用目标字符串错误"},
-		{"并发策略非法", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "ryTask.ryNoParams()", Concurrent: "9"}, "并发策略"},
-		{"错过策略非法", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "ryTask.ryNoParams()", MisfirePolicy: "9"}, "错过执行策略"},
-		{"状态非法", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "ryTask.ryNoParams()", Status: 3}, "任务状态"},
+		{"调用目标格式错误", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "demoTask"}, "调用目标字符串错误"},
+		{"并发策略非法", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "demoTask.noParams()", Concurrent: "9"}, "并发策略"},
+		{"错过策略非法", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "demoTask.noParams()", MisfirePolicy: "9"}, "错过执行策略"},
+		{"状态非法", domain.JobBase{CronExpression: "0/10 * * * * ?", InvokeTarget: "demoTask.noParams()", Status: 3}, "任务状态"},
 	}
 	for _, item := range cases {
 		err := job.ValidateJob(&item.data)
@@ -157,7 +157,7 @@ func TestSchedulerMissed(t *testing.T) {
 	// 立即执行策略 + 上次执行在 10 秒前 -> 存在错过的执行
 	fireNow := &domain.Job{JobBase: domain.JobBase{
 		MisfirePolicy: JobMisfireFireNow,
-		RuoyiModel:    core.RuoyiModel{CreateTime: now.Add(-10 * time.Second)},
+		AuditModel:    core.AuditModel{CreateTime: now.Add(-10 * time.Second)},
 	}}
 	if !scheduler.missed(fireNow, schedule, now) {
 		t.Error("「立即执行」策略下存在错过执行时应补偿")
@@ -166,7 +166,7 @@ func TestSchedulerMissed(t *testing.T) {
 	// 刚刚创建的任务不应补偿
 	justCreated := &domain.Job{JobBase: domain.JobBase{
 		MisfirePolicy: JobMisfireFireNow,
-		RuoyiModel:    core.RuoyiModel{CreateTime: now},
+		AuditModel:    core.AuditModel{CreateTime: now},
 	}}
 	if scheduler.missed(justCreated, schedule, now) {
 		t.Error("刚创建的任务不应触发补偿")

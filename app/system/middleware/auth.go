@@ -25,15 +25,15 @@ var selfServicePaths = map[string]bool{
 	"system/user/avatar":   true, // 修改个人头像
 }
 
-// permissionPrefixes 参与权限校验的模块路径前缀（与若依「系统管理/系统监控/系统工具」保持一致）
+// permissionPrefixes 参与权限校验的模块路径前缀（系统管理 / 系统监控 / 系统工具）
 var permissionPrefixes = []string{"system/", "monitor/", "tool/"}
 
-// pathPermissionAlias 路径无法推导出权限标识时的映射（沿用若依权限标识）
+// pathPermissionAlias 路径无法推导出权限标识时的映射（沿用既有权限标识）
 var pathPermissionAlias = map[string]string{
 	"monitor/server":     "monitor:server:list",    // 服务监控
 	"monitor/cache":      "monitor:cache:list",     // 缓存监控
 	"monitor/cache/list": "monitor:cacheList:list", // 缓存列表
-	"tool/gen/download":  "tool:gen:code",          // 下载生成代码（沿用若依「生成代码」权限）
+	"tool/gen/download":  "tool:gen:code",          // 下载生成代码（沿用「生成代码」权限）
 }
 
 // authService 认证服务实例（中间件内部使用）

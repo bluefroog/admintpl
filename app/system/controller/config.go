@@ -209,7 +209,7 @@ func (u *Config) CheckKeyUnique(c *gin.Context) {
 
 // RefreshCache 刷新参数缓存
 // @Summary 刷新参数缓存
-// @Description 清空并按当前数据库内容重新加载参数缓存（若依「刷新缓存」等价实现）
+// @Description 清空并按当前数据库内容重新加载参数缓存（刷新缓存）
 // @Tags 系统参数管理
 // @Success 0 {object} response.Response{data=int} "{"code": 0, "msg":"success","data": 12}"
 // @Router /system/config/refresh-cache [delete]

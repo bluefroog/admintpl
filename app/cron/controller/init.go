@@ -6,7 +6,7 @@ import (
 )
 
 // InitRouter 注册「定时任务」模块路由（统一前缀 /monitor）
-// 权限标识与若依保持一致：/monitor/job/list -> monitor:job:list
+// 权限标识按路径推导：/monitor/job/list -> monitor:job:list
 func InitRouter(r *gin.Engine) {
 	authorized := r.Group("", middleware.Auth())
 

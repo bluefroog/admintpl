@@ -153,7 +153,7 @@ func (s DictType) Update(data *domain.DictTypeUpdateRequest) (err error) {
 	if err = s.UpdateByMap(data.ID, record); err != nil {
 		return err
 	}
-	// 字典类型变更会影响字典数据缓存（与若依 @CacheEvict(allEntries = true) 一致）
+	// 字典类型变更会影响字典数据缓存（清空整个字典缓存）
 	DictData{}.ClearCache()
 	return nil
 }

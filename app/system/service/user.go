@@ -187,14 +187,14 @@ func (s User) UpdateByMap(id uint, updateMap map[string]interface{}) (err error)
 
 // @author: [bluefrog](https://github.com/freewu)
 // @function: Delete
-// @description: 删除用户，同时清理用户与角色/岗位的关联记录（与若依一致，避免遗留孤儿数据）
+// @description: 删除用户，同时清理用户与角色/岗位的关联记录（避免遗留孤儿数据）
 // @param: ids []uint
 // @return: err error
 func (s User) Delete(ids []uint) (err error) {
 	if len(ids) == 0 {
 		return nil
 	}
-	// 删除用户与角色/岗位的关联记录（与若依一致，避免遗留孤儿数据）
+	// 删除用户与角色/岗位的关联记录（避免遗留孤儿数据）
 	return database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("user_id in (?)", ids).Unscoped().Delete(&domain.UserRole{}).Error; err != nil {
 			return err

@@ -24,7 +24,7 @@ type NoticeBase struct {
 	Type    uint   `json:"type" form:"type" gorm:"column:notice_type;type:char(1);not null;default:0;comment:公告类型（1通知 2公告）"`         // 公告类型（1通知 2公告）                         // 显示顺序
 	Status  uint   `json:"status" form:"status" gorm:"column:status;type:char(1);not null;comment:公告状态（0正常 1关闭）"`                    // 公告状态（0正常 1关闭）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // NoticeSearchRequest 后台公告搜索请求结构体
@@ -42,7 +42,7 @@ type NoticeSearchRequest struct {
 	IDNotIn []uint `json:"idNotIn"` // 不包含的ID列表
 	IDIn    []uint `json:"idIn"`    // 包含的ID列表
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // NoticeCreateRequest 公告添加请求结构体

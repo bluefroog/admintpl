@@ -104,7 +104,7 @@ func (s {{.ClassName}}) parseFilter(db *gorm.DB, searchParams *domain.{{.ClassNa
 		db = db.Where("({{range $i, $f := .KeyField}}{{if $i}} OR {{end}}`{{$f.ColumnName}}` LIKE ?{{end}})", {{range $i, $f := .KeyField}}{{if $i}}, {{end}}k1{{end}})
 	}
 {{- end}}
-{{- if .UseRuoYiModel}}
+{{- if .UseAuditModel}}
 	if searchParams.CreateBy != "" { // 创建者
 		db = db.Where("create_by LIKE ?", "%"+searchParams.CreateBy+"%")
 	}
@@ -125,7 +125,7 @@ func (s {{.ClassName}}) Create(data *domain.{{.ClassName}}CreateRequest) error {
 {{- range .InsertField}}
 	record.{{.GoField}} = data.{{.GoField}}
 {{- end}}
-{{- if .UseRuoYiModel}}
+{{- if .UseAuditModel}}
 	record.Remark = data.Remark
 	record.CreateBy = "" // TODO 如需记录操作人，可在此传入登录用户名
 	record.CreateTime = time.Now()
@@ -146,7 +146,7 @@ func (s {{.ClassName}}) Update(data *domain.{{.ClassName}}UpdateRequest) (err er
 {{- range .EditField}}
 	record["{{.GoField}}"] = data.{{.GoField}}
 {{- end}}
-{{- if .UseRuoYiModel}}
+{{- if .UseAuditModel}}
 	record["Remark"] = data.Remark
 	record["UpdateBy"] = ""
 	record["UpdateTime"] = time.Now()

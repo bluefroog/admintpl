@@ -41,7 +41,7 @@ type TableBase struct {
 	GenPath        string `json:"gen_path" form:"gen_path" gorm:"column:gen_path;type:varchar(200);comment:生成路径（不填默认项目路径）"`                         // 生成路径（不填默认项目路径）
 	Options        string `json:"options" form:"options" gorm:"column:options;type:varchar(1000);comment:其它生成选项"`                                   // 其它生成选项（树表模板参数等 JSON）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // DbTable 数据库表信息（information_schema.tables 查询结果，非实体表）
@@ -74,7 +74,7 @@ type TableSearchRequest struct {
 	BeginTime    string `json:"begin_time" form:"begin_time"`       // 开始时间
 	EndTime      string `json:"end_time" form:"end_time"`           // 结束时间
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // DbTableSearchRequest 数据库表搜索请求结构体（未导入的表）

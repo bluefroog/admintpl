@@ -17,7 +17,7 @@ import (
 // @function: DataScope
 // @description: 按登录用户的角色数据范围（sys_role.data_scope）为列表查询追加过滤条件，
 //
-//	语义与若依 DataScopeAspect（@DataScope 注解）保持一致：
+//	数据范围语义：
 //	1=全部数据权限 2=自定义数据权限 3=本部门数据权限 4=本部门及以下数据权限 5=仅本人数据权限
 type DataScope struct{}
 
@@ -30,7 +30,7 @@ const (
 	DataScopeSelf         uint = 5 // 仅本人数据权限
 )
 
-// DataScopeOptions 数据权限过滤选项（等价若依 @DataScope(deptAlias, userAlias)）
+// DataScopeOptions 数据权限过滤选项（部门 / 用户表别名）
 type DataScopeOptions struct {
 	DeptColumn string // 部门ID列，如 "department_id"、"u.department_id"
 	UserColumn string // 用户ID列，如 "id"；为空表示该查询不支持「仅本人」数据权限（该条件下恒不成立）
@@ -74,7 +74,7 @@ func (s DataScope) applyConditions(db *gorm.DB, conditions string, args []interf
 // ApplyToRoles 角色列表的数据权限过滤
 // @author: [bluefrog](https://github.com/freewu)
 // @function: ApplyToRoles
-// @description: 角色自身没有部门，若依通过 JOIN 用户/部门表实现过滤，这里用子查询达到同样效果
+// @description: 角色自身没有部门，用子查询过滤用户/部门表达到数据范围限制效果
 //
 //	（避免列表查询出现 JOIN 与列名歧义，同时保证统计总数与分页结果一致）
 //
@@ -150,7 +150,7 @@ func (s DataScope) roleScopes(userID uint) []roleScope {
 // @function: condition
 // @description: 多个角色的数据范围按 OR 拼接（任一角色为「全部数据权限」则不限制）；
 //
-//	自定义数据权限按角色分别生成条件，其余数据范围去重；无任何可用条件时不做限制（与若依一致）
+//	自定义数据权限按角色分别生成条件，其余数据范围去重；无任何可用条件时不做限制
 //
 // @param: scopes []roleScope 用户角色及数据范围
 // @param: options DataScopeOptions 数据权限过滤选项
@@ -158,7 +158,7 @@ func (s DataScope) roleScopes(userID uint) []roleScope {
 // @param: userID uint 登录用户ID
 // @return: conditions string, args []interface{}, limited bool
 func (s DataScope) condition(scopes []roleScope, options DataScopeOptions, deptID, userID uint) (string, []interface{}, bool) {
-	if len(scopes) == 0 { // 无角色（或未配置数据范围）：与若依一致，不追加条件
+	if len(scopes) == 0 { // 无角色（或未配置数据范围）：不追加条件
 		return "", nil, false
 	}
 	conditions := make([]string, 0, len(scopes))
@@ -196,7 +196,7 @@ func (s DataScope) condition(scopes []roleScope, options DataScopeOptions, deptI
 			}
 			conditions = append(conditions, fmt.Sprintf("%s = ?", options.UserColumn))
 			args = append(args, userID)
-		default: // 无法识别的数据范围：跳过（与若依一致），仅告警便于排查
+		default: // 无法识别的数据范围：跳过，仅告警便于排查
 			unknown = append(unknown, scope.ID)
 		}
 	}

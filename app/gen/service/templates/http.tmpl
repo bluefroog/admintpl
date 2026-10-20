@@ -58,7 +58,7 @@ Authorization: Bearer {{"{{"}}token{{"}}"}}
   "{{$f.ColumnName}}": 1
 {{- end}}
 {{- end}}
-{{- if .UseRuoYiModel}},
+{{- if .UseAuditModel}},
   "remark": "备注"
 {{- end}}
 }
@@ -90,7 +90,7 @@ Authorization: Bearer {{"{{"}}token{{"}}"}}
   "{{.ColumnName}}": 0
 {{- end}}
 {{- end}}
-{{- if .UseRuoYiModel}},
+{{- if .UseAuditModel}},
   "remark": "备注"
 {{- end}}
 }

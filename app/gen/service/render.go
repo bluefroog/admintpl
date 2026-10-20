@@ -78,7 +78,7 @@ type renderData struct {
 	ListField   []renderColumn // 列表字段
 	KeyField    []renderColumn // 参与关键字模糊查询的字符串列
 
-	UseRuoYiModel bool // 是否嵌入 core.RuoyiModel（表含 create_by / update_by）
+	UseAuditModel bool // 是否嵌入 core.AuditModel（表含 create_by / update_by）
 	ImportTime    bool // 实体是否需要 import "time"（存在 time.Time 字段）
 	ServiceTime   bool // service 是否需要 import "time"（审计列赋值）
 	ImportStrings bool // service 是否需要 import "strings"（关键字模糊查询）
@@ -289,10 +289,10 @@ func buildRenderData(table *domain.Table) (*renderData, error) {
 		TreeParentCode: table.TreeParentCode,
 		TreeName:       table.TreeName,
 	}
-	// 公共审计列由 core.RuoyiModel 提供（create_by/update_by 同时存在时按若依风格处理）
-	data.UseRuoYiModel = columnExist(table.Columns, "create_by") && columnExist(table.Columns, "update_by")
+	// 公共审计列由 core.AuditModel 提供（create_by/update_by 同时存在时启用）
+	data.UseAuditModel = columnExist(table.Columns, "create_by") && columnExist(table.Columns, "update_by")
 	autoKeys := map[string]bool{}
-	if data.UseRuoYiModel {
+	if data.UseAuditModel {
 		for _, key := range []string{"create_by", "create_time", "update_by", "update_time", "remark"} {
 			autoKeys[key] = true
 		}
@@ -325,7 +325,7 @@ func buildRenderData(table *domain.Table) (*renderData, error) {
 			data.ImportTime = true
 		}
 	}
-	data.ServiceTime = data.ImportTime || data.UseRuoYiModel
+	data.ServiceTime = data.ImportTime || data.UseAuditModel
 	data.ImportStrings = len(data.KeyField) > 0
 	return data, nil
 }

@@ -1,4 +1,4 @@
-SRV=rouyi-go-service
+SRV=admintpl-server
 VERSION=latest
 
 .PHONY: build

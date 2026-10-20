@@ -56,7 +56,7 @@ func TestPathPermission(t *testing.T) {
 		"/swagger.json":         "",
 		"":                      "",
 		"/system/user/list/":    "system:user:list",
-		// 系统监控 / 定时任务（模块拆分后与若依路径一致）
+		// 系统监控 / 定时任务（模块拆分后的路径）
 		"/monitor/online/list":         "monitor:online:list",
 		"/monitor/online/force-logout": "monitor:online:force-logout",
 		"/monitor/logininfor/clear":    "monitor:logininfor:clear",
@@ -69,7 +69,7 @@ func TestPathPermission(t *testing.T) {
 		"/monitor/cache":       "monitor:cache:list",
 		"/monitor/cache/list":  "monitor:cacheList:list",
 		"/monitor/cache/clear": "monitor:cache:clear",
-		// 代码生成：下载接口沿用若依「生成代码」权限标识
+		// 代码生成：下载接口沿用「生成代码」权限标识
 		"/tool/gen/list":     "tool:gen:list",
 		"/tool/gen/preview":  "tool:gen:preview",
 		"/tool/gen/download": "tool:gen:code",

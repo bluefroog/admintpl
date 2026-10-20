@@ -421,7 +421,7 @@ func menuListToRouters(menus []domain.Menu) []*domain.RouterResponse {
 		}
 		roots = append(roots, node.resp)
 	}
-	// 按若依前端约定补全路由信息
+	// 按前端约定补全路由信息
 	for _, id := range order {
 		applyRouterRule(nodes[id], nodes)
 	}
@@ -435,7 +435,7 @@ type routerNode struct {
 	resp     *domain.RouterResponse
 }
 
-// applyRouterRule 按若依前端约定补全路由层级信息（Layout/ParentView、外链、重定向等）
+// applyRouterRule 按前端约定补全路由层级信息（Layout/ParentView、外链、重定向等）
 // @param: node *routerNode 当前路由节点
 // @param: nodes map[uint]*routerNode 全部路由节点
 func applyRouterRule(node *routerNode, nodes map[uint]*routerNode) {

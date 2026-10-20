@@ -10,7 +10,7 @@ import (
 	"github.com/bluefroog/admintpl/common/config"
 )
 
-// 数据库类型分组（与若依保持一致）
+// 数据库类型分组
 var (
 	// columnTypeStr 数据库字符串类型
 	columnTypeStr = []string{"char", "varchar", "narchar", "varchar2", "tinytext", "text", "mediumtext", "longtext"}
@@ -289,7 +289,7 @@ func InitColumnField(column *domain.TableColumn, table *domain.Table) {
 		}
 	}
 
-	// 编辑 / 列表 / 查询字段（主键列不参与编辑、列表与查询，与若依一致）
+	// 编辑 / 列表 / 查询字段（主键列不参与编辑、列表与查询，与既有约定一致）
 	isPk := column.IsPk == "1"
 	if !isPk && IsNotEdit(columnName) {
 		column.IsEdit = "1"
@@ -323,7 +323,7 @@ func InitColumnField(column *domain.TableColumn, table *domain.Table) {
 }
 
 // numberGoType 根据数据库数字类型推导 GO 类型（float/double 与带小数位的 decimal 为 float64）
-// 与若依一致：整型长度 <= 10 为 int，否则为 int64；decimal(m,0) 也按整型处理。
+// 整型长度 <= 10 为 int，否则为 int64；decimal(m,0) 也按整型处理。
 // @param: columnType string 列类型
 // @return: string
 func numberGoType(columnType string) string {

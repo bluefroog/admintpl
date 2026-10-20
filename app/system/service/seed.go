@@ -14,7 +14,7 @@ import (
 // Seed 基础数据初始化服务
 type Seed struct{}
 
-// 内置账号初始密码（与若依保持一致，登录后请立即修改）
+// 内置账号初始密码（登录后请立即修改）
 const seedInitPassword = "admin123"
 
 // menuSeed 菜单种子数据（紧凑结构，便于维护）
@@ -32,13 +32,13 @@ type menuSeed struct {
 	visible   string // 0显示 1隐藏
 }
 
-// menuSeeds 若依标准菜单（目录 + 菜单 + 按钮）
+// menuSeeds 内置菜单（目录 + 菜单 + 按钮）
 var menuSeeds = []menuSeed{
 	// ---- 目录 ----
 	{id: 1, parentID: 0, name: "系统管理", sort: 1, path: "system", menuType: "M", icon: "system"},
 	{id: 2, parentID: 0, name: "系统监控", sort: 2, path: "monitor", menuType: "M", icon: "monitor"},
 	{id: 3, parentID: 0, name: "系统工具", sort: 3, path: "tool", menuType: "M", icon: "tool"},
-	{id: 4, parentID: 0, name: "若依官网", sort: 4, path: "http://ruoyi.vip", menuType: "M", icon: "guide", external: true},
+	{id: 4, parentID: 0, name: "项目主页", sort: 4, path: "https://github.com/bluefroog/admintpl", menuType: "M", icon: "guide", external: true},
 
 	// ---- 系统管理 ----
 	{id: 100, parentID: 1, name: "用户管理", sort: 1, path: "user", component: "system/user/index", menuType: "C", perms: "system:user:list", icon: "user"},
@@ -263,16 +263,16 @@ func (s Seed) seedDepartments(tx *gorm.DB) error {
 		phone     string
 		email     string
 	}{
-		{id: 100, parentID: 0, ancestors: "0", name: "若依科技", sort: 0, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 101, parentID: 100, ancestors: "0,100", name: "深圳总公司", sort: 1, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 102, parentID: 100, ancestors: "0,100", name: "长沙分公司", sort: 2, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 103, parentID: 101, ancestors: "0,100,101", name: "研发部门", sort: 1, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 104, parentID: 101, ancestors: "0,100,101", name: "市场部门", sort: 2, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 105, parentID: 101, ancestors: "0,100,101", name: "测试部门", sort: 3, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 106, parentID: 101, ancestors: "0,100,101", name: "财务部门", sort: 4, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 107, parentID: 101, ancestors: "0,100,101", name: "运维部门", sort: 5, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 108, parentID: 102, ancestors: "0,100,102", name: "市场部门", sort: 1, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
-		{id: 109, parentID: 102, ancestors: "0,100,102", name: "财务部门", sort: 2, leader: "若依", phone: "15888888888", email: "ry@qq.com"},
+		{id: 100, parentID: 0, ancestors: "0", name: "蓝蛙科技", sort: 0, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 101, parentID: 100, ancestors: "0,100", name: "深圳总公司", sort: 1, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 102, parentID: 100, ancestors: "0,100", name: "长沙分公司", sort: 2, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 103, parentID: 101, ancestors: "0,100,101", name: "研发部门", sort: 1, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 104, parentID: 101, ancestors: "0,100,101", name: "市场部门", sort: 2, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 105, parentID: 101, ancestors: "0,100,101", name: "测试部门", sort: 3, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 106, parentID: 101, ancestors: "0,100,101", name: "财务部门", sort: 4, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 107, parentID: 101, ancestors: "0,100,101", name: "运维部门", sort: 5, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 108, parentID: 102, ancestors: "0,100,102", name: "市场部门", sort: 1, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
+		{id: 109, parentID: 102, ancestors: "0,100,102", name: "财务部门", sort: 2, leader: "蓝蛙", phone: "15888888888", email: "admin@bluefrog.local"},
 	}
 	rows := make([]domain.Department, 0, len(seeds))
 	for _, item := range seeds {
@@ -287,7 +287,7 @@ func (s Seed) seedDepartments(tx *gorm.DB) error {
 				Leader:    item.leader,
 				Phone:     item.phone,
 				EMail:     item.email,
-				RuoyiModel: core.RuoyiModel{
+				AuditModel: core.AuditModel{
 					CreateTime: now,
 					UpdateTime: now,
 					CreateBy:   "system",
@@ -326,7 +326,7 @@ func (s Seed) seedPosts(tx *gorm.DB) error {
 				Name:   item.name,
 				Sort:   item.sort,
 				Status: 0,
-				RuoyiModel: core.RuoyiModel{
+				AuditModel: core.AuditModel{
 					CreateTime: now,
 					UpdateTime: now,
 					CreateBy:   "system",
@@ -357,7 +357,7 @@ func (s Seed) seedRoles(tx *gorm.DB) error {
 				MenuCheckStrictly:       1,
 				DepartmentCheckStrictly: 1,
 				DeleteFlag:              0,
-				RuoyiModel: core.RuoyiModel{
+				AuditModel: core.AuditModel{
 					CreateTime: now, UpdateTime: now, CreateBy: "system", UpdateBy: "system",
 					Remark: "超级管理员",
 				},
@@ -374,7 +374,7 @@ func (s Seed) seedRoles(tx *gorm.DB) error {
 				MenuCheckStrictly:       1,
 				DepartmentCheckStrictly: 1,
 				DeleteFlag:              0,
-				RuoyiModel: core.RuoyiModel{
+				AuditModel: core.AuditModel{
 					CreateTime: now, UpdateTime: now, CreateBy: "system", UpdateBy: "system",
 					Remark: "普通角色",
 				},
@@ -402,7 +402,7 @@ func (s Seed) seedUsers(tx *gorm.DB) error {
 				Mobile:       "15888888888",
 				Nickname:     "超级管理员",
 				Status:       1,
-				Email:        "admin@ruoyi.com",
+				Email:        "admin@bluefrog.local",
 				Gender:       0,
 				DepartmentID: 103,
 				Remark:       "超级管理员账号",
@@ -413,11 +413,11 @@ func (s Seed) seedUsers(tx *gorm.DB) error {
 		{
 			Model: core.Model{ID: 2},
 			UserBase: domain.UserBase{
-				Username:     "ry",
+				Username:     "test",
 				Mobile:       "15666666666",
-				Nickname:     "若依",
+				Nickname:     "测试账号",
 				Status:       1,
-				Email:        "ry@ruoyi.com",
+				Email:        "test@bluefrog.local",
 				Gender:       0,
 				DepartmentID: 105,
 				Remark:       "普通角色账号",
@@ -531,7 +531,7 @@ func (s Seed) seedConfigs(tx *gorm.DB) error {
 				Key:   item.key,
 				Value: item.value,
 				Type:  "Y",
-				RuoyiModel: core.RuoyiModel{
+				AuditModel: core.AuditModel{
 					CreateTime: now, UpdateTime: now, CreateBy: "system", UpdateBy: "system",
 					Remark: "系统内置参数",
 				},
@@ -555,7 +555,7 @@ func (s Seed) seedDictTypes(tx *gorm.DB) error {
 				Name:   item.name,
 				Type:   item.typ,
 				Status: 0,
-				RuoyiModel: core.RuoyiModel{
+				AuditModel: core.AuditModel{
 					CreateTime: now, UpdateTime: now, CreateBy: "system", UpdateBy: "system",
 					Remark: "系统内置字典",
 				},
@@ -583,7 +583,7 @@ func (s Seed) seedDictData(tx *gorm.DB) error {
 				ListClass: item.listClass,
 				IsDefault: item.isDefault,
 				Status:    0,
-				RuoyiModel: core.RuoyiModel{
+				AuditModel: core.AuditModel{
 					CreateTime: now, UpdateTime: now, CreateBy: "system", UpdateBy: "system",
 					Remark: "系统内置字典数据",
 				},

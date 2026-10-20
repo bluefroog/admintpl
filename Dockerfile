@@ -14,8 +14,8 @@ RUN apk add --no-cache tzdata ca-certificates \
 WORKDIR /
 
 # 二进制（由 just build 生成）
-ADD rouyi-go-service /rouyi-go-service
-RUN chmod +x /rouyi-go-service
+ADD admintpl-server /admintpl-server
+RUN chmod +x /admintpl-server
 
 # 配置结构（只含 ${...} 占位符，值由环境变量提供）
 ADD config/ /config/
@@ -24,4 +24,4 @@ ENV TZ=Asia/Shanghai
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/rouyi-go-service" ]
+ENTRYPOINT [ "/admintpl-server" ]

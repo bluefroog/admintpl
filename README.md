@@ -11,14 +11,14 @@
 * [已实现]角色管理：角色菜单权限分配、设置角色按机构进行数据范围权限划分。
 * [已实现]字典管理：对系统中经常使用的一些较为固定的数据进行维护。
 * [已实现]参数管理：对系统动态配置常用参数（参数值进程内缓存，支持一键刷新缓存）。
-* [已实现]字典/参数缓存：字典数据按类型缓存、参数按键名缓存，变更即失效，支持一键刷新缓存（与若依缓存语义一致）。
+* [已实现]字典/参数缓存：字典数据按类型缓存、参数按键名缓存，变更即失效，支持一键刷新缓存。
 * [已实现]操作日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
 * [已实现]登录日志：系统登录日志记录查询包含登录异常。
 * [已实现]在线用户：当前系统中活跃用户状态监控，支持强退。
 * [已实现]缓存监控：查询内存缓存的键值、读写统计，支持按缓存名称/缓存键过滤与清空。
 * [已实现]服务监控：监视当前系统 CPU、内存、磁盘、Go 运行时等信息。
 * [已实现]数据权限：按角色划分数据范围（全部/自定义/本部门/本部门及以下/仅本人），作用于用户、部门、角色列表。
-* [已实现]定时任务：任务配置（增删改查/启停/立即执行一次）+ 调度执行 + 任务日志；cron 表达式与调用目标均为若依（Quartz）语义。
+* [已实现]定时任务：任务配置（增删改查/启停/立即执行一次）+ 调度执行 + 任务日志；cron 表达式为 Quartz 语义，调用目标只能在已注册的方法集合内调用。
 * [已实现]代码生成：数据库表结构导入、生成配置维护（表配置/字段配置/树表参数）、同步数据库表结构。
 * [已实现]代码生成模板渲染：按生成配置渲染 domain/service/controller/接口测试/建表语句/接入说明，支持在线预览与 zip 下载。
 
@@ -39,7 +39,7 @@ just init
 | `/login` | POST | 登录（`{username, password, code?, uuid?}`），返回 `{token, expiresIn}` |
 | `/logout` | POST | 退出登录（删除令牌对应的在线记录） |
 | `/getInfo` | GET | 获取当前登录用户信息、角色标识与权限标识 |
-| `/getRouters` | GET | 获取当前用户的前端路由（Layout/ParentView、外链等若依约定结构） |
+| `/getRouters` | GET | 获取当前用户的前端路由（Layout/ParentView、外链等前端约定结构） |
 | `/monitor/online/*` | - | 在线用户列表 / 详情 / 强退（强退后令牌立即失效） |
 
 令牌携带方式（三选一，优先级从上到下）：
@@ -72,7 +72,7 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 | 账号 | 密码 | 说明 |
 | ---- | ---- | ---- |
 | `admin` | `admin123` | 超级管理员（`*:*:*` 全部权限），部门 103 |
-| `ry` | `admin123` | 普通角色（角色 ID 2，岗位 4，部门 105） |
+| `test` | `admin123` | 普通角色（角色 ID 2，岗位 4，部门 105） |
 
 > 启动日志会打印生效开关，例如
 > `system 初始化：登录认证=true 权限校验=false 图形验证码=false 数据权限=true 基础数据初始化=true`，
@@ -91,7 +91,7 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 | `/monitor/job/run` | PUT | 立即执行一次（暂停中的任务同样可以执行） |
 | `/monitor/jobLog/list` `/detail` `/delete` `/clear` | - | 任务执行日志查询 / 删除 / 清空 |
 
-**cron 表达式**（6~7 段：`秒 分 时 日 月 周 [年]`，与若依 Quartz 一致）：
+**cron 表达式**（6~7 段：`秒 分 时 日 月 周 [年]`，Quartz 语义）：
 
 ```bash
 0/20 * * * * ?          # 每 20 秒执行一次
@@ -106,15 +106,15 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 * 周字段 `1~7` 依次表示周日~周六（Quartz 约定），同时兼容 `0` 表示周日；
 * 支持 `*` `?` `,` `-` `/` `L` `W` `#` 与月份/星期英文缩写（`JAN-DEC` / `SUN-SAT`）。
 
-**调用目标**（`bean.method(args)`，与若依一致）：只能调用「已注册」的方法，
-未注册的调用目标在新增/修改时即被拒绝（等价于若依的调用目标白名单校验，避免任意方法调用）。
+**调用目标**（`bean.method(args)`）：只能调用「已注册」的方法，
+未注册的调用目标在新增/修改时即被拒绝（白名单校验，避免任意方法调用）。
 内置示例目标定义在 `app/cron/task/task.go`：
 
 ```bash
-ryTask.ryNoParams()                            # 无参
-ryTask.ryParams('ry')                          # 单个字符串参数
-ryTask.ryMultipleParams('ry', true, 2000, 1.0) # 多类型参数
-testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
+demoTask.noParams()                              # 无参
+demoTask.params('demo')                          # 单个字符串参数
+demoTask.multipleParams('demo', true, 2000, 1.0) # 多类型参数
+testTask.test1() / testTask.test2('hello')     # job_args 传参示例任务
 ```
 
 新增任务目标：在 `app/cron/task/task.go` 中调用 `task.Register(bean, method, remark, fn)` 注册后即可使用；
@@ -129,12 +129,12 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 
 * `concurrent=1`（禁止并发）时，上次执行未结束会跳过本次触发；
 * `misfire_policy`：`1` 立即执行 / `2` 执行一次 / `3` 放弃执行——调度器启动时据此补偿停机期间错过的执行（`3` 不补偿）；
-* 删除任务时同时清理该任务的执行日志（与若依一致，日志按 `job_name + job_group` 匹配）；
+* 删除任务时同时清理该任务的执行日志（日志按 `job_name + job_group` 匹配）；
 * 内置示例任务默认「暂停」，`SEED_ENABLED=true` 且 `sys_job` 为空时写入 4 条示例任务。
 
 # 数据权限
 
-按「角色」划分可见数据范围（与若依 `@DataScope` 语义一致），当前作用于用户列表、部门列表/树、角色列表：
+按「角色」划分可见数据范围（数据范围语义），当前作用于用户列表、部门列表/树、角色列表：
 
 | data_scope | 含义 | 过滤条件（以用户/部门表为例） |
 | ---------- | ---- | ---------------------------- |
@@ -145,11 +145,11 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 | 5 | 仅本人数据权限 | `id = 登录用户ID`（部门表没有用户列，该条件恒不成立，即查不到数据） |
 
 * 一个用户有多个角色时按 OR 合并（`(条件1 OR 条件2)`），任一角色为「全部数据权限」则不限制；
-* 用户没有任何角色时不追加条件（与若依一致）；超级管理员（用户 ID 1 或 `is_admin`）不受限制；
-* 角色列表按「角色下的用户是否在可见范围内」过滤（子查询 `sys_user_role`），与若依一致；
+* 用户没有任何角色时不追加条件；超级管理员（用户 ID 1 或 `is_admin`）不受限制；
+* 角色列表按「角色下的用户是否在可见范围内」过滤（子查询 `sys_user_role`）；
 * 角色数据范围只允许 1~5：`0`（未传）按 `1` 处理，其它值返回「数据范围不正确」；
 * 内部唯一性校验、子节点检查等场景以 `loginUser=nil` 调用，不受数据权限影响（保持原有行为）；
-* 删除用户会同步清理 `sys_user_role`、`sys_user_post`，删除角色会同步清理 `sys_role_menu`、`sys_role_dept`、`sys_user_role`（与若依一致，避免孤儿关联数据）。
+* 删除用户会同步清理 `sys_user_role`、`sys_user_post`，删除角色会同步清理 `sys_role_menu`、`sys_role_dept`、`sys_user_role`（避免孤儿关联数据）。
 
 | 变量 | 默认值 | 说明 |
 | ---- | ------ | ---- |
@@ -165,13 +165,13 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 | `/monitor/cache/list` | GET | 缓存列表：分页查询缓存键值，支持 `cacheName`、`cacheKey` 过滤 |
 | `/monitor/cache/clear` | DELETE | 清空缓存：`cacheName` 为空清空全部，指定名称不存在时返回错误 |
 
-* 响应字段与若依前端（`ruoyi-ui` 的监控页面）保持一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles`/`dbSize`/`commandStats` 等），便于直接复用前端页面；
+* 响应字段与前端监控页面约定保持一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles`/`dbSize`/`commandStats` 等），便于前端直接对接；
 * **零新增依赖**：不使用 `gopsutil`，CPU/负载/内存/磁盘均读取 Linux `/proc`（`/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts`）+ `syscall.Statfs` 实现；非 Linux 平台仅返回 Go 运行时与主机基础信息，系统指标为零值；
 * 内存/磁盘单位均为 MB，使用率单位为 %；容器内根目录（`overlay`）与 `/dev/*` 设备都会作为磁盘列出；
 * 缓存监控基于进程内内存缓存（`common/cache`，无 Redis）。除默认缓存外，图形验证码缓存（`captcha`）、参数缓存（`sys_config`）、字典缓存（`sys_dict`）也注册到监控中；缓存列表中的过期项不展示；
 * 权限标识：`monitor:server:list`、`monitor:cache:list`、`monitor:cacheList:list`（已有种子菜单），认证开启权限校验时按 `/monitor/...` 路径推导。
 
-# 参数 / 字典缓存（若依缓存语义）
+# 参数 / 字典缓存
 
 | 接口 | 方法 | 说明 |
 | ---- | ---- | ---- |
@@ -180,7 +180,7 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 | `/system/dict-data/get-by-type` | GET | 按字典类型取字典数据，缓存优先（未命中查库并写入 `sys_dict` 缓存） |
 | `/system/dict-type/refresh-cache` | DELETE | 刷新字典缓存（清空后按数据库重新加载，返回缓存的字典类型数） |
 
-* **缓存语义与若依一致**：`sys_config` 以「参数键名 -> 参数键值」缓存，`sys_dict` 以「字典类型 -> 字典数据列表」缓存；
+* **缓存语义**：`sys_config` 以「参数键名 -> 参数键值」缓存，`sys_dict` 以「字典类型 -> 字典数据列表」缓存；
 * **变更即失效**：参数新增/修改/删除后失效对应键（键名变更时新旧键都会失效）；字典数据新增/修改/删除后失效对应字典类型；字典类型修改/删除后清理相关字典缓存；
 * **启动预热**：服务启动时把参数表与字典数据全量加载进缓存（`CACHE_ENABLED=true`），并打印预热条目数；
 * **排查手段**：`CACHE_ENABLED=false` 时全部查询直接回源数据库；缓存内容可在「缓存监控 / 缓存列表」页面查看（按 `sys_config` / `sys_dict` 名称过滤）。
@@ -205,10 +205,10 @@ testTask.test1() / testTask.test2('hello')     # 迁移自 yjgo 的示例任务
 - **命名来源**：类名/功能名/作者优先取 `gen_table` 中按表配置的值（页面可编辑），缺失时回落到 `system.gen.*` 与表名推导；
   文件名固定为「表名去前缀后的蛇形名」，与「一表一套文件」约定一致；
 - **主键要求**：仅支持整型主键（`bigint`/`int`），主键实体字段统一为 `ID uint`，否则生成时报错；
-- **生成内容**：`create_by` 与 `update_by` 同时存在时实体嵌入 `core.RuoyiModel`，并在 service 中填充审计列。
+- **生成内容**：`create_by` 与 `update_by` 同时存在时实体嵌入 `core.AuditModel`，并在 service 中填充审计列。
 
 * **表结构来源**：字段名称/类型/主键/自增/必填全部来自 `information_schema.columns`（按 `ordinal_position` 排序），表描述来自 `information_schema.tables`，不依赖任何第三方元数据表；
-* **默认配置推导（与若依一致）**：字符串 -> `string`（`text` 系列或长度 >= 500 为 `textarea`，否则 `input`）、时间 -> `Time`/`datetime`、数字 -> `int`/`int64`/`float64`；列名含 `name`/`status` 默认必填，`status` 列默认 `radio`，`type`/`sex` 结尾的列默认 `select`，`*name` 列默认 `LIKE` 查询；`id`/`create_by`/`create_time`/`del_flag`/`update_by`/`update_time` 默认不参与编辑、列表（`remark` 不参与查询）；
+* **默认配置推导**：字符串 -> `string`（`text` 系列或长度 >= 500 为 `textarea`，否则 `input`）、时间 -> `Time`/`datetime`、数字 -> `int`/`int64`/`float64`；列名含 `name`/`status` 默认必填，`status` 列默认 `radio`，`type`/`sex` 结尾的列默认 `select`，`*name` 列默认 `LIKE` 查询；`id`/`create_by`/`create_time`/`del_flag`/`update_by`/`update_time` 默认不参与编辑、列表（`remark` 不参与查询）；
 * **类名与包名来自配置**：`system.gen.auto-remove-pre` + `system.gen.table-prefix` 决定实体类名（`sys_notice` -> `Notice`），`system.gen.package-name`/`module-name`/`author` 决定包路径、模块名与作者；
 * **主键列**：优先取 `is_pk=1` 的列，表无主键时取第一列（避免生成代码时主键为空）；
 * **删除/同步均在事务内完成**，同步不会丢失用户已配置的显示类型（列类型未变化时只同步列名、描述与排序列）；
@@ -302,13 +302,13 @@ just env pro          # 选好生产配置
 just release          # 构建并推送镜像
 
 # 方式一：指定 env 文件
-docker run -d --name admintpl -p 8080:8080 --env-file .env rouyi-go-service:latest
+docker run -d --name admintpl -p 8080:8080 --env-file .env admintpl-server:latest
 
 # 方式二：直接注入环境变量
 docker run -d --name admintpl -p 8080:8080 \
-  -e DB_DSN='root:123456@tcp(10.0.0.5:3306)/ruoyi?charset=utf8mb4&parseTime=True&loc=Local' \
+  -e DB_DSN='root:123456@tcp(10.0.0.5:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local' \
   -e SERVICE_DEBUG=false \
-  rouyi-go-service:latest
+  admintpl-server:latest
 ```
 
 > 注：`just build` 编译的是 **linux/amd64 静态二进制**（供镜像内运行）；本地调试请用 `just dev`（`go run`）。
@@ -324,14 +324,14 @@ docker run -d --name admintpl -p 8080:8080 \
 # 开发机：构建并导出镜像
 just env pro          # 选好生产配置（生成 .env）
 just build            # 编译 linux/amd64 静态二进制
-just release          # 构建并推送镜像；仅本地构建可改用 docker build . -t rouyi-go-service:latest
-docker save rouyi-go-service:latest | gzip > rouyi-go-service.tar.gz
-scp rouyi-go-service.tar.gz bluefrog@192.168.122.129:~
+just release          # 构建并推送镜像；仅本地构建可改用 docker build . -t admintpl-server:latest
+docker save admintpl-server:latest | gzip > admintpl-server.tar.gz
+scp admintpl-server.tar.gz bluefrog@192.168.122.129:~
 
 # 服务器：加载并启动（.env 由手工编写或从开发机拷贝）
-gunzip -c ~/rouyi-go-service.tar.gz | docker load
+gunzip -c ~/admintpl-server.tar.gz | docker load
 docker run -d --name admintpl --restart always -p 8080:8080 \
-  --env-file ~/.env rouyi-go-service:latest
+  --env-file ~/.env admintpl-server:latest
 docker logs -f admintpl          # 正常应看到 GIN-debug 路由注册日志
 
 # 部署后自检（读接口 + 全模块 CRUD 往返，会自建自删测试数据）

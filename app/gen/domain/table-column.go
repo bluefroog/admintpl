@@ -41,7 +41,7 @@ type TableColumnBase struct {
 	DictType  string `json:"dict_type" form:"dict_type" gorm:"column:dict_type;type:varchar(200);comment:字典类型"`                          // 字典类型
 	Sort      uint   `json:"sort" form:"sort" gorm:"column:sort;type:int(4);comment:排序"`                                                 // 排序
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // TableColumnSearchRequest 代码生成业务表字段搜索请求结构体

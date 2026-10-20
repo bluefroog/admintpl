@@ -79,7 +79,7 @@ func TestDataScopeCondition(t *testing.T) {
 		wantLimited bool
 	}{
 		{
-			name:        "无角色不追加条件（与若依一致）",
+			name:        "无角色不追加条件",
 			scopes:      nil,
 			options:     DataScopeOptions{DeptColumn: "department_id", UserColumn: "id"},
 			wantLimited: false,

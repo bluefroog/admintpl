@@ -65,7 +65,7 @@
 1. **唯一性校验**：生成代码不含唯一索引校验，如 `{{.TableName}}` 存在业务唯一键，请在 `Create` / `Update` 中补充查重（参考 `app/system/service/post.go` 的 `Create` / `Update`）。
 2. **关联表清理**：若该表存在中间表（如 `xxx_yyy`），删除时需在同一事务内清理关联数据（参考 `app/system/service/user.go` 的 `Delete`）。
 3. **零值落库**：`Update` 使用 `map[string]interface{}` 更新，键为 Go 字段名，可正确写入 `0` / `""` 等零值。
-4. **公共审计列**：{{if .UseRuoYiModel}}该表含 `create_by` / `update_by`，实体嵌入 `core.RuoyiModel`，审计列由 service 自动填充。{{else}}该表不含 `create_by` / `update_by`，未嵌入 `core.RuoyiModel`，如需审计请自行加列并补充赋值。{{end}}
+4. **公共审计列**：{{if .UseAuditModel}}该表含 `create_by` / `update_by`，实体嵌入 `core.AuditModel`，审计列由 service 自动填充。{{else}}该表不含 `create_by` / `update_by`，未嵌入 `core.AuditModel`，如需审计请自行加列并补充赋值。{{end}}
 {{- if .IsTree}}
 5. **树表**：模板为 `tree`（`treeCode={{.TreeCode}}`、`treeParentCode={{.TreeParentCode}}`、`treeName={{.TreeName}}`），列表已按 `{{.TreeCode}}` 升序排列；如需父子层级与删除前子节点校验，请参考 `app/system/service/department.go`、`app/system/service/menu.go` 补充 `GetTreeList` 与 `Delete` 校验逻辑。
 {{- end}}

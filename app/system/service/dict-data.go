@@ -13,7 +13,7 @@ import (
 
 type DictData struct{}
 
-// 字典缓存：与若依一致，按字典类型缓存字典数据列表（dict_type -> []DictData），
+// 字典缓存：按字典类型缓存字典数据列表（dict_type -> []DictData），
 // 字典数据/字典类型变更后失效，启动时预热，支持手动刷新缓存
 const (
 	// DictCacheName 字典缓存名称（缓存监控页面按此名称展示）
@@ -328,7 +328,7 @@ func (s DictData) LabelIsExist(dictType string, label string, excludeIds *[]uint
 // @param: req *domain.DictDataByTypeRequest
 // @return: err error, list []domain.DictData
 func (s DictData) GetByType(req *domain.DictDataByTypeRequest) (err error, list []domain.DictData) {
-	// 缓存优先（与若依 selectDictDataByType 一致）
+	// 缓存优先
 	if DictCacheEnabled() {
 		if cached, exists := s.GetByTypeFromCache(req.Type); exists {
 			return nil, cached

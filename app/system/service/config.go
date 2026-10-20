@@ -13,7 +13,7 @@ import (
 
 type Config struct{}
 
-// 参数缓存：与若依一致，sys_config 全量缓存在进程内（config_key -> config_value），
+// 参数缓存：sys_config 全量缓存在进程内（config_key -> config_value），
 // 新增/修改/删除后失效，启动时预热，支持手动刷新缓存
 const (
 	// ConfigCacheName 参数缓存名称（缓存监控页面按此名称展示）
@@ -343,7 +343,7 @@ func (s Config) KeyIsExist(key string, excludeIds *[]uint) bool {
 // @param: key string 参数键名
 // @return: err error, value string
 func (s Config) GetByKey(key string) (err error, value string) {
-	// 缓存优先（与若依 selectConfigByKey 一致）
+	// 缓存优先
 	if ConfigCacheEnabled() {
 		if value, exists := s.GetByKeyFromCache(key); exists {
 			return nil, value

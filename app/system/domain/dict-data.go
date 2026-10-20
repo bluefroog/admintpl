@@ -29,7 +29,7 @@ type DictDataBase struct {
 	IsDefault string `json:"is_default" form:"is_default" gorm:"column:is_default;type:char(1);default:'N';comment:是否默认（Y是 N否）"`      // 是否默认（Y是 N否）
 	Status    uint   `json:"status" form:"status" gorm:"column:status;type:char(1);default:0;comment:状态（0正常 1停用）"`                    // 状态（0正常 1停用）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // DictDataSearchRequest 字典数据搜索请求结构体
@@ -47,7 +47,7 @@ type DictDataSearchRequest struct {
 	IDNotIn []uint `json:"idNotIn"` // 不包含的ID列表
 	IDIn    []uint `json:"idIn"`    // 包含的ID列表
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // DictDataCreateRequest 字典数据添加请求结构体

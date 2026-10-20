@@ -29,7 +29,7 @@ type RoleBase struct {
 	DataScope               uint `json:"data_scope" form:"data_scope" gorm:"column:data_scope;type:char(1);default:1;comment:数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）"`    //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
 	DeleteFlag              uint `json:"del_flag" form:"del_flag" gorm:"column:del_flag;type:char(1);default:0;comment:删除标志（0代表存在 2代表删除）"`                                       // 删除标志（0代表存在 2代表删除）
 
-	core.RuoyiModel
+	core.AuditModel
 }
 
 // RoleSearchRequest 后台角色搜索请求结构体
@@ -50,7 +50,7 @@ type RoleSearchRequest struct {
 	IDNotIn []uint `json:"idNotIn"` // 不包含的ID列表
 	IDIn    []uint `json:"idIn"`    // 包含的ID列表
 
-	core.RouyiSearchRequest
+	core.AuditSearchRequest
 }
 
 // RoleCreateRequest 角色添加请求结构体

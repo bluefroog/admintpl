@@ -54,7 +54,7 @@ type RouterMeta struct {
 	Link    string `json:"link,omitempty"`    // 外链地址
 }
 
-// RouterResponse 前端路由结构体（与若依前端约定保持一致）
+// RouterResponse 前端路由结构体（与前端约定保持一致）
 type RouterResponse struct {
 	Name       string            `json:"name,omitempty"`       // 路由名称
 	Path       string            `json:"path"`                 // 路由地址
