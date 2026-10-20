@@ -4,10 +4,12 @@
 # 说明：值中不要写行内注释；系统环境变量优先级高于本文件
 # ─────────────────────────────────────────────────────────────
 
-# ---- 配置加密（AES-256-GCM） ----
+# ---- 配置加密（AES-256-GCM / SM4-CBC） ----
 # 生成密文：just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
+# 算法可选 AES（AES-256-GCM，默认）/ SM4（国密 SM4-CBC）：just encrypt '明文' SM4
 # 开启后 DB_DSN 等敏感值可写成 ENC(...) 密文；密钥需与部署环境一致（更换密钥需重新加密）
 CONFIG_ENCRYPT_ENABLED=false
+CONFIG_SECRET_ALGORITHM=AES
 CONFIG_SECRET_KEY=
 
 # ---- 服务 ----

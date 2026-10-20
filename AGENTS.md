@@ -45,8 +45,8 @@
   - `just smoke [BASE_URL]` — 冒烟：对已启动实例跑读接口 + 全模块 CRUD 回归（默认 `http://127.0.0.1:8080`，脚本 `scripts/smoke.sh`）
   - `just gen-check [BASE_URL] [MYSQL_CMD]` — 代码生成深度校验：建临时表 → 导入 → 校验列配置推导 → 同步数据库 → 清理（脚本 `scripts/gen-check.sh`）
   - `just env dev` / `just env pro` — 环境切换：将 `.env.dev` / `.env.pro` 复制为 `.env`
-  - `just encrypt '<明文>'` — 加密配置敏感值（AES-256-GCM），输出 `ENC(...)` 密文
-  - `just encrypt-env '<明文>'` — 加密并输出可粘贴到 `.env` 的配置片段（开关/密钥/密文）
+  - `just encrypt '<明文>' [AES|SM4]` — 加密配置敏感值（默认 AES-256-GCM，可选国密 SM4-CBC），输出 `ENC(...)` 密文
+  - `just encrypt-env '<明文>' [AES|SM4]` — 加密并输出可粘贴到 `.env` 的配置片段（开关/算法/密钥/密文）
   - `just decrypt 'ENC(...)'` — 解密配置敏感值（排查用）
   - `just build` — 打包：编译供镜像使用的 linux/amd64 静态二进制 `admintpl-server`
   - `just release` — 发布：构建 Docker 镜像并推送远程仓库
@@ -60,9 +60,11 @@
 - 优先级：**系统环境变量 > `.env` > `config.yaml` 默认值**；`.env` 不入库，环境模板 `.env.dev`、`.env.pro` 入库。
 - 新增配置项：先在 `config/config.yaml` 加占位符，再在 `.env.dev` / `.env.pro` 补同名变量，不要在 yaml 里写死具体值。
 - **敏感值加密（可选）**：`CONFIG_ENCRYPT_ENABLED=true` 时，`common/config` 会解密所有含 `ENC(...)` 片段的值
-  （`common/secret`，基于 `github.com/freewu/crypto-go` 的 AES/GCM 封装，密钥 `CONFIG_SECRET_KEY` 经 SHA-256
-  派生 32 字节），中间件（数据库等）读到的始终是明文，
-  **不要在业务代码里再写解密逻辑**；新增敏感配置只需 `just encrypt '<明文>'` 生成密文写入 `.env`。
+  （`common/secret`，基于 `github.com/freewu/crypto-go` 的 AES/GCM 与 SM4/CBC 封装，密钥 `CONFIG_SECRET_KEY`
+  经 SHA-256 派生 32/16 字节），中间件（数据库等）读到的始终是明文，
+  **不要在业务代码里再写解密逻辑**；新增敏感配置只需 `just encrypt '<明文>' [AES|SM4]` 生成密文写入 `.env`。
+  算法由 `CONFIG_SECRET_ALGORITHM` 配置（默认 AES），但**密文自带算法标签**（`ENC(AES:...)` / `ENC(SM4:...)`），
+  解密按标签走，切换算法不会让历史密文失效（无标签的旧密文按 AES 处理）。
   开关关闭却出现密文、密钥缺失或解密失败都会**启动失败**（快速失败，避免拿密文连库）。
 - **不要直接读 `os.Getenv`**：所有配置统一走 `common/config`（`String` / `Int` / `Bool` / `IsSet`），
   才能享受 `.env`、占位符展开与密文解密。

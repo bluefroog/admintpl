@@ -44,18 +44,19 @@ env env_name="dev":
 _ensure-env:
     @if [ ! -f .env ]; then cp -f .env.dev .env; echo "== 未找到 .env，已按 dev 环境初始化（just env pro 可切换生产）=="; fi
 
-# 加密配置敏感值（AES-256-GCM），密钥取 .env 的 CONFIG_SECRET_KEY
+# 加密配置敏感值（AES-256-GCM / SM4-CBC），密钥取 .env 的 CONFIG_SECRET_KEY
 # 用法：just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
-#      输出形如 ENC(xxxx)，写入 .env 的 DB_DSN 并设置 CONFIG_ENCRYPT_ENABLED=true 即启用
-encrypt plaintext:
-    @go run ./cmd/encrypt -e "$1"
+#      输出形如 ENC(AES:xxxx)，写入 .env 的 DB_DSN 并设置 CONFIG_ENCRYPT_ENABLED=true 即启用
+#      第二个参数可指定算法：just encrypt '明文' SM4
+encrypt plaintext algo="":
+    @go run ./cmd/encrypt -e -a "$2" "$1"
 
-# 加密并输出 .env 配置片段（CONFIG_ENCRYPT_ENABLED / CONFIG_SECRET_KEY / DB_DSN）
-encrypt-env plaintext:
-    @go run ./cmd/encrypt -env -e "$1"
+# 加密并输出 .env 配置片段（CONFIG_ENCRYPT_ENABLED / CONFIG_SECRET_ALGORITHM / CONFIG_SECRET_KEY / DB_DSN）
+encrypt-env plaintext algo="":
+    @go run ./cmd/encrypt -env -e -a "$2" "$1"
 
-# 解密配置敏感值（排查用，密钥取 .env 的 CONFIG_SECRET_KEY）
-# 用法：just decrypt 'ENC(xxxx)'
+# 解密配置敏感值（排查用，密钥取 .env 的 CONFIG_SECRET_KEY；算法由密文标签自动识别）
+# 用法：just decrypt 'ENC(AES:xxxx)'
 decrypt ciphertext:
     @go run ./cmd/encrypt -d "$1"
 

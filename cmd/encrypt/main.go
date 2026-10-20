@@ -1,15 +1,17 @@
-// Command encrypt 加密 / 解密配置中的敏感值（AES-256-GCM）。
+// Command encrypt 加密 / 解密配置中的敏感值（AES-256-GCM 或国密 SM4-CBC）。
 //
 // 通常通过 just 调用：
 //
 //	just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
-//	just decrypt 'ENC(xxxxx)'
-//	just encrypt --env 'root:123456@tcp(...)/admintpl?...'   # 直接输出可粘贴到 .env 的片段
+//	just encrypt 'root:123456@tcp(...)/admintpl?...' SM4   # 指定国密 SM4
+//	just decrypt 'ENC(AES:xxxxx)'
+//	just encrypt-env 'root:123456@tcp(...)/admintpl?...'  # 直接输出可粘贴到 .env 的片段
 //
 // 密钥来源：-k 参数 > 环境变量 CONFIG_SECRET_KEY > .env 中的 CONFIG_SECRET_KEY。
+// 算法来源：-a 参数 > 环境变量 CONFIG_SECRET_ALGORITHM > .env > 默认 AES。
 //
 // 说明：本命令刻意不依赖 common/config（避免「配置里已有密文但密钥还没配好」时无法生成密文），
-// 仅用极简的 .env 解析读取密钥。
+// 仅用极简的 .env 解析读取密钥与算法。
 package main
 
 import (
@@ -28,12 +30,14 @@ func main() {
 		decryptMode = flag.Bool("d", false, "解密模式：把 ENC(...) 密文还原为明文")
 		envMode     = flag.Bool("env", false, "在加密结果之外输出可直接粘贴到 .env 的配置片段")
 		key         = flag.String("k", "", "加密密钥（默认取环境变量 CONFIG_SECRET_KEY，其次取 .env）")
+		algorithm   = flag.String("a", "", "加密算法：AES（默认，AES-256-GCM）/ SM4（国密 SM4-CBC）")
 	)
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "用法：\n"+
 			"  encrypt -e '明文'        加密（输出 ENC(...)）\n"+
 			"  encrypt -d 'ENC(...)'   解密\n"+
-			"  encrypt -env -e '明文'   输出 .env 配置片段\n")
+			"  encrypt -env -e '明文'   输出 .env 配置片段\n"+
+			"  encrypt -a SM4 -e '明文'  指定算法（AES / SM4，默认 AES）\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -49,6 +53,11 @@ func main() {
 		fail(fmt.Errorf("未找到加密密钥：请设置环境变量 CONFIG_SECRET_KEY（或写入 .env），或用 -k 指定"))
 	}
 
+	algo, err := secret.NormalizeAlgorithm(resolveAlgorithm(*algorithm))
+	if err != nil {
+		fail(err)
+	}
+
 	switch {
 	case *decryptMode:
 		plain, err := secret.Decrypt(input, secretKey)
@@ -57,13 +66,14 @@ func main() {
 		}
 		fmt.Println(plain)
 	case *encryptMode || *envMode:
-		token, err := secret.Encrypt(input, secretKey)
+		token, err := secret.Encrypt(input, secretKey, algo)
 		if err != nil {
 			fail(err)
 		}
 		if *envMode {
-			fmt.Printf("# 配置加密（把下面三行写入 .env；密钥务必与部署环境保持一致）\n")
+			fmt.Printf("# 配置加密（把下面四行写入 .env；密钥务必与部署环境保持一致）\n")
 			fmt.Printf("CONFIG_ENCRYPT_ENABLED=true\n")
+			fmt.Printf("CONFIG_SECRET_ALGORITHM=%s\n", algo)
 			fmt.Printf("CONFIG_SECRET_KEY=%s\n", secretKey)
 			fmt.Printf("DB_DSN=%s\n", token)
 			return
@@ -84,6 +94,17 @@ func resolveKey(flagKey string) string {
 		return key
 	}
 	return dotEnvValue(envFilePath(), "CONFIG_SECRET_KEY")
+}
+
+// resolveAlgorithm 取算法：-a 参数 > 环境变量 > .env 文件 > 默认 AES
+func resolveAlgorithm(flagAlgorithm string) string {
+	if flagAlgorithm != "" {
+		return flagAlgorithm
+	}
+	if algorithm := os.Getenv("CONFIG_SECRET_ALGORITHM"); algorithm != "" {
+		return algorithm
+	}
+	return dotEnvValue(envFilePath(), "CONFIG_SECRET_ALGORITHM")
 }
 
 // envFilePath 返回 .env 路径，可用 ENV_FILE 指定（与 common/config 保持一致）

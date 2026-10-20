@@ -52,9 +52,9 @@ func init() {
 	// 展开配置文件中的 ${ENV} 占位符，实现配置与环境的解耦
 	expandAll()
 
-	// 解密配置中的敏感值（AES-256-GCM）。所有中间件（数据库等）读取到的都是明文，
-	// 因此连接参数无需各自处理解密。
-	if err := DecryptAll(v, Bool(KeySecretEnabled), String(KeySecretKey)); err != nil {
+	// 解密配置中的敏感值（AES-256-GCM / SM4-CBC，由 secret.algorithm 选择）。
+	// 所有中间件（数据库等）读取到的都是明文，因此连接参数无需各自处理解密。
+	if err := DecryptAll(v, Bool(KeySecretEnabled), String(KeySecretKey), String(KeySecretAlgorithm)); err != nil {
 		fmt.Fprintf(os.Stderr, "config decrypt err: %s\n", err)
 		os.Exit(1) // 安全类配置错误必须快速失败，避免用密文/错误参数继续启动
 	}
@@ -126,10 +126,13 @@ const (
 	KeySecretEnabled = "secret.enabled"
 	// KeySecretKey 加密密钥（secret.key / CONFIG_SECRET_KEY）
 	KeySecretKey = "secret.key"
+	// KeySecretAlgorithm 加密算法（secret.algorithm / CONFIG_SECRET_ALGORITHM）：AES / SM4
+	KeySecretAlgorithm = "secret.algorithm"
 
-	// EnvSecretEnabled / EnvSecretKey 环境变量名（.env / 容器环境变量注入）
-	EnvSecretEnabled = "CONFIG_ENCRYPT_ENABLED"
-	EnvSecretKey     = "CONFIG_SECRET_KEY"
+	// EnvSecretEnabled / EnvSecretKey / EnvSecretAlgorithm 环境变量名（.env / 容器环境变量注入）
+	EnvSecretEnabled   = "CONFIG_ENCRYPT_ENABLED"
+	EnvSecretKey       = "CONFIG_SECRET_KEY"
+	EnvSecretAlgorithm = "CONFIG_SECRET_ALGORITHM"
 )
 
 // DecryptAll 解密配置中所有含 ENC(...) 片段的值，就地写回配置对象：
@@ -138,7 +141,14 @@ const (
 //   - enabled=true：密钥缺失或解密失败即报错（快速失败）。
 //
 // 支持整体加密（ENC(xxx)）与局部加密（root:ENC(xxx)@tcp(127.0.0.1:3306)/db）。
-func DecryptAll(conf *viper.Viper, enabled bool, key string) error {
+func DecryptAll(conf *viper.Viper, enabled bool, key, algorithm string) error {
+	// 算法先做归一化校验：非法值即使没用到密文也应尽早失败
+	algo, err := secret.NormalizeAlgorithm(algorithm)
+	if err != nil {
+		return fmt.Errorf("配置项 %s 非法: %w", KeySecretAlgorithm, err)
+	}
+	_ = algo // 解密时算法取自密文标签，这里仅做校验（保证切换算法后历史密文仍可解）
+
 	for _, name := range conf.AllKeys() {
 		if name == KeySecretKey {
 			continue // 密钥本身不参与解密

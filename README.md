@@ -259,7 +259,7 @@ just env pro
 - `.env` 不入库；环境模板 `.env.dev`、`.env.pro` 入库，按需增删变量
 - 可用 `ENV_FILE` 指定其它 env 文件，用 `CONFIG_NAME` 指定其它配置文件
 
-# 配置加密（明文 / AES-256-GCM 密文）
+# 配置加密（明文 / AES-256-GCM / SM4 密文）
 
 敏感配置（数据库密码、令牌密钥等）支持两种写法，由开关切换，**解密在配置加载阶段统一完成**，
 因此数据库等所有中间件拿到的都是明文，无需各自处理解密：
@@ -269,35 +269,54 @@ just env pro
 | `CONFIG_ENCRYPT_ENABLED=false`（默认） | 明文 | 与历史配置完全兼容；若检测到 `ENC(...)` 密文会**启动失败**并提示开启开关 |
 | `CONFIG_ENCRYPT_ENABLED=true` | 密文或明文 | 自动解密所有含 `ENC(...)` 片段的值；密钥缺失或解密失败直接启动失败（快速失败，不会拿密文连库） |
 
-密钥 `CONFIG_SECRET_KEY`：任意字符串（内部 SHA-256 派生 32 字节 AES 密钥），通过 `.env` / 容器环境变量注入；
-更换密钥需要重新加密已有密文。
+算法由 `CONFIG_SECRET_ALGORITHM` 配置（只影响**新生成**的密文）：
+
+| 算法 | 说明 | 密文形态 |
+| ---- | ---- | -------- |
+| `AES`（默认） | AES-256-GCM（AEAD，带完整性校验） | `ENC(AES:xxxx)` |
+| `SM4` | 国密 SM4-CBC（分组模式，PKCS7 填充，无 AEAD） | `ENC(SM4:xxxx)` |
+
+密钥 `CONFIG_SECRET_KEY`：任意字符串（内部 SHA-256 派生，AES 取 32 字节、SM4 取 16 字节），
+通过 `.env` / 容器环境变量注入；更换密钥需要重新加密已有密文。
+
+> **算法随密文走**：密文自带算法标签（`ENC(AES:...)` / `ENC(SM4:...)`），解密时按标签选算法，
+> 因此切换 `CONFIG_SECRET_ALGORITHM` 不会导致历史密文失效（可逐步迁移）；
+> 无标签的旧密文 `ENC(xxxx)` 一律按 AES 处理，保持向后兼容。
 
 ```bash
 # 1. 先生成密钥并写入 .env（只需一次）
 echo 'CONFIG_SECRET_KEY=my-strong-passphrase' >> .env
 
-# 2. 加密敏感值，输出形如 ENC(xxxxx)
+# 2. 加密敏感值（默认 AES），输出形如 ENC(AES:xxxxx)
 just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
 
-# 2'. 或者直接输出可粘贴到 .env 的配置片段（含开关、密钥、加密后的 DB_DSN）
+# 2'. 指定算法改用国密 SM4（也可在 .env 里设 CONFIG_SECRET_ALGORITHM=SM4 作为默认算法）
+just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local' SM4
+
+# 2''. 或者直接输出可粘贴到 .env 的配置片段（含开关、算法、密钥、加密后的 DB_DSN）
 just encrypt-env 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
 
 # 3. 把密文写进 .env，并打开开关
 #    CONFIG_ENCRYPT_ENABLED=true
-#    DB_DSN=ENC(xxxxx)
+#    CONFIG_SECRET_ALGORITHM=AES
+#    DB_DSN=ENC(AES:xxxxx)
 
-# 4. 排查用：解密回读
-just decrypt 'ENC(xxxxx)'
+# 4. 排查用：解密回读（算法由密文标签自动识别，无需指定）
+just decrypt 'ENC(AES:xxxxx)'
 ```
 
 - 支持**整体加密**（`DB_DSN=ENC(...)`）与**局部加密**（`DB_DSN=root:ENC(...)@tcp(127.0.0.1:3306)/admintpl?...`），
   局部加密可以只保护密码，主机、库名保持可读；
 - 明文与密文可以混用，便于逐个变量迁移；
-- 算法为 AES-256-GCM（带认证），加解密由 `github.com/freewu/crypto-go` 的 AES 封装实现
-  （`aes.GetInstance("GCM")`，nonce 由该封装生成并拼在密文头部；密钥固定 SHA-256 派生为 32 字节，
-  规避 crypto-go「密钥长度必须为 16/24/32 字节」的限制），密文被篡改或密钥不匹配都会解密失败，不会静默返回脏数据；
+- 加解密统一复用 `github.com/freewu/crypto-go` 的封装：AES 用 `aes.GetInstance("GCM")`（nonce 由该封装拼在密文头部），
+  SM4 用 `sm4.GetInstance("CBC")`（随机 IV 拼在密文头部，PKCS7 填充由 gmsm 完成）；
+  密钥固定 SHA-256 派生（AES 32 字节 / SM4 16 字节），规避「密钥长度必须为 16/24/32 字节」的限制；
+- 密文被篡改或密钥不匹配都会解密失败，绝不静默返回脏数据：AES-GCM 由认证标签保证；
+  SM4-CBC 本身没有认证能力，因此在密文载荷内附一段截断的 SHA-256 校验和（16 字节），
+  篡改 IV、密文或换错密钥都会校验失败；
+  合规场景需要国密时选 `SM4`，安全优先仍建议用默认的 `AES`（AEAD，完整性保证更强）；
 - 密文使用 base64 URL 安全字母表，不含 `+ / =` 与括号，可安全嵌入 DSN / URL；
-- 用户登录口令与配置加密是两件事：用户口令以 bcrypt 落库，配置敏感值以 AES 密文落配置。
+- 用户登录口令与配置加密是两件事：用户口令以 bcrypt 落库，配置敏感值以 AES/SM4 密文落配置。
 
 # 项目开发 / 测试 / 打包 / 发布（使用 just）
 ```bash

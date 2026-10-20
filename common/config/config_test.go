@@ -124,7 +124,7 @@ func TestConfigFileExpansion(t *testing.T) {
 	// 代码读取的配置项必须全部存在于配置文件中：
 	// 防止「代码读 system.auth.enabled、配置写在 auth.enabled」这类键名不一致导致开关静默失效
 	required := []string{
-		"secret.enabled", "secret.key",
+		"secret.enabled", "secret.key", "secret.algorithm",
 		"service.port", "service.debug",
 		"database.admin.type", "database.admin.dsn", "database.admin.prefix",
 		"database.admin.max-idle", "database.admin.max-open", "database.admin.max-lifetime",
@@ -172,22 +172,27 @@ func TestConfigFileExpansion(t *testing.T) {
 // TestDecryptAll 校验配置敏感值的解密行为（开关、密钥、整体/局部加密、错误场景）
 func TestDecryptAll(t *testing.T) {
 	const key = "unit-test-key"
-	encryptedDSN, err := secret.Encrypt("root:p@ss@tcp(127.0.0.1:3306)/admintpl", key)
+	encryptedDSN, err := secret.Encrypt("root:p@ss@tcp(127.0.0.1:3306)/admintpl", key, secret.AlgorithmAES)
 	if err != nil {
 		t.Fatal(err)
 	}
-	encryptedPassword, err := secret.Encrypt("p@ss", key)
+	encryptedPassword, err := secret.Encrypt("p@ss", key, secret.AlgorithmAES)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sm4DSN, err := secret.Encrypt("root:p@ss@tcp(127.0.0.1:3306)/admintpl", key, secret.AlgorithmSM4)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	cases := []struct {
-		name     string
-		settings map[string]interface{}
-		enabled  bool
-		key      string
-		want     map[string]string
-		wantErr  string
+		name      string
+		settings  map[string]interface{}
+		enabled   bool
+		key       string
+		algorithm string
+		want      map[string]string
+		wantErr   string
 	}{
 		{
 			name:     "未开启且无密文：按明文处理",
@@ -239,6 +244,30 @@ func TestDecryptAll(t *testing.T) {
 			wantErr:  "解密失败",
 		},
 		{
+			name:      "SM4 密文可解密（算法由密文标签决定）",
+			settings:  map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": sm4DSN}}},
+			enabled:   true,
+			key:       key,
+			algorithm: secret.AlgorithmSM4,
+			want:      map[string]string{"database.admin.dsn": "root:p@ss@tcp(127.0.0.1:3306)/admintpl"},
+		},
+		{
+			name:      "切换到 SM4 后仍能解 AES 旧密文",
+			settings:  map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": encryptedDSN}}},
+			enabled:   true,
+			key:       key,
+			algorithm: secret.AlgorithmSM4,
+			want:      map[string]string{"database.admin.dsn": "root:p@ss@tcp(127.0.0.1:3306)/admintpl"},
+		},
+		{
+			name:      "算法配置非法：直接报错",
+			settings:  map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": "root:123456@tcp(db:3306)/admintpl"}}},
+			enabled:   true,
+			key:       key,
+			algorithm: "DES",
+			wantErr:   "不支持的配置加密算法",
+		},
+		{
 			name:     "密钥本身不参与解密",
 			settings: map[string]interface{}{"secret": map[string]interface{}{"enabled": "true", "key": encryptedPassword}},
 			enabled:  true,
@@ -254,7 +283,7 @@ func TestDecryptAll(t *testing.T) {
 				conf.Set(k, val)
 			}
 
-			err := DecryptAll(conf, item.enabled, item.key)
+			err := DecryptAll(conf, item.enabled, item.key, item.algorithm)
 			if item.wantErr != "" {
 				if err == nil || !strings.Contains(err.Error(), item.wantErr) {
 					t.Fatalf("错误信息应包含 %q，实际 %v", item.wantErr, err)
