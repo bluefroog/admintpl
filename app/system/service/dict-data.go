@@ -27,6 +27,8 @@ var dictCacheStore = cache.New(10 * time.Minute)
 
 func init() {
 	cache.Register(DictCacheName, dictCacheStore)
+	// 字典缓存值为 []domain.DictData，注册后才能从外部缓存后端（本地文件/memcache/redis）还原
+	cache.RegisterType([]domain.DictData{})
 }
 
 // DictCacheEnabled 是否启用字典缓存（关闭后每次都查库，便于排查字典不生效问题）

@@ -170,7 +170,7 @@ testTask.test1() / testTask.test2('hello')     # job_args 传参示例任务
 * 响应字段与前端监控页面约定保持一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles`/`dbSize`/`commandStats` 等），便于前端直接对接；
 * **零新增依赖**：不使用 `gopsutil`，CPU/负载/内存/磁盘均读取 Linux `/proc`（`/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts`）+ `syscall.Statfs` 实现；非 Linux 平台仅返回 Go 运行时与主机基础信息，系统指标为零值；
 * 内存/磁盘单位均为 MB，使用率单位为 %；容器内根目录（`overlay`）与 `/dev/*` 设备都会作为磁盘列出；
-* 缓存监控基于进程内内存缓存（`common/cache`，无 Redis）。除默认缓存外，图形验证码缓存（`captcha`）、参数缓存（`sys_config`）、字典缓存（`sys_dict`）也注册到监控中；缓存列表中的过期项不展示；
+* 缓存监控基于 `common/cache`（支持本地文件 / 内存 / memcache / redis，见「缓存后端」章节）。除默认缓存外，图形验证码缓存（`captcha`）、参数缓存（`sys_config`）、字典缓存（`sys_dict`）也注册到监控中；缓存列表中的过期项不展示，超过 200 字符的缓存值截断展示；
 * 权限标识：`monitor:server:list`、`monitor:cache:list`、`monitor:cache-list:list`（已有种子菜单），认证开启权限校验时按 `/monitor/...` 路径推导。
 
 # 参数 / 字典缓存
@@ -186,6 +186,32 @@ testTask.test1() / testTask.test2('hello')     # job_args 传参示例任务
 * **变更即失效**：参数新增/修改/删除后失效对应键（键名变更时新旧键都会失效）；字典数据新增/修改/删除后失效对应字典类型；字典类型修改/删除后清理相关字典缓存；
 * **启动预热**：服务启动时把参数表与字典数据全量加载进缓存（`CACHE_ENABLED=true`），并打印预热条目数；
 * **排查手段**：`CACHE_ENABLED=false` 时全部查询直接回源数据库；缓存内容可在「缓存监控 / 缓存列表」页面查看（按 `sys_config` / `sys_dict` 名称过滤）。
+
+# 缓存后端（本地文件 / 内存 / memcache / redis）
+
+缓存介质由 `system.cache.driver`（环境变量 `CACHE_DRIVER`）选择，默认 **本地文件**；业务代码只依赖 `common/cache` 接口，切换后端不需要改代码。
+
+| driver | 说明 | 适用场景 | 注意事项 |
+| ---- | ---- | ---- | ---- |
+| `file`（默认） | 进程内 map + gob 落盘（默认 `runtime/cache/cache.gob`） | 单机部署，重启不丢缓存 | 目录需可写；多实例不共享；收到 SIGTERM/SIGINT 时立即落盘 |
+| `memory` | 纯进程内内存，不持久化 | 单元测试、临时排查 | 重启即失效；多实例不共享 |
+| `memcache` | memcached 集群（`gomemcache`） | 多实例共享的简单缓存 | 不支持枚举键（监控页键列表为空）；单条值最大 1MB；清空只能 FlushAll |
+| `redis` | 单机 / 主从 / 哨兵 / 集群（`go-redis v9`） | 多实例共享、需要高可用 | 见下方模式说明 |
+
+Redis 四种部署模式（`system.cache.redis.mode`，环境变量 `CACHE_REDIS_MODE`）：
+
+| mode | 配置项 | 说明 |
+| ---- | ---- | ---- |
+| `standalone`（默认） | `CACHE_REDIS_ADDR` | 单机，读写同一个节点（与 `CACHE_REDIS_DB` 逻辑库配合） |
+| `master-slave` | `CACHE_REDIS_ADDRS`（主节点在前，逗号分隔） | 主节点优先；主节点连接类错误时按顺序尝试从节点，主从切换期间不中断 |
+| `sentinel` | `CACHE_REDIS_SENTINEL_ADDRS` + `CACHE_REDIS_MASTER_NAME` | 通过哨兵发现主节点，主从切换自动跟随 |
+| `cluster` | `CACHE_REDIS_CLUSTER_ADDRS` | 按槽位路由；键枚举按主节点遍历；清空改为逐键删除（避免 CROSSSLOT） |
+
+* **键格式**：`<前缀>:<缓存名>:<业务键>`，例如 `admintpl:sys_config:sys.index.skinName`；前缀由 `CACHE_PREFIX` 配置，多环境共用一个 redis/memcache 时用于隔离，清空只影响本前缀；
+* **能力差异**：`memcache` 后端不支持枚举键，缓存监控的键数量与缓存列表为空（`keysSupported=false`），其余后端均支持；
+* **启动自检**：后端初始化失败时回退本地文件 → 内存并打印告警；redis/memcache 连接失败只告警不阻塞启动，缓存读写失败自动回源数据库（业务不中断）；
+* **优雅退出**：进程收到 `SIGTERM`/`SIGINT` 时把本地文件缓存立即落盘并关闭连接（容器 `docker stop` 同样生效）；
+* **配置示例**：`config/config.example.yaml`（全部配置项与文字说明）、`.env.example`（全部环境变量与说明）。
 
 # 代码生成
 

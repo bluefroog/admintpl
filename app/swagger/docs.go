@@ -6806,6 +6806,10 @@ const docTemplate = `{
                     "description": "缓存键总数",
                     "type": "integer"
                 },
+                "driver": {
+                    "description": "缓存后端：file / memory / memcache / redis",
+                    "type": "string"
+                },
                 "info": {
                     "description": "各缓存统计",
                     "type": "array",
@@ -6858,6 +6862,10 @@ const docTemplate = `{
                     "description": "删除次数",
                     "type": "integer"
                 },
+                "driver": {
+                    "description": "缓存后端：file / memory / memcache / redis",
+                    "type": "string"
+                },
                 "expired": {
                     "description": "过期失效次数",
                     "type": "integer"
@@ -6869,6 +6877,10 @@ const docTemplate = `{
                 "keyCount": {
                     "description": "缓存键数量",
                     "type": "integer"
+                },
+                "keysSupported": {
+                    "description": "后端是否支持枚举缓存键（memcache 不支持）",
+                    "type": "boolean"
                 },
                 "misses": {
                     "description": "未命中次数",

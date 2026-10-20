@@ -5,7 +5,9 @@ import "github.com/bluefroog/admintpl/common/model/request"
 // CacheStats 单个缓存的统计信息
 type CacheStats struct {
 	Name            string `json:"name"`            // 缓存名称
+	Driver          string `json:"driver"`          // 缓存后端：file / memory / memcache / redis
 	KeyCount        int    `json:"keyCount"`        // 缓存键数量
+	KeysSupported   bool   `json:"keysSupported"`   // 后端是否支持枚举缓存键（memcache 不支持）
 	Hits            uint64 `json:"hits"`            // 命中次数
 	Misses          uint64 `json:"misses"`          // 未命中次数
 	Sets            uint64 `json:"sets"`            // 写入次数
@@ -24,6 +26,7 @@ type CacheCommandStat struct {
 
 // CacheInfo 缓存监控信息
 type CacheInfo struct {
+	Driver       string             `json:"driver"`       // 缓存后端：file / memory / memcache / redis
 	Info         []CacheStats       `json:"info"`         // 各缓存统计
 	DbSize       int                `json:"dbSize"`       // 缓存键总数
 	CommandStats []CacheCommandStat `json:"commandStats"` // 读写命令统计

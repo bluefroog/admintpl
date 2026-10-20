@@ -1,7 +1,12 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/bluefroog/admintpl/bootstrap"
+	"github.com/bluefroog/admintpl/common/cache"
 	"github.com/bluefroog/admintpl/common/config"
 	"github.com/gin-gonic/gin"
 )
@@ -19,5 +24,15 @@ func main() {
 	}
 	r := gin.Default()
 	_ = bootstrap.Bootstrap(r)
+
+	// 优雅退出：先把本地文件缓存落盘、关闭 redis/memcache 连接（容器收到 SIGTERM 时同样生效）
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+		cache.Shutdown()
+		os.Exit(0)
+	}()
+
 	_ = r.Run(config.String("service.port")) // listen and serve on 0.0.0.0:8080
 }

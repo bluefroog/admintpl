@@ -140,8 +140,18 @@
 
 ## 8. 参数 / 字典缓存约定
 
-- **缓存介质**：进程内内存缓存 `common/cache`（无 Redis）；参数缓存名 `sys_config`（`config_key -> config_value`），
+- **缓存介质**：`common/cache`（可插拔后端：`file` 本地文件（默认）/ `memory` 内存 / `memcache` / `redis` 单机·主从·哨兵·集群），
+  由 `system.cache.driver`（`CACHE_DRIVER`）选择，业务代码不感知后端；参数缓存名 `sys_config`（`config_key -> config_value`），
   字典缓存名 `sys_dict`（`dict_type -> []DictData`），两者都注册到缓存监控。
+- **键格式**：`<CACHE_PREFIX>:<缓存名>:<业务键>`（如 `admintpl:sys_config:sys.index.skinName`）；`Cache` 内部统一补 `:`，
+  禁止手写前缀拼接；清空/枚举只作用于本缓存实例的前缀。
+- **跨进程后端注意**：值经 gob 编码，外部后端（memcache/redis）跨进程反序列化要求类型已注册 ——
+  自定义结构体必须 `cache.RegisterType(domain.Xxx{})`（在对应 service 的 `init()` 中调用），否则缓存永远未命中。
+- **后端能力差异**：`memcache` 不支持枚举键（缓存监控 `keysSupported=false`，键数量与列表为空），清空只能 FlushAll；
+  写业务代码只依赖 `Set/Get/Delete/Clear`，不要假设一定可以枚举键。
+- **可用性要求**：后端不可用只告警不阻塞启动，缓存读写失败必须回源数据库（业务不中断）；本地文件缓存在
+  `SIGTERM`/`SIGINT` 时立即落盘（`cache.Shutdown()` 已接入 `main.go`）。
+- **配置示例**：`config/config.example.yaml` + `.env.example` 展示全部缓存配置项与文字说明，改配置后同步两者。
 - **实现位置**：参数在 `app/system/service/config.go`（`LoadCache`/`RefreshCache`/`GetByKeyFromCache`/`EvictCache`），
   字典在 `app/system/service/dict-data.go`（`LoadCache`/`RefreshCache`/`GetByTypeFromCache`/`EvictCache`/`ClearCache`）。
 - **读取一律缓存优先**：`Config{}.GetByKey`、`DictData{}.GetByType` 先查缓存，未命中再查库并回填。

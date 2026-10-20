@@ -46,8 +46,32 @@ JOB_LOG_RETAIN_DAYS=30
 
 # ---- 数据权限 ----
 DATA_SCOPE_ENABLED=true
-# 参数 / 字典缓存（关闭后每次查询回源数据库，仅建议排查问题时使用）
+# ---- 参数 / 字典缓存 ----
+# 是否启用缓存（关闭后每次查询回源数据库，仅建议排查问题时使用）
 CACHE_ENABLED=true
+# 后端：file 本地文件（默认）/ memory 内存 / memcache / redis
+CACHE_DRIVER=file
+# 键前缀（多环境共用一个 memcache/redis 时用于隔离）
+CACHE_PREFIX=admintpl
+# 本地文件后端：数据目录与落盘间隔（秒）
+CACHE_FILE_DIR=runtime/cache
+CACHE_FILE_FLUSH_INTERVAL=5
+# memcache 后端：节点列表（逗号分隔）与超时（秒）
+CACHE_MEMCACHE_SERVERS=127.0.0.1:11211
+CACHE_MEMCACHE_TIMEOUT=1
+# redis 后端：模式 standalone / master-slave / sentinel / cluster
+CACHE_REDIS_MODE=standalone
+CACHE_REDIS_ADDR=127.0.0.1:6379
+CACHE_REDIS_ADDRS=
+CACHE_REDIS_CLUSTER_ADDRS=
+CACHE_REDIS_MASTER_NAME=mymaster
+CACHE_REDIS_SENTINEL_ADDRS=
+CACHE_REDIS_SENTINEL_PASSWORD=
+CACHE_REDIS_USERNAME=
+CACHE_REDIS_PASSWORD=
+CACHE_REDIS_DB=0
+CACHE_REDIS_TIMEOUT=1
+CACHE_REDIS_POOL_SIZE=10
 
 # ---- 代码生成 ----
 GEN_PACKAGE_NAME=github.com/bluefroog/admintpl

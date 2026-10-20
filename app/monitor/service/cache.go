@@ -12,8 +12,8 @@ import (
 
 // Cache 缓存监控服务
 //
-// 说明：本项目使用进程内内存缓存（common/cache），不依赖 Redis，
-// 因此这里统计的是各内存缓存实例的键数量与读写情况
+// 说明：缓存后端由 common/cache 统一封装（本地文件 / 内存 / memcache / redis），
+// 这里统计的是各缓存实例的键数量与读写情况；memcache 无法枚举键，列表会为空并给出提示。
 type Cache struct{}
 
 // cacheValueMaxLength 缓存值展示的最大长度（超出截断，避免响应体过大）
@@ -38,7 +38,9 @@ func (s Cache) Info() *domain.CacheInfo {
 		deletes += itemStats.Deletes
 		stats = append(stats, domain.CacheStats{
 			Name:            itemStats.Name,
+			Driver:          itemStats.Driver,
 			KeyCount:        itemStats.KeyCount,
+			KeysSupported:   itemStats.KeysSupported,
 			Hits:            itemStats.Hits,
 			Misses:          itemStats.Misses,
 			Sets:            itemStats.Sets,
@@ -50,6 +52,7 @@ func (s Cache) Info() *domain.CacheInfo {
 		})
 	}
 	return &domain.CacheInfo{
+		Driver: cache.Driver(),
 		Info:   stats,
 		DbSize: dbSize,
 		CommandStats: []domain.CacheCommandStat{
@@ -65,7 +68,7 @@ func (s Cache) Info() *domain.CacheInfo {
 // List 缓存列表
 // @author: [bluefrog](https://github.com/freewu)
 // @function: List
-// @description: 分页查询内存缓存中的键值（按缓存名称/缓存键过滤）
+// @description: 分页查询缓存中的键值（按缓存名称/缓存键过滤）；memcache 后端不支持枚举键，返回空列表
 // @param: searchParams *domain.CacheListSearchRequest 查询参数
 // @return: err error, list []domain.CacheItem, total int64
 func (s Cache) List(searchParams *domain.CacheListSearchRequest) (err error, list []domain.CacheItem, total int64) {

@@ -2,3 +2,5 @@
 /admintpl-server
 /.env
 /.env.local
+# 本地文件缓存目录（system.cache.file.dir 默认 runtime/cache）
+/runtime/

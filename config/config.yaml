@@ -48,9 +48,36 @@ system:
   # 数据权限（按登录用户角色的数据范围过滤列表数据）
   data-scope:
     enabled: "${DATA_SCOPE_ENABLED:-true}" # 是否开启数据权限过滤（关闭后所有登录用户可见全部数据，仅建议调试使用）
-  # 参数 / 字典缓存（sys_config 与 sys_dict 缓存在进程内，变更后失效，支持 /system/*/refresh-cache 手动刷新）
+  # 参数 / 字典缓存（sys_config 与 sys_dict 缓存，变更后失效，支持 /system/*/refresh-cache 手动刷新）
+  #   后端可选（driver）：
+  #     file     本地文件：进程内 map + gob 落盘（默认，单机部署无需外部依赖，重启不丢缓存）
+  #     memory   纯进程内内存：不持久化，仅测试或临时排查使用
+  #     memcache memcached：不支持枚举键（缓存监控页键列表为空），单条值最大 1MB，清空只能 FlushAll
+  #     redis    支持单机 / 主从 / 哨兵 / 集群四种部署模式（见下方 redis.mode）
   cache:
     enabled: "${CACHE_ENABLED:-true}" # 是否启用参数与字典缓存（关闭后每次查询直接回源数据库，仅建议排查问题时使用）
+    driver: "${CACHE_DRIVER:-file}" # 缓存后端：file（默认）/ memory / memcache / redis
+    prefix: "${CACHE_PREFIX:-admintpl}" # 键前缀，多环境共用一个 memcache/redis 时用于隔离（实际键：前缀+缓存名+业务键）
+    file:
+      dir: "${CACHE_FILE_DIR:-runtime/cache}" # 本地文件目录（数据文件 cache.gob，容器内需可写）
+      flush-interval: "${CACHE_FILE_FLUSH_INTERVAL:-5}" # 落盘间隔（秒），退出时（SIGTERM）会立即落盘
+    memcache:
+      servers: "${CACHE_MEMCACHE_SERVERS:-127.0.0.1:11211}" # 节点列表，多个以英文逗号分隔
+      timeout: "${CACHE_MEMCACHE_TIMEOUT:-1}" # 连接与读写超时（秒）
+    redis:
+      # 部署模式：standalone 单机 / master-slave 主从 / sentinel 哨兵 / cluster 集群
+      mode: "${CACHE_REDIS_MODE:-standalone}"
+      addr: "${CACHE_REDIS_ADDR:-127.0.0.1:6379}" # 单机模式地址；主从/哨兵未配 addrs 时作为主节点/哨兵地址
+      addrs: "${CACHE_REDIS_ADDRS:-}" # 主从模式节点列表（主节点在前，逗号分隔）
+      cluster-addrs: "${CACHE_REDIS_CLUSTER_ADDRS:-}" # 集群模式节点列表（逗号分隔）
+      master-name: "${CACHE_REDIS_MASTER_NAME:-mymaster}" # 哨兵模式的主节点名
+      sentinel-addrs: "${CACHE_REDIS_SENTINEL_ADDRS:-}" # 哨兵节点列表（逗号分隔）
+      sentinel-password: "${CACHE_REDIS_SENTINEL_PASSWORD:-}" # 哨兵自身密码（哨兵未开认证时留空）
+      username: "${CACHE_REDIS_USERNAME:-}" # redis 6+ ACL 用户名（未启用 ACL 时留空）
+      password: "${CACHE_REDIS_PASSWORD:-}" # redis 密码（可用 ENC(...) 密文）
+      db: "${CACHE_REDIS_DB:-0}" # 逻辑库编号（单机/主从/哨兵有效，集群固定 0）
+      timeout: "${CACHE_REDIS_TIMEOUT:-1}" # 连接与读写超时（秒）
+      pool-size: "${CACHE_REDIS_POOL_SIZE:-10}" # 连接池大小
   # 代码生成（导入数据库表 -> 维护生成配置 -> 生成代码）
   gen:
     package-name: "${GEN_PACKAGE_NAME:-github.com/bluefroog/admintpl}" # 生成代码的包路径（Go module 前缀）
@@ -68,4 +95,10 @@ system:
 #   SEED_ENABLED
 #   JOB_ENABLED JOB_LOG_RETAIN_DAYS
 #   DATA_SCOPE_ENABLED CACHE_ENABLED
+#   CACHE_DRIVER CACHE_PREFIX
+#   CACHE_FILE_DIR CACHE_FILE_FLUSH_INTERVAL
+#   CACHE_MEMCACHE_SERVERS CACHE_MEMCACHE_TIMEOUT
+#   CACHE_REDIS_MODE CACHE_REDIS_ADDR CACHE_REDIS_ADDRS CACHE_REDIS_CLUSTER_ADDRS
+#   CACHE_REDIS_MASTER_NAME CACHE_REDIS_SENTINEL_ADDRS CACHE_REDIS_SENTINEL_PASSWORD
+#   CACHE_REDIS_USERNAME CACHE_REDIS_PASSWORD CACHE_REDIS_DB CACHE_REDIS_TIMEOUT CACHE_REDIS_POOL_SIZE
 #   GEN_PACKAGE_NAME GEN_MODULE_NAME GEN_AUTHOR GEN_AUTO_REMOVE_PRE GEN_TABLE_PREFIX
