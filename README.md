@@ -88,10 +88,10 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 
 | 接口 | 方法 | 说明 |
 | ---- | ---- | ---- |
-| `/monitor/job/list` `/create` `/update` `/delete` `/detail` | - | 任务增删改查（新增/修改会校验 cron 与调用目标） |
-| `/monitor/job/change-status` | PUT | 启用（`status=0`）/ 暂停（`status=1`），立即生效 |
-| `/monitor/job/run` | PUT | 立即执行一次（暂停中的任务同样可以执行） |
-| `/monitor/jobLog/list` `/detail` `/delete` `/clear` | - | 任务执行日志查询 / 删除 / 清空 |
+| `/cron/job/list` `/create` `/update` `/delete` `/detail` | - | 任务增删改查（新增/修改会校验 cron 与调用目标） |
+| `/cron/job/change-status` | PUT | 启用（`status=0`）/ 暂停（`status=1`），立即生效 |
+| `/cron/job/run` | PUT | 立即执行一次（暂停中的任务同样可以执行） |
+| `/cron/jobLog/list` `/detail` `/delete` `/clear` | - | 任务执行日志查询 / 删除 / 清空 |
 
 **cron 表达式**（6~7 段：`秒 分 时 日 月 周 [年]`，Quartz 语义）：
 
@@ -191,16 +191,16 @@ testTask.test1() / testTask.test2('hello')     # job_args 传参示例任务
 
 | 接口 | 方法 | 说明 |
 | ---- | ---- | ---- |
-| `/tool/gen/list` | GET | 代码生成表列表：支持 `table_name`、`table_comment`、`begin_time`、`end_time` 过滤 |
-| `/tool/gen/db-list` | GET | 数据库表列表：`information_schema.tables` 中尚未导入的表（已排除 `qrtz_%`、`gen_%` 与已导入表） |
-| `/tool/gen/import` | POST | 导入表结构：`tables` 支持 JSON 数组或逗号分隔，已导入的表自动跳过，全为已导入时返回错误 |
-| `/tool/gen/detail` | GET | 代码生成表详情：表配置 + `columns`（字段配置）+ `pk_column`（主键列）+ 树表参数 |
-| `/tool/gen/column-list` | GET | 字段配置列表：按 `table_id` 查询 |
-| `/tool/gen/update` | PUT | 修改生成配置：表配置与字段配置（`columns` 可省略），树表参数写入 `options` |
-| `/tool/gen/synch-db` | POST | 同步数据库表结构：新增列、删除已移除列、列类型变化时重置列配置 |
-| `/tool/gen/delete` | DELETE | 删除生成配置：同一事务内清理 `gen_table_column` |
-| `/tool/gen/preview` | GET | 预览生成代码：返回「文件相对路径 -> 文件内容」映射（domain/service/controller/接口测试/建表 SQL/接入说明） |
-| `/tool/gen/download` | GET | 下载生成代码：`application/zip` 附件，文件名取自表名去前缀后的蛇形名（如 `notice.zip`） |
+| `/gen/list` | GET | 代码生成表列表：支持 `table_name`、`table_comment`、`begin_time`、`end_time` 过滤 |
+| `/gen/db-list` | GET | 数据库表列表：`information_schema.tables` 中尚未导入的表（已排除 `qrtz_%`、`gen_%` 与已导入表） |
+| `/gen/import` | POST | 导入表结构：`tables` 支持 JSON 数组或逗号分隔，已导入的表自动跳过，全为已导入时返回错误 |
+| `/gen/detail` | GET | 代码生成表详情：表配置 + `columns`（字段配置）+ `pk_column`（主键列）+ 树表参数 |
+| `/gen/column-list` | GET | 字段配置列表：按 `table_id` 查询 |
+| `/gen/update` | PUT | 修改生成配置：表配置与字段配置（`columns` 可省略），树表参数写入 `options` |
+| `/gen/synch-db` | POST | 同步数据库表结构：新增列、删除已移除列、列类型变化时重置列配置 |
+| `/gen/delete` | DELETE | 删除生成配置：同一事务内清理 `gen_table_column` |
+| `/gen/preview` | GET | 预览生成代码：返回「文件相对路径 -> 文件内容」映射（domain/service/controller/接口测试/建表 SQL/接入说明） |
+| `/gen/download` | GET | 下载生成代码：`application/zip` 附件，文件名取自表名去前缀后的蛇形名（如 `notice.zip`） |
 
 - **渲染约定**：`app/gen/service/render.go` + `app/gen/service/templates/*.tmpl`（`embed.FS` 内置，**只用标准库 `text/template`**）；
   生成的 Go 代码经 `go/format` 格式化，语法错误会在预览/下载时直接报错；

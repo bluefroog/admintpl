@@ -5,12 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// InitRouter 注册代码生成模块路由（/tool/gen/**）
-// 权限标识由路径推导（middleware.PathPermission），如 /tool/gen/list -> tool:gen:list
+// InitRouter 注册代码生成模块路由（/gen/**）
+// 权限标识由路径推导（middleware.PathPermission），如 /gen/list -> gen:list
 func InitRouter(r *gin.Engine) {
 	authorized := r.Group("", middleware.Auth())
 
-	group := authorized.Group("/tool/gen")
+	group := authorized.Group("/gen")
 	{
 		gen := Gen{}
 		// 代码生成业务表

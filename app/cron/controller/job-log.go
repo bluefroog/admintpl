@@ -22,7 +22,7 @@ var (
 // @Tags 定时任务日志管理
 // @Param data query domain.JobLogSearchRequest true "data"
 // @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.JobLog}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
-// @Router /monitor/jobLog/list [get]
+// @Router /cron/jobLog/list [get]
 // @Security
 func (u *JobLog) List(c *gin.Context) {
 	var searchParams domain.JobLogSearchRequest
@@ -55,7 +55,7 @@ func (u *JobLog) List(c *gin.Context) {
 // @Tags 定时任务日志管理
 // @Param ids body request.IdsRequest true "{ids: [1,2']}"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /monitor/jobLog/delete [delete]
+// @Router /cron/jobLog/delete [delete]
 // @Security
 func (u *JobLog) Delete(c *gin.Context) {
 	var data *request.IdsRequest
@@ -82,7 +82,7 @@ func (u *JobLog) Delete(c *gin.Context) {
 // @Tags 定时任务日志管理
 // @Param data query request.GetById true "data"
 // @Success 0 {object} response.Response{data=domain.JobLog} "{"code": 0, "msg":"success","data": {}}"
-// @Router /monitor/jobLog/detail [get]
+// @Router /cron/jobLog/detail [get]
 // @Security
 func (u *JobLog) Detail(c *gin.Context) {
 	var param request.GetById
@@ -107,7 +107,7 @@ func (u *JobLog) Detail(c *gin.Context) {
 // @Description 清空定时任务日志
 // @Tags 定时任务日志
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /monitor/jobLog/clear [delete]
+// @Router /cron/jobLog/clear [delete]
 // @Security
 func (u *JobLog) Clear(c *gin.Context) {
 	if err := jobLog.Clear(); err != nil {

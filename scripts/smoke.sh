@@ -11,7 +11,10 @@ set -u
 
 BASE_URL="${1:-${BASE_URL:-http://127.0.0.1:8080}}"
 B="$BASE_URL/system"
-M="$BASE_URL/monitor"
+MON="$BASE_URL/monitor"   # 系统监控
+G="$BASE_URL/gen"         # 代码生成
+CJ="$BASE_URL/cron/job"    # 定时任务
+CL="$BASE_URL/cron/jobLog" # 定时任务日志
 S=$(date +%s)
 ok=0; sqlbad=0; bad=0
 
@@ -51,7 +54,7 @@ req() {
 # 监控模块读接口断言（与 req 相同，但使用 /monitor 前缀）
 mreq() {
   local m=$1 p=$2 out
-  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$M$p")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$MON$p")
   if echo "$out" | grep -q '"code":0'; then
     ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "monitor$p"
   elif echo "$out" | grep -qE '1054|Unknown column'; then
@@ -86,7 +89,7 @@ crud() {
 }
 
 crudm() {
-  crud_at "$M" "$@"
+  crud_at "$BASE_URL/cron" "$@"
 }
 
 echo "===== 认证接口 ====="
@@ -139,12 +142,27 @@ req GET '/dict-type/check-type?type=x'
 req GET '/dict-type/get-by-type?type=x'
 req GET '/dict-type/list-all'
 
-mreq GET '/job/list?pageSize=3'
-mreq GET '/job/list?name=x&groupId=1&status=0'
-mreq GET '/job/detail?id=1'
-mreq GET '/job/check-name?name=x'
-mreq GET '/jobLog/list?pageSize=3'
-mreq GET '/jobLog/detail?id=1'
+# 定时任务读接口断言（与 req 相同，但使用 /cron 前缀）
+creq() {
+  local m=$1 p=$2 out
+  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$BASE_URL/cron$p")
+  if echo "$out" | grep -q '"code":0'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "cron$p"
+  elif echo "$out" | grep -qE '1054|Unknown column'; then
+    sqlbad=$((sqlbad+1)); printf '\033[31mSQLERR\033[0m %-44s %s\n' "cron$p" "$(echo "$out" | head -c 170)"
+  elif echo "$out" | grep -q 'record not found'; then
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s （空表，无记录，符合预期）\n' "cron$p"
+  else
+    bad=$((bad+1)); printf '\033[33mWARN\033[0m  %-44s %s\n' "cron$p" "$(echo "$out" | head -c 170)"
+  fi
+}
+
+creq GET '/job/list?pageSize=3'
+creq GET '/job/list?name=x&groupId=1&status=0'
+creq GET '/job/detail?id=1'
+creq GET '/job/check-name?name=x'
+creq GET '/jobLog/list?pageSize=3'
+creq GET '/jobLog/detail?id=1'
 
 mreq GET '/logininfor/list?pageSize=3'
 mreq GET '/logininfor/list?loginName=x&status=0'
@@ -212,7 +230,7 @@ echo
 echo "===== 定时任务调度（cron 解析 / 自动触发 / 立即执行 / 启停 / 日志）====="
 JOBN="smokejob$S"
 # 非法 cron 表达式应当被拒绝
-out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$M/job/create" -H 'Content-Type: application/json' \
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$CJ/create" -H 'Content-Type: application/json' \
   -d "{\"name\":\"${JOBN}bad\",\"invoke_target\":\"demoTask.noParams()\",\"cron_expression\":\"0 0 0 * *\",\"status\":1}")
 if echo "$out" | grep -q 'Cron 表达式不正确'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '非法 cron 表达式被拒绝'
@@ -220,7 +238,7 @@ else
   bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '非法 cron 表达式被拒绝' "$(echo "$out" | head -c 170)"
 fi
 # 未注册的调用目标应当被拒绝
-out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$M/job/create" -H 'Content-Type: application/json' \
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$CJ/create" -H 'Content-Type: application/json' \
   -d "{\"name\":\"${JOBN}bad2\",\"invoke_target\":\"evil.exec('rm -rf /')\",\"cron_expression\":\"0 0 1 * * ?\",\"status\":1}")
 if echo "$out" | grep -q '调用目标字符串错误'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '未注册的调用目标被拒绝'
@@ -230,17 +248,17 @@ fi
 
 # 任务日志条数（按任务名称统计）
 job_logs() {
-  curl -s -m 10 "${auth_header[@]}" "$M/jobLog/list?pageSize=200&job_name=$1" | grep -o '"job_name"' | wc -l | tr -d ' '
+  curl -s -m 10 "${auth_header[@]}" "$CL/list?pageSize=200&job_name=$1" | grep -o '"job_name"' | wc -l | tr -d ' '
 }
 # 每 2 秒执行一次、禁止并发、错过执行放弃
-out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$M/job/create" -H 'Content-Type: application/json' \
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$CJ/create" -H 'Content-Type: application/json' \
   -d "{\"name\":\"$JOBN\",\"group\":\"default\",\"executor\":\"default\",\"invoke_target\":\"demoTask.noParams()\",\"cron_expression\":\"*/2 * * * * ?\",\"misfire_policy\":\"3\",\"concurrent\":\"1\",\"status\":0}")
 if echo "$out" | grep -q '"code":0'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '创建并启用定时任务'
 else
   bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '创建并启用定时任务' "$(echo "$out" | head -c 170)"
 fi
-JID=$(pick_id "$(curl -s -m 10 "${auth_header[@]}" "$M/job/list?pageSize=1&name=$JOBN")")
+JID=$(pick_id "$(curl -s -m 10 "${auth_header[@]}" "$CJ/list?pageSize=1&name=$JOBN")")
 if [ -n "$JID" ]; then
   sleep 6
   c1=$(job_logs "$JOBN")
@@ -250,7 +268,7 @@ if [ -n "$JID" ]; then
     bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 未产生执行日志\n' '任务按 cron 自动触发'
   fi
   # 暂停后不应再自动触发
-  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$M/job/change-status" -H 'Content-Type: application/json' -d "{\"id\":$JID,\"status\":1}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$CJ/change-status" -H 'Content-Type: application/json' -d "{\"id\":$JID,\"status\":1}")
   echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '暂停定时任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '暂停定时任务' "$out"; }
   sleep 6
   c2=$(job_logs "$JOBN")
@@ -260,7 +278,7 @@ if [ -n "$JID" ]; then
     bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 暂停前 %s 条、暂停后 %s 条\n' '暂停后不再自动触发' "$c1" "$c2"
   fi
   # 立即执行一次（暂停状态同样可执行）
-  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$M/job/run" -H 'Content-Type: application/json' -d "{\"id\":$JID}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$CJ/run" -H 'Content-Type: application/json' -d "{\"id\":$JID}")
   echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '立即执行一次任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '立即执行一次任务' "$out"; }
   sleep 2
   c3=$(job_logs "$JOBN")
@@ -270,7 +288,7 @@ if [ -n "$JID" ]; then
     bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s 日志未增加（%s）\n' '执行日志写入 sys_job_log' "$c3"
   fi
   # 删除任务应同时清理其执行日志
-  out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/job/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$JID]}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$CJ/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$JID]}")
   echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除定时任务'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '删除定时任务' "$out"; }
   c4=$(job_logs "$JOBN")
   if [ "${c4:-1}" = "0" ]; then
@@ -432,7 +450,7 @@ zero_check role "name=零值角色$S" "{\"key\":\"zero_role_$S\",\"name\":\"零�
 zero_check user "username=zero$S" "{\"username\":\"zero$S\",\"mobile\":\"138$S\",\"nickname\":\"零值用户$S\",\"status\":0,\"email\":\"zero$S@test.com\",\"gender\":0,\"avatar\":\"\",\"departmentID\":0,\"remark\":\"零值校验\",\"isAdmin\":false}" status
 
 echo
-cache_names=$(curl -s -m 10 "${auth_header[@]}" "$M/cache")
+cache_names=$(curl -s -m 10 "${auth_header[@]}" "$MON/cache")
 echo "===== 参数 / 字典缓存（预热 / 失效 / 刷新）====="
 # 取当前参数值（同时触发缓存写入）
 cfg=$(curl -s -m 10 "${auth_header[@]}" "$B/config/get-by-key?key=sys.index.sideTheme")
@@ -443,7 +461,7 @@ else
   bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '读取参数 sys.index.sideTheme' "$(echo "$cfg" | head -c 170)"
 fi
 # 参数已缓存：缓存列表按名称过滤应能查到该键
-cl=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_config&cacheKey=sys.index.sideTheme&pageSize=10")
+cl=$(curl -s -m 10 "${auth_header[@]}" "$MON/cache/list?cacheName=sys_config&cacheKey=sys.index.sideTheme&pageSize=10")
 if echo "$cl" | grep -q 'sys.index.sideTheme'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '参数已写入缓存 sys_config'
 else
@@ -475,7 +493,7 @@ else
 fi
 # 字典数据按类型读取后应写入字典缓存
 dd=$(curl -s -m 10 "${auth_header[@]}" "$B/dict-data/get-by-type?type=sys_normal_disable")
-dl=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_dict&cacheKey=sys_normal_disable&pageSize=10")
+dl=$(curl -s -m 10 "${auth_header[@]}" "$MON/cache/list?cacheName=sys_dict&cacheKey=sys_normal_disable&pageSize=10")
 if echo "$dd" | grep -q '"code":0' && echo "$dl" | grep -q 'sys_normal_disable'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '字典数据已写入缓存 sys_dict'
 else
@@ -499,9 +517,9 @@ cd_out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$B/dict-data/create" -H 'Con
 cd_list=$(curl -s -m 10 "${auth_header[@]}" "$B/dict-data/list?type=$dtype&pageSize=1")
 dd_id=$(pick_id "$cd_list")
 curl -s -m 10 "${auth_header[@]}" "$B/dict-data/get-by-type?type=$dtype" >/dev/null
-dl2=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_dict&cacheKey=$dtype&pageSize=10")
+dl2=$(curl -s -m 10 "${auth_header[@]}" "$MON/cache/list?cacheName=sys_dict&cacheKey=$dtype&pageSize=10")
 del_t=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$B/dict-type/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$dt_id]}")
-dl3=$(curl -s -m 10 "${auth_header[@]}" "$M/cache/list?cacheName=sys_dict&cacheKey=$dtype&pageSize=10")
+dl3=$(curl -s -m 10 "${auth_header[@]}" "$MON/cache/list?cacheName=sys_dict&cacheKey=$dtype&pageSize=10")
 if echo "$dl2" | grep -q "$dtype" && echo "$del_t" | grep -q '"code":0' && ! echo "$dl3" | grep -q "$dtype"; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除字典类型后清理字典缓存'
 else
@@ -520,7 +538,7 @@ fi
 echo
 echo "===== 服务监控 / 缓存监控 ====="
 # 服务监控：CPU / 内存 / Go 运行时 / 主机 / 磁盘
-srv=$(curl -s -m 10 "${auth_header[@]}" "$M/server")
+srv=$(curl -s -m 10 "${auth_header[@]}" "$MON/server")
 srv_assert() {
   local key=$1 name=$2
   if echo "$srv" | grep -q "\"$key\""; then
@@ -543,7 +561,7 @@ fi
 # 缓存监控 / 缓存列表
 mreq GET '/cache'
 mreq GET '/cache/list?pageSize=5'
-cache_info=$(curl -s -m 10 "${auth_header[@]}" "$M/cache")
+cache_info=$(curl -s -m 10 "${auth_header[@]}" "$MON/cache")
 if echo "$cache_info" | grep -q '"commandStats"'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '缓存监控返回读写命令统计'
 else
@@ -555,11 +573,11 @@ else
   bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '验证码缓存已纳入缓存监控' "$(echo "$cache_info" | head -c 170)"
 fi
 # 清空指定缓存与全部缓存
-out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/cache/clear?cacheName=captcha")
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$MON/cache/clear?cacheName=captcha")
 echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '清空指定缓存'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '清空指定缓存' "$out"; }
-out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/cache/clear")
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$MON/cache/clear")
 echo "$out" | grep -q '"code":0' && { ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '清空全部缓存'; } || { bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '清空全部缓存' "$out"; }
-out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$M/cache/clear?cacheName=not-exist")
+out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$MON/cache/clear?cacheName=not-exist")
 if echo "$out" | grep -q '"code":-1'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '不存在的缓存名称被拒绝'
 else
@@ -568,27 +586,26 @@ fi
 
 echo
 echo "===== 代码生成（表结构导入 / 配置修改 / 同步数据库）====="
-T="$BASE_URL/tool"
 
-# 代码生成接口断言（与 req 相同，但使用 /tool 前缀）
+# 代码生成接口断言（与 req 相同，但使用 /gen 前缀）
 treq() {
   local m=$1 p=$2 out
-  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$T$p")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X "$m" "$G$p")
   if echo "$out" | grep -q '"code":0'; then
-    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "tool$p"
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' "gen$p"
   elif echo "$out" | grep -qE '1054|Unknown column'; then
-    sqlbad=$((sqlbad+1)); printf '\033[31mSQLERR\033[0m %-44s %s\n' "tool$p" "$(echo "$out" | head -c 170)"
+    sqlbad=$((sqlbad+1)); printf '\033[31mSQLERR\033[0m %-44s %s\n' "gen$p" "$(echo "$out" | head -c 170)"
   elif echo "$out" | grep -q 'record not found'; then
-    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s （空表，无记录，符合预期）\n' "tool$p"
+    ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s （空表，无记录，符合预期）\n' "gen$p"
   else
-    bad=$((bad+1)); printf '\033[33mWARN\033[0m  %-44s %s\n' "tool$p" "$(echo "$out" | head -c 170)"
+    bad=$((bad+1)); printf '\033[33mWARN\033[0m  %-44s %s\n' "gen$p" "$(echo "$out" | head -c 170)"
   fi
 }
 
-treq GET '/gen/list?pageSize=3'
+treq GET '/list?pageSize=3'
 
 # 未导入的数据库表列表（取第一张表用于导入测试）
-db_list=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/db-list?pageSize=5")
+db_list=$(curl -s -m 10 "${auth_header[@]}" "$G/db-list?pageSize=5")
 imp_table=$(echo "$db_list" | grep -o '"table_name":"[^"]*"' | head -1 | cut -d'"' -f4)
 if [ -n "$imp_table" ]; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' '数据库表列表返回可导入表' "$imp_table"
@@ -597,7 +614,7 @@ else
 fi
 
 # 空表名导入被拒绝（参数校验）
-out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/import" -H 'Content-Type: application/json' -d '{"tables":[]}')
+out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$G/import" -H 'Content-Type: application/json' -d '{"tables":[]}')
 if echo "$out" | grep -q '"code":-1'; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '导入表结构（空表名被拒绝）'
 else
@@ -606,7 +623,7 @@ fi
 
 if [ -n "$imp_table" ]; then
   # 导入表结构
-  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/import" -H 'Content-Type: application/json' -d "{\"tables\":[\"$imp_table\"]}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$G/import" -H 'Content-Type: application/json' -d "{\"tables\":[\"$imp_table\"]}")
   if echo "$out" | grep -q '"imported":1'; then
     ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' '导入表结构' "$imp_table"
   else
@@ -614,7 +631,7 @@ if [ -n "$imp_table" ]; then
   fi
 
   # 重复导入被拒绝
-  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/import" -H 'Content-Type: application/json' -d "{\"tables\":[\"$imp_table\"]}")
+  out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$G/import" -H 'Content-Type: application/json' -d "{\"tables\":[\"$imp_table\"]}")
   if echo "$out" | grep -q '"code":-1'; then
     ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '重复导入同表被拒绝'
   else
@@ -622,7 +639,7 @@ if [ -n "$imp_table" ]; then
   fi
 
   # 导入后按表名查询取编号
-  gen_list=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/list?table_name=$imp_table&pageSize=1")
+  gen_list=$(curl -s -m 10 "${auth_header[@]}" "$G/list?table_name=$imp_table&pageSize=1")
   gen_id=$(pick_id "$gen_list")
   if [ -n "$gen_id" ]; then
     ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s id=%s\n' '代码生成表列表查询' "$gen_id"
@@ -632,7 +649,7 @@ if [ -n "$imp_table" ]; then
 
   if [ -n "$gen_id" ]; then
     # 详情：列信息 + 主键列 + 类名（sys_ 前缀已按配置去除）
-    gen_detail=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/detail?id=$gen_id")
+    gen_detail=$(curl -s -m 10 "${auth_header[@]}" "$G/detail?id=$gen_id")
     if echo "$gen_detail" | grep -q '"columns"' && echo "$gen_detail" | grep -q '"pk_column"'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '代码生成表详情返回列与主键列'
     else
@@ -645,9 +662,9 @@ if [ -n "$imp_table" ]; then
     fi
 
     # 字段列表接口
-    treq GET "/gen/column-list?table_id=$gen_id"
+    treq GET "/column-list?table_id=$gen_id"
     # 缺少表编号时被拒绝
-    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/column-list")
+    out=$(curl -s -m 10 "${auth_header[@]}" "$G/column-list")
     if echo "$out" | grep -q '"code":-1'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '字段列表缺少表编号被拒绝'
     else
@@ -655,7 +672,7 @@ if [ -n "$imp_table" ]; then
     fi
 
     # 修改生成配置
-    out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$T/gen/update" -H 'Content-Type: application/json' \
+    out=$(curl -s -m 10 "${auth_header[@]}" -X PUT "$G/update" -H 'Content-Type: application/json' \
       -d "{\"id\":$gen_id,\"table_name\":\"$imp_table\",\"table_comment\":\"冒烟测试表\",\"class_name\":\"SmokeGen\",\"tpl_category\":\"crud\",\"package_name\":\"github.com/bluefroog/admintpl\",\"module_name\":\"system\",\"business_name\":\"smoke\",\"function_name\":\"冒烟测试\",\"function_author\":\"smoke\",\"gen_type\":\"0\",\"tree_code\":\"id\",\"remark\":\"smoke\"}")
     if echo "$out" | grep -q '"code":0'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '修改代码生成配置'
@@ -663,7 +680,7 @@ if [ -n "$imp_table" ]; then
       bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '修改代码生成配置' "$(echo "$out" | head -c 170)"
     fi
     # 修改结果与树表参数落库校验
-    gen_detail=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/detail?id=$gen_id")
+    gen_detail=$(curl -s -m 10 "${auth_header[@]}" "$G/detail?id=$gen_id")
     if echo "$gen_detail" | grep -q '"class_name":"SmokeGen"' && echo "$gen_detail" | grep -q '"tree_code":"id"'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '配置修改与树表参数已落库'
     else
@@ -671,7 +688,7 @@ if [ -n "$imp_table" ]; then
     fi
 
     # 同步数据库表结构
-    out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$T/gen/synch-db" -H 'Content-Type: application/json' -d "{\"id\":$gen_id}")
+    out=$(curl -s -m 10 "${auth_header[@]}" -X POST "$G/synch-db" -H 'Content-Type: application/json' -d "{\"id\":$gen_id}")
     if echo "$out" | grep -q '"code":0'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '同步数据库表结构'
     else
@@ -679,7 +696,7 @@ if [ -n "$imp_table" ]; then
     fi
 
     # 预览生成代码（配置中 class_name/function_name 已改成 SmokeGen / 冒烟测试）
-    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/preview?id=$gen_id")
+    out=$(curl -s -m 10 "${auth_header[@]}" "$G/preview?id=$gen_id")
     if echo "$out" | grep -q '"code":0' && echo "$out" | grep -q 'package domain' \
       && echo "$out" | grep -q 'type SmokeGen struct' && echo "$out" | grep -q '@Router /system/'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '预览生成代码（实体/控制器/路由注解）'
@@ -694,14 +711,14 @@ if [ -n "$imp_table" ]; then
       bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '预览生成代码（service/SQL/http/接入说明）' "$(echo "$out" | head -c 170)"
     fi
     # 预览缺少编号被拒绝
-    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/preview")
+    out=$(curl -s -m 10 "${auth_header[@]}" "$G/preview")
     if echo "$out" | grep -q '"code":-1'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '预览生成代码缺少编号被拒绝'
     else
       bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '预览生成代码缺少编号被拒绝' "$(echo "$out" | head -c 170)"
     fi
     # 预览不存在的表被拒绝
-    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/preview?id=999999")
+    out=$(curl -s -m 10 "${auth_header[@]}" "$G/preview?id=999999")
     if echo "$out" | grep -q '"code":-1'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '预览不存在的表被拒绝'
     else
@@ -709,7 +726,7 @@ if [ -n "$imp_table" ]; then
     fi
     # 下载 zip（校验状态码、内容类型与 zip 魔数 PK）
     gen_zip=$(mktemp)
-    zip_meta=$(curl -s -m 20 "${auth_header[@]}" -o "$gen_zip" -w '%{http_code} %{content_type}' "$T/gen/download?id=$gen_id")
+    zip_meta=$(curl -s -m 20 "${auth_header[@]}" -o "$gen_zip" -w '%{http_code} %{content_type}' "$G/download?id=$gen_id")
     if echo "$zip_meta" | grep -q '^200 application/zip' && [ "$(head -c 2 "$gen_zip")" = "PK" ]; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s 字节\n' '下载生成代码 zip' "$(wc -c <"$gen_zip" | tr -d ' ')"
     else
@@ -717,7 +734,7 @@ if [ -n "$imp_table" ]; then
     fi
     rm -f "$gen_zip"
     # 下载缺少编号被拒绝（返回 JSON 错误而不是 zip）
-    out=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/download")
+    out=$(curl -s -m 10 "${auth_header[@]}" "$G/download")
     if echo "$out" | grep -q '"code":-1'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '下载生成代码缺少编号被拒绝'
     else
@@ -725,14 +742,14 @@ if [ -n "$imp_table" ]; then
     fi
 
     # 删除导入记录（同时清理列信息）
-    out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$T/gen/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$gen_id]}")
+    out=$(curl -s -m 10 "${auth_header[@]}" -X DELETE "$G/delete" -H 'Content-Type: application/json' -d "{\"ids\":[$gen_id]}")
     if echo "$out" | grep -q '"code":0'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除代码生成配置'
     else
       bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' '删除代码生成配置' "$(echo "$out" | head -c 170)"
     fi
     # 删除后列信息一并清理
-    col_left=$(curl -s -m 10 "${auth_header[@]}" "$T/gen/column-list?table_id=$gen_id")
+    col_left=$(curl -s -m 10 "${auth_header[@]}" "$G/column-list?table_id=$gen_id")
     if echo "$col_left" | grep -q '"total":0'; then
       ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s\n' '删除后列信息已清理'
     else

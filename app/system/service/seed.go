@@ -55,14 +55,14 @@ var menuSeeds = []menuSeed{
 
 	// ---- 系统监控 ----
 	{id: 109, parentID: 2, name: "在线用户", sort: 1, path: "online", component: "monitor/online/index", menuType: "C", perms: "monitor:online:list", icon: "online"},
-	{id: 110, parentID: 2, name: "定时任务", sort: 2, path: "job", component: "monitor/job/index", menuType: "C", perms: "monitor:job:list", icon: "job"},
+	{id: 110, parentID: 2, name: "定时任务", sort: 2, path: "job", component: "cron/job/index", menuType: "C", perms: "cron:job:list", icon: "job"},
 	{id: 111, parentID: 2, name: "缓存监控", sort: 3, path: "cache", component: "monitor/cache/index", menuType: "C", perms: "monitor:cache:list", icon: "redis"},
 	{id: 112, parentID: 2, name: "缓存列表", sort: 4, path: "cacheList", component: "monitor/cacheList/index", menuType: "C", perms: "monitor:cacheList:list", icon: "redis-list"},
 	{id: 113, parentID: 2, name: "服务监控", sort: 5, path: "server", component: "monitor/server/index", menuType: "C", perms: "monitor:server:list", icon: "server"},
 
 	// ---- 系统工具 ----
 	{id: 114, parentID: 3, name: "表单构建", sort: 1, path: "build", component: "tool/build/index", menuType: "C", perms: "tool:build:list", icon: "build"},
-	{id: 115, parentID: 3, name: "代码生成", sort: 2, path: "gen", component: "tool/gen/index", menuType: "C", perms: "tool:gen:list", icon: "code"},
+	{id: 115, parentID: 3, name: "代码生成", sort: 2, path: "gen", component: "gen/index", menuType: "C", perms: "gen:list", icon: "code"},
 	{id: 116, parentID: 3, name: "系统接口", sort: 3, path: "swagger", component: "tool/swagger/index", menuType: "C", perms: "tool:swagger:list", icon: "swagger"},
 
 	// ---- 用户管理按钮 ----
@@ -135,20 +135,20 @@ var menuSeeds = []menuSeed{
 	{id: 1047, parentID: 109, name: "强退", sort: 2, menuType: "F", perms: "monitor:online:forceLogout"},
 
 	// ---- 定时任务按钮 ----
-	{id: 1049, parentID: 110, name: "任务查询", sort: 1, menuType: "F", perms: "monitor:job:query"},
-	{id: 1050, parentID: 110, name: "任务新增", sort: 2, menuType: "F", perms: "monitor:job:add"},
-	{id: 1051, parentID: 110, name: "任务修改", sort: 3, menuType: "F", perms: "monitor:job:edit"},
-	{id: 1052, parentID: 110, name: "任务删除", sort: 4, menuType: "F", perms: "monitor:job:remove"},
-	{id: 1053, parentID: 110, name: "状态修改", sort: 5, menuType: "F", perms: "monitor:job:changeStatus"},
-	{id: 1054, parentID: 110, name: "任务导出", sort: 6, menuType: "F", perms: "monitor:job:export"},
+	{id: 1049, parentID: 110, name: "任务查询", sort: 1, menuType: "F", perms: "cron:job:query"},
+	{id: 1050, parentID: 110, name: "任务新增", sort: 2, menuType: "F", perms: "cron:job:add"},
+	{id: 1051, parentID: 110, name: "任务修改", sort: 3, menuType: "F", perms: "cron:job:edit"},
+	{id: 1052, parentID: 110, name: "任务删除", sort: 4, menuType: "F", perms: "cron:job:remove"},
+	{id: 1053, parentID: 110, name: "状态修改", sort: 5, menuType: "F", perms: "cron:job:changeStatus"},
+	{id: 1054, parentID: 110, name: "任务导出", sort: 6, menuType: "F", perms: "cron:job:export"},
 
 	// ---- 代码生成按钮 ----
-	{id: 1055, parentID: 115, name: "生成查询", sort: 1, menuType: "F", perms: "tool:gen:query"},
-	{id: 1056, parentID: 115, name: "生成修改", sort: 2, menuType: "F", perms: "tool:gen:edit"},
-	{id: 1057, parentID: 115, name: "生成删除", sort: 3, menuType: "F", perms: "tool:gen:remove"},
-	{id: 1058, parentID: 115, name: "导入代码", sort: 4, menuType: "F", perms: "tool:gen:import"},
-	{id: 1059, parentID: 115, name: "预览代码", sort: 5, menuType: "F", perms: "tool:gen:preview"},
-	{id: 1060, parentID: 115, name: "生成代码", sort: 6, menuType: "F", perms: "tool:gen:code"},
+	{id: 1055, parentID: 115, name: "生成查询", sort: 1, menuType: "F", perms: "gen:query"},
+	{id: 1056, parentID: 115, name: "生成修改", sort: 2, menuType: "F", perms: "gen:edit"},
+	{id: 1057, parentID: 115, name: "生成删除", sort: 3, menuType: "F", perms: "gen:remove"},
+	{id: 1058, parentID: 115, name: "导入代码", sort: 4, menuType: "F", perms: "gen:import"},
+	{id: 1059, parentID: 115, name: "预览代码", sort: 5, menuType: "F", perms: "gen:preview"},
+	{id: 1060, parentID: 115, name: "生成代码", sort: 6, menuType: "F", perms: "gen:code"},
 }
 
 // commonRoleMenuIds 普通角色（role_id=2）默认授权的菜单

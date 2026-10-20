@@ -26,7 +26,7 @@ var (
 // @Tags 代码生成管理
 // @Param data query domain.TableSearchRequest true "data"
 // @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.Table}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
-// @Router /tool/gen/list [get]
+// @Router /gen/list [get]
 // @Security
 func (g *Gen) List(c *gin.Context) {
 	var searchParams domain.TableSearchRequest
@@ -58,7 +58,7 @@ func (g *Gen) List(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data query domain.DbTableSearchRequest true "data"
 // @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.DbTable}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
-// @Router /tool/gen/db-list [get]
+// @Router /gen/db-list [get]
 // @Security
 func (g *Gen) DbList(c *gin.Context) {
 	var searchParams domain.DbTableSearchRequest
@@ -90,7 +90,7 @@ func (g *Gen) DbList(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data query domain.TableColumnSearchRequest true "data"
 // @Success 0 {object} response.Response{data=response.PageResult{list=[]domain.TableColumn}} "{"code": 0, "msg": "success","data": { "list": [],"total": 0 } }"
-// @Router /tool/gen/column-list [get]
+// @Router /gen/column-list [get]
 // @Security
 func (g *Gen) ColumnList(c *gin.Context) {
 	var searchParams domain.TableColumnSearchRequest
@@ -126,7 +126,7 @@ func (g *Gen) ColumnList(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data query request.GetById true "data"
 // @Success 0 {object} response.Response{data=domain.Table} "{"code": 0, "msg": "success","data": {} }"
-// @Router /tool/gen/detail [get]
+// @Router /gen/detail [get]
 // @Security
 func (g *Gen) Detail(c *gin.Context) {
 	var data request.GetById
@@ -152,7 +152,7 @@ func (g *Gen) Detail(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data body domain.TableImportRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /tool/gen/import [post]
+// @Router /gen/import [post]
 // @Security
 func (g *Gen) Import(c *gin.Context) {
 	var data domain.TableImportRequest
@@ -178,7 +178,7 @@ func (g *Gen) Import(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data body domain.TableUpdateRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /tool/gen/update [put]
+// @Router /gen/update [put]
 // @Security
 func (g *Gen) Update(c *gin.Context) {
 	var data *domain.TableUpdateRequest
@@ -203,7 +203,7 @@ func (g *Gen) Update(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data body domain.TableSynchRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /tool/gen/synch-db [post]
+// @Router /gen/synch-db [post]
 // @Security
 func (g *Gen) SynchDb(c *gin.Context) {
 	var data domain.TableSynchRequest
@@ -228,7 +228,7 @@ func (g *Gen) SynchDb(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data body request.IdsRequest true "data"
 // @Success 0 {object} response.Response "{"code": 0, "msg":"success","data": null}"
-// @Router /tool/gen/delete [delete]
+// @Router /gen/delete [delete]
 // @Security
 func (g *Gen) Delete(c *gin.Context) {
 	var data request.IdsRequest
@@ -253,7 +253,7 @@ func (g *Gen) Delete(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data query request.GetById true "data"
 // @Success 0 {object} response.Response{data=map[string]string} "{"code": 0, "msg":"success","data": {"app/system/domain/post.go": "package domain..."}}"
-// @Router /tool/gen/preview [get]
+// @Router /gen/preview [get]
 // @Security
 func (g *Gen) Preview(c *gin.Context) {
 	var param request.GetById
@@ -279,7 +279,7 @@ func (g *Gen) Preview(c *gin.Context) {
 // @Tags 代码生成管理
 // @Param data query request.GetById true "data"
 // @Success 200 {file} file "代码压缩包"
-// @Router /tool/gen/download [get]
+// @Router /gen/download [get]
 // @Security
 func (g *Gen) Download(c *gin.Context) {
 	var param request.GetById

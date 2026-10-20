@@ -5,12 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// InitRouter 注册「定时任务」模块路由（统一前缀 /monitor）
-// 权限标识按路径推导：/monitor/job/list -> monitor:job:list
+// InitRouter 注册「定时任务」模块路由（统一前缀 /cron）
+// 权限标识按路径推导：/cron/job/list -> cron:job:list
 func InitRouter(r *gin.Engine) {
 	authorized := r.Group("", middleware.Auth())
 
-	group := authorized.Group("/monitor")
+	group := authorized.Group("/cron")
 	{
 		// 定时任务相关接口
 		job := Job{}

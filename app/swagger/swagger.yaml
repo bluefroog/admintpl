@@ -2489,6 +2489,685 @@ paths:
       summary: 获取图形验证码
       tags:
       - 登录认证
+  /cron/job/change-status:
+    put:
+      description: 修改定时任务状态（0正常 1暂停）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.JobChangeStatusRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改任务状态
+      tags:
+      - 定时任务
+  /cron/job/check-name:
+    get:
+      description: 校验任务名称是否唯一
+      parameters:
+      - description: 任务ID（编辑时传入，排除自身）
+        in: query
+        name: id
+        type: integer
+      - description: 任务名称
+        in: query
+        name: name
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": true}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
+      security: []
+      summary: 校验任务名称是否唯一
+      tags:
+      - 定时任务
+  /cron/job/create:
+    post:
+      description: 添加定时任务
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.JobCreateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 添加定时任务
+      tags:
+      - 定时任务管理
+  /cron/job/delete:
+    delete:
+      description: 删除定时任务
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除定时任务
+      tags:
+      - 定时任务管理
+  /cron/job/detail:
+    get:
+      description: 获取指定ID的定时任务详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Job'
+              type: object
+      security: []
+      summary: 获取指定ID的定时任务详情
+      tags:
+      - 定时任务管理
+  /cron/job/list:
+    get:
+      description: 定时任务列表
+      parameters:
+      - in: query
+        name: create_by
+        type: string
+      - description: 任务执行器
+        in: query
+        name: executor
+        type: string
+      - description: 任务组名
+        in: query
+        name: group
+        type: string
+      - description: 任务ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 调用目标字符串
+        in: query
+        name: invoke_target
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 任务名称
+        in: query
+        name: name
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 状态（0正常 1暂停）
+        in: query
+        name: status
+        type: integer
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Job'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取定时任务列表
+      tags:
+      - 定时任务管理
+  /cron/job/run:
+    put:
+      description: 立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.JobRunRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 立即执行一次定时任务
+      tags:
+      - 定时任务管理
+  /cron/job/update:
+    put:
+      description: 修改定时任务
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.JobUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改定时任务
+      tags:
+      - 定时任务管理
+  /cron/jobLog/clear:
+    delete:
+      description: 清空定时任务日志
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 清空定时任务日志
+      tags:
+      - 定时任务日志
+  /cron/jobLog/delete:
+    delete:
+      description: 删除定时任务日志
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除定时任务日志
+      tags:
+      - 定时任务日志管理
+  /cron/jobLog/detail:
+    get:
+      description: 获取指定ID的定时任务日志详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.JobLog'
+              type: object
+      security: []
+      summary: 获取指定ID的定时任务日志详情
+      tags:
+      - 定时任务日志管理
+  /cron/jobLog/list:
+    get:
+      description: 定时任务日志列表
+      parameters:
+      - description: 任务日志ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 调用目标字符串
+        in: query
+        name: invoke_target
+        type: string
+      - description: 任务执行器
+        in: query
+        name: job_executor
+        type: string
+      - description: 任务组名
+        in: query
+        name: job_group
+        type: string
+      - description: 任务名称
+        in: query
+        name: job_name
+        type: string
+      - description: 任务触发器
+        in: query
+        name: job_trigger
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 执行状态（0正常 1失败）
+        in: query
+        name: status
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.JobLog'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取定时任务日志列表
+      tags:
+      - 定时任务日志管理
+  /gen/column-list:
+    get:
+      description: 获取指定代码生成表的字段配置列表
+      parameters:
+      - description: 列名称
+        in: query
+        name: column_name
+        type: string
+      - description: 编号
+        in: query
+        name: id
+        type: integer
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 归属表编号
+        in: query
+        name: table_id
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.TableColumn'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取代码生成表字段列表
+      tags:
+      - 代码生成管理
+  /gen/db-list:
+    get:
+      description: 查询 information_schema.tables，返回尚未导入代码生成的数据库表
+      parameters:
+      - description: 开始时间
+        in: query
+        name: begin_time
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 表描述
+        in: query
+        name: table_comment
+        type: string
+      - description: 表名称
+        in: query
+        name: table_name
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.DbTable'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取数据库表列表
+      tags:
+      - 代码生成管理
+  /gen/delete:
+    delete:
+      description: 删除代码生成业务，同时清理其字段配置
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除代码生成业务
+      tags:
+      - 代码生成管理
+  /gen/detail:
+    get:
+      description: 获取代码生成表详情，包含字段配置、主键列与树表参数
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": {} }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Table'
+              type: object
+      security: []
+      summary: 获取代码生成表详情
+      tags:
+      - 代码生成管理
+  /gen/download:
+    get:
+      description: 生成代码并打包为 zip 下载（文件名取自表名去前缀后的蛇形名）
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: 代码压缩包
+          schema:
+            type: file
+      security: []
+      summary: 下载生成代码
+      tags:
+      - 代码生成管理
+  /gen/import:
+    post:
+      description: 按表名导入数据库表结构到代码生成业务表（已导入的表自动跳过）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TableImportRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 导入表结构
+      tags:
+      - 代码生成管理
+  /gen/list:
+    get:
+      description: 已导入 gen_table 的代码生成业务表列表
+      parameters:
+      - description: 开始时间
+        in: query
+        name: begin_time
+        type: string
+      - in: query
+        name: create_by
+        type: string
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: string
+      - description: 编号
+        in: query
+        name: id
+        type: integer
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 表描述
+        in: query
+        name: table_comment
+        type: string
+      - description: 表名称
+        in: query
+        name: table_name
+        type: string
+      - in: query
+        name: update_by
+        type: string
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.Table'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取代码生成表列表
+      tags:
+      - 代码生成管理
+  /gen/preview:
+    get:
+      description: 按 gen_table / gen_table_column 的配置渲染模板，返回「文件相对路径 -> 文件内容」
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {"app/system/domain/post.go":
+            "package domain..."}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+      security: []
+      summary: 预览生成代码
+      tags:
+      - 代码生成管理
+  /gen/synch-db:
+    post:
+      description: 按数据库最新结构同步代码生成业务表（新增列 / 删除已移除列 / 列类型变化重置列配置）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TableSynchRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 同步数据库表结构
+      tags:
+      - 代码生成管理
+  /gen/update:
+    put:
+      description: 修改代码生成业务配置（表信息 + 字段配置）
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TableUpdateRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 修改代码生成业务
+      tags:
+      - 代码生成管理
   /getInfo:
     get:
       description: 获取当前登录用户的资料、角色标识与权限标识
@@ -2649,374 +3328,6 @@ paths:
       summary: 获取缓存列表
       tags:
       - 缓存列表
-  /monitor/job/change-status:
-    put:
-      description: 修改定时任务状态（0正常 1暂停）
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/domain.JobChangeStatusRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 修改任务状态
-      tags:
-      - 定时任务
-  /monitor/job/check-name:
-    get:
-      description: 校验任务名称是否唯一
-      parameters:
-      - description: 任务ID（编辑时传入，排除自身）
-        in: query
-        name: id
-        type: integer
-      - description: 任务名称
-        in: query
-        name: name
-        type: string
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": true}'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  type: boolean
-              type: object
-      security: []
-      summary: 校验任务名称是否唯一
-      tags:
-      - 定时任务
-  /monitor/job/create:
-    post:
-      description: 添加定时任务
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/domain.JobCreateRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 添加定时任务
-      tags:
-      - 定时任务管理
-  /monitor/job/delete:
-    delete:
-      description: 删除定时任务
-      parameters:
-      - description: '{ids: [1,2'']}'
-        in: body
-        name: ids
-        required: true
-        schema:
-          $ref: '#/definitions/request.IdsRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 删除定时任务
-      tags:
-      - 定时任务管理
-  /monitor/job/detail:
-    get:
-      description: 获取指定ID的定时任务详情
-      parameters:
-      - description: 主键ID
-        in: query
-        name: id
-        required: true
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": {}}'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/domain.Job'
-              type: object
-      security: []
-      summary: 获取指定ID的定时任务详情
-      tags:
-      - 定时任务管理
-  /monitor/job/list:
-    get:
-      description: 定时任务列表
-      parameters:
-      - in: query
-        name: create_by
-        type: string
-      - description: 任务执行器
-        in: query
-        name: executor
-        type: string
-      - description: 任务组名
-        in: query
-        name: group
-        type: string
-      - description: 任务ID
-        in: query
-        name: id
-        type: integer
-      - collectionFormat: csv
-        description: 包含的ID列表
-        in: query
-        items:
-          type: integer
-        name: idIn
-        type: array
-      - collectionFormat: csv
-        description: 不包含的ID列表
-        in: query
-        items:
-          type: integer
-        name: idNotIn
-        type: array
-      - description: 调用目标字符串
-        in: query
-        name: invoke_target
-        type: string
-      - description: 关键字
-        in: query
-        name: keyword
-        type: string
-      - description: 任务名称
-        in: query
-        name: name
-        type: string
-      - description: 排序
-        in: query
-        name: orderBy
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页大小 不传默认 20条
-        in: query
-        name: pageSize
-        type: integer
-      - description: 状态（0正常 1暂停）
-        in: query
-        name: status
-        type: integer
-      - in: query
-        name: update_by
-        type: string
-      responses:
-        "0":
-          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
-            0 } }'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/domain.Job'
-                        type: array
-                    type: object
-              type: object
-      security: []
-      summary: 获取定时任务列表
-      tags:
-      - 定时任务管理
-  /monitor/job/run:
-    put:
-      description: 立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/domain.JobRunRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 立即执行一次定时任务
-      tags:
-      - 定时任务管理
-  /monitor/job/update:
-    put:
-      description: 修改定时任务
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/domain.JobUpdateRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 修改定时任务
-      tags:
-      - 定时任务管理
-  /monitor/jobLog/clear:
-    delete:
-      description: 清空定时任务日志
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 清空定时任务日志
-      tags:
-      - 定时任务日志
-  /monitor/jobLog/delete:
-    delete:
-      description: 删除定时任务日志
-      parameters:
-      - description: '{ids: [1,2'']}'
-        in: body
-        name: ids
-        required: true
-        schema:
-          $ref: '#/definitions/request.IdsRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 删除定时任务日志
-      tags:
-      - 定时任务日志管理
-  /monitor/jobLog/detail:
-    get:
-      description: 获取指定ID的定时任务日志详情
-      parameters:
-      - description: 主键ID
-        in: query
-        name: id
-        required: true
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": {}}'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/domain.JobLog'
-              type: object
-      security: []
-      summary: 获取指定ID的定时任务日志详情
-      tags:
-      - 定时任务日志管理
-  /monitor/jobLog/list:
-    get:
-      description: 定时任务日志列表
-      parameters:
-      - description: 任务日志ID
-        in: query
-        name: id
-        type: integer
-      - collectionFormat: csv
-        description: 包含的ID列表
-        in: query
-        items:
-          type: integer
-        name: idIn
-        type: array
-      - collectionFormat: csv
-        description: 不包含的ID列表
-        in: query
-        items:
-          type: integer
-        name: idNotIn
-        type: array
-      - description: 调用目标字符串
-        in: query
-        name: invoke_target
-        type: string
-      - description: 任务执行器
-        in: query
-        name: job_executor
-        type: string
-      - description: 任务组名
-        in: query
-        name: job_group
-        type: string
-      - description: 任务名称
-        in: query
-        name: job_name
-        type: string
-      - description: 任务触发器
-        in: query
-        name: job_trigger
-        type: string
-      - description: 关键字
-        in: query
-        name: keyword
-        type: string
-      - description: 排序
-        in: query
-        name: orderBy
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页大小 不传默认 20条
-        in: query
-        name: pageSize
-        type: integer
-      - description: 执行状态（0正常 1失败）
-        in: query
-        name: status
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
-            0 } }'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/domain.JobLog'
-                        type: array
-                    type: object
-              type: object
-      security: []
-      summary: 获取定时任务日志列表
-      tags:
-      - 定时任务日志管理
   /monitor/logininfor/clear:
     delete:
       description: 清空登录日志，status 为空时清空全部
@@ -6381,315 +6692,4 @@ paths:
       summary: 修改用户
       tags:
       - 用户管理
-  /tool/gen/column-list:
-    get:
-      description: 获取指定代码生成表的字段配置列表
-      parameters:
-      - description: 列名称
-        in: query
-        name: column_name
-        type: string
-      - description: 编号
-        in: query
-        name: id
-        type: integer
-      - description: 排序
-        in: query
-        name: orderBy
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页大小 不传默认 20条
-        in: query
-        name: pageSize
-        type: integer
-      - description: 归属表编号
-        in: query
-        name: table_id
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
-            0 } }'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/domain.TableColumn'
-                        type: array
-                    type: object
-              type: object
-      security: []
-      summary: 获取代码生成表字段列表
-      tags:
-      - 代码生成管理
-  /tool/gen/db-list:
-    get:
-      description: 查询 information_schema.tables，返回尚未导入代码生成的数据库表
-      parameters:
-      - description: 开始时间
-        in: query
-        name: begin_time
-        type: string
-      - description: 结束时间
-        in: query
-        name: end_time
-        type: string
-      - description: 排序
-        in: query
-        name: orderBy
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页大小 不传默认 20条
-        in: query
-        name: pageSize
-        type: integer
-      - description: 表描述
-        in: query
-        name: table_comment
-        type: string
-      - description: 表名称
-        in: query
-        name: table_name
-        type: string
-      responses:
-        "0":
-          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
-            0 } }'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/domain.DbTable'
-                        type: array
-                    type: object
-              type: object
-      security: []
-      summary: 获取数据库表列表
-      tags:
-      - 代码生成管理
-  /tool/gen/delete:
-    delete:
-      description: 删除代码生成业务，同时清理其字段配置
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/request.IdsRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 删除代码生成业务
-      tags:
-      - 代码生成管理
-  /tool/gen/detail:
-    get:
-      description: 获取代码生成表详情，包含字段配置、主键列与树表参数
-      parameters:
-      - description: 主键ID
-        in: query
-        name: id
-        required: true
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg": "success","data": {} }'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/domain.Table'
-              type: object
-      security: []
-      summary: 获取代码生成表详情
-      tags:
-      - 代码生成管理
-  /tool/gen/download:
-    get:
-      description: 生成代码并打包为 zip 下载（文件名取自表名去前缀后的蛇形名）
-      parameters:
-      - description: 主键ID
-        in: query
-        name: id
-        required: true
-        type: integer
-      responses:
-        "200":
-          description: 代码压缩包
-          schema:
-            type: file
-      security: []
-      summary: 下载生成代码
-      tags:
-      - 代码生成管理
-  /tool/gen/import:
-    post:
-      description: 按表名导入数据库表结构到代码生成业务表（已导入的表自动跳过）
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/domain.TableImportRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 导入表结构
-      tags:
-      - 代码生成管理
-  /tool/gen/list:
-    get:
-      description: 已导入 gen_table 的代码生成业务表列表
-      parameters:
-      - description: 开始时间
-        in: query
-        name: begin_time
-        type: string
-      - in: query
-        name: create_by
-        type: string
-      - description: 结束时间
-        in: query
-        name: end_time
-        type: string
-      - description: 编号
-        in: query
-        name: id
-        type: integer
-      - description: 排序
-        in: query
-        name: orderBy
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页大小 不传默认 20条
-        in: query
-        name: pageSize
-        type: integer
-      - description: 表描述
-        in: query
-        name: table_comment
-        type: string
-      - description: 表名称
-        in: query
-        name: table_name
-        type: string
-      - in: query
-        name: update_by
-        type: string
-      responses:
-        "0":
-          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
-            0 } }'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/domain.Table'
-                        type: array
-                    type: object
-              type: object
-      security: []
-      summary: 获取代码生成表列表
-      tags:
-      - 代码生成管理
-  /tool/gen/preview:
-    get:
-      description: 按 gen_table / gen_table_column 的配置渲染模板，返回「文件相对路径 -> 文件内容」
-      parameters:
-      - description: 主键ID
-        in: query
-        name: id
-        required: true
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": {"app/system/domain/post.go":
-            "package domain..."}}'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  additionalProperties:
-                    type: string
-                  type: object
-              type: object
-      security: []
-      summary: 预览生成代码
-      tags:
-      - 代码生成管理
-  /tool/gen/synch-db:
-    post:
-      description: 按数据库最新结构同步代码生成业务表（新增列 / 删除已移除列 / 列类型变化重置列配置）
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/domain.TableSynchRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 同步数据库表结构
-      tags:
-      - 代码生成管理
-  /tool/gen/update:
-    put:
-      description: 修改代码生成业务配置（表信息 + 字段配置）
-      parameters:
-      - description: data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/domain.TableUpdateRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 修改代码生成业务
-      tags:
-      - 代码生成管理
 swagger: "2.0"

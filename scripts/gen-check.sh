@@ -14,7 +14,7 @@ BASE_URL="${1:-${BASE_URL:-http://127.0.0.1:8080}}"
 MYSQL_CMD="${2:-${MYSQL_CMD:-docker exec mysql mysql -uroot -p123456 --batch --skip-column-names admintpl -e}}"
 MYSQL() { $MYSQL_CMD "$1" 2>/dev/null; }
 
-T="$BASE_URL/tool/gen"
+T="$BASE_URL/gen"
 DEMO_TABLE="smoke_gen_demo"
 ok=0; bad=0
 

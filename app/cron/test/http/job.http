@@ -1,33 +1,33 @@
 ### list default
-GET http://127.0.0.1:8080/monitor/job/list
+GET http://127.0.0.1:8080/cron/job/list
 
 ### list search by keyword
-GET http://127.0.0.1:8080/monitor/job/list?keyword=任务
+GET http://127.0.0.1:8080/cron/job/list?keyword=任务
 
 ### list search by status = 1
-GET http://127.0.0.1:8080/monitor/job/list?status=1
+GET http://127.0.0.1:8080/cron/job/list?status=1
 
 ### list search by status = 0
-GET http://127.0.0.1:8080/monitor/job/list?status=0
+GET http://127.0.0.1:8080/cron/job/list?status=0
 
 ### list search by name
-GET http://127.0.0.1:8080/monitor/job/list?name=任务名称
+GET http://127.0.0.1:8080/cron/job/list?name=任务名称
 
 ### list search by group
-GET http://127.0.0.1:8080/monitor/job/list?group=default
+GET http://127.0.0.1:8080/cron/job/list?group=default
 
 ### list search by id
-GET http://127.0.0.1:8080/monitor/job/list?id=1
+GET http://127.0.0.1:8080/cron/job/list?id=1
 
 ### create empty
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 
 {
 }
 
 ### create empty name
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 
 {
@@ -36,7 +36,7 @@ content-type: application/json
 }
 
 ### create empty invoke_target
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 
 {
@@ -45,7 +45,7 @@ content-type: application/json
 }
 
 ### create success
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 
 {
@@ -54,7 +54,7 @@ content-type: application/json
 }
 
 ### create success 1
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 
 {
@@ -66,7 +66,7 @@ content-type: application/json
 }
 
 ### create with exitst name
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 
 {
@@ -75,14 +75,14 @@ content-type: application/json
 }
 
 ### update empty
-PUT http://127.0.0.1:8080/monitor/job/update
+PUT http://127.0.0.1:8080/cron/job/update
 content-type: application/json
 
 {
 }
 
 ### update empty id
-PUT http://127.0.0.1:8080/monitor/job/update
+PUT http://127.0.0.1:8080/cron/job/update
 content-type: application/json
 
 {
@@ -92,7 +92,7 @@ content-type: application/json
 }
 
 ### update empty name
-PUT http://127.0.0.1:8080/monitor/job/update
+PUT http://127.0.0.1:8080/cron/job/update
 content-type: application/json
 
 {
@@ -102,7 +102,7 @@ content-type: application/json
 }
 
 ### update success
-PUT http://127.0.0.1:8080/monitor/job/update
+PUT http://127.0.0.1:8080/cron/job/update
 content-type: application/json
 
 {
@@ -115,26 +115,26 @@ content-type: application/json
 }
 
 ### detail empty
-GET http://127.0.0.1:8080/monitor/job/detail
+GET http://127.0.0.1:8080/cron/job/detail
 
 ### detail empty id
-GET http://127.0.0.1:8080/monitor/job/detail?id=
+GET http://127.0.0.1:8080/cron/job/detail?id=
 
 ### detail not exist data
-GET http://127.0.0.1:8080/monitor/job/detail?id=99999
+GET http://127.0.0.1:8080/cron/job/detail?id=99999
 
 ### detail success
-GET http://127.0.0.1:8080/monitor/job/detail?id=1
+GET http://127.0.0.1:8080/cron/job/detail?id=1
 
 ### delete empty
-DELETE http://127.0.0.1:8080/monitor/job/delete
+DELETE http://127.0.0.1:8080/cron/job/delete
 content-type: application/json
 
 {
 }
 
 ### delete empty ids
-DELETE http://127.0.0.1:8080/monitor/job/delete
+DELETE http://127.0.0.1:8080/cron/job/delete
 content-type: application/json
 
 {
@@ -142,7 +142,7 @@ content-type: application/json
 }
 
 ### delete success
-DELETE http://127.0.0.1:8080/monitor/job/delete
+DELETE http://127.0.0.1:8080/cron/job/delete
 content-type: application/json
 
 {
@@ -150,10 +150,10 @@ content-type: application/json
 }
 
 ### check delete
-GET http://127.0.0.1:8080/monitor/job/detail?id=2
+GET http://127.0.0.1:8080/cron/job/detail?id=2
 
 ### change-status
-PUT http://127.0.0.1:8080/monitor/job/change-status
+PUT http://127.0.0.1:8080/cron/job/change-status
 content-type: application/json
 
 {
@@ -162,7 +162,7 @@ content-type: application/json
 }
 
 ### check-name
-GET http://127.0.0.1:8080/monitor/job/check-name?name=demoTask
+GET http://127.0.0.1:8080/cron/job/check-name?name=demoTask
 
 ### ===== 定时任务调度 =====
 # 说明：以下用例需先在本文件中执行上面的 login 用例获取令牌（AUTH_ENABLED=true 时）
@@ -178,7 +178,7 @@ content-type: application/json
 }
 
 ### 新增任务：销毁性 cron 非法（预期 cron 表达式错误）
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 
@@ -194,7 +194,7 @@ Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 }
 
 ### 新增任务：调用目标未注册（预期调用目标字符串错误）
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 
@@ -210,7 +210,7 @@ Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 }
 
 ### 新增任务：每 2 秒执行一次（状态 0 正常，创建后即参与调度）
-POST http://127.0.0.1:8080/monitor/job/create
+POST http://127.0.0.1:8080/cron/job/create
 content-type: application/json
 Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 
@@ -229,7 +229,7 @@ Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 }
 
 ### 立即执行一次（状态为暂停的任务同样可以执行）
-PUT http://127.0.0.1:8080/monitor/job/run
+PUT http://127.0.0.1:8080/cron/job/run
 content-type: application/json
 Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 
@@ -238,7 +238,7 @@ Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 }
 
 ### 暂停任务（状态 1 暂停后不再自动触发）
-PUT http://127.0.0.1:8080/monitor/job/change-status
+PUT http://127.0.0.1:8080/cron/job/change-status
 content-type: application/json
 Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 
@@ -248,7 +248,7 @@ Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 }
 
 ### 启用任务（状态 0 正常，重新参与调度）
-PUT http://127.0.0.1:8080/monitor/job/change-status
+PUT http://127.0.0.1:8080/cron/job/change-status
 content-type: application/json
 Authorization: Bearer {{jobLogin.response.body.$.data.token}}
 

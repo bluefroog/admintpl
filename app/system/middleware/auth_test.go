@@ -61,18 +61,18 @@ func TestPathPermission(t *testing.T) {
 		"/monitor/online/force-logout": "monitor:online:force-logout",
 		"/monitor/logininfor/clear":    "monitor:logininfor:clear",
 		"/monitor/operlog/list":        "monitor:operlog:list",
-		"/monitor/job/list":            "monitor:job:list",
-		"/monitor/job/change-status":   "monitor:job:change-status",
-		"/monitor/jobLog/list":         "monitor:jobLog:list",
+		"/cron/job/list":               "cron:job:list",
+		"/cron/job/change-status":      "cron:job:change-status",
+		"/cron/jobLog/list":            "cron:jobLog:list",
 		// 无法由路径推导的监控接口走别名
 		"/monitor/server":      "monitor:server:list",
 		"/monitor/cache":       "monitor:cache:list",
 		"/monitor/cache/list":  "monitor:cacheList:list",
 		"/monitor/cache/clear": "monitor:cache:clear",
 		// 代码生成：下载接口沿用「生成代码」权限标识
-		"/tool/gen/list":     "tool:gen:list",
-		"/tool/gen/preview":  "tool:gen:preview",
-		"/tool/gen/download": "tool:gen:code",
+		"/gen/list":     "gen:list",
+		"/gen/preview":  "gen:preview",
+		"/gen/download": "gen:code",
 	}
 	for path, want := range cases {
 		if got := PathPermission(path); got != want {

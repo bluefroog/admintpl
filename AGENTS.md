@@ -11,8 +11,8 @@
 | ---- | ---- | -------- | ---- |
 | 系统管理 | `app/system` | `/system/...` | 用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证 |
 | 系统监控 | `app/monitor` | `/monitor/...` | 在线用户/登录日志/操作日志/服务监控/缓存监控 |
-| 定时任务 | `app/cron` | `/monitor/job...`、`/monitor/jobLog/...` | 任务配置/调度器/任务日志/内置调用目标 |
-| 代码生成 | `app/gen` | `/tool/gen/...` | 表结构导入/生成配置/同步数据库表结构/模板渲染与下载 |
+| 定时任务 | `app/cron` | `/cron/job...`、`/cron/jobLog/...` | 任务配置/调度器/任务日志/内置调用目标 |
+| 代码生成 | `app/gen` | `/gen/...` | 表结构导入/生成配置/同步数据库表结构/模板渲染与下载 |
 
 每个模块包含 `domain/`（实体 + 请求结构体）、`service/`（业务逻辑）、`controller/`（HTTP 控制器）、`initialize.go`（初始化入口，负责注册路由与模块级启动逻辑）、`test/http/`（接口测试文件）。
 
@@ -32,7 +32,8 @@
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
 - 删除接口必须同步清理关联表（用户：`sys_user_role`/`sys_user_post`；角色：`sys_role_menu`/`sys_role_dept`/`sys_user_role`）；事务内执行，避免孤儿数据。
 - 新增 `.go`/`.md`/`.http` 文件使用 **CRLF** 行尾。
-- 其它模块（工具类，如 `app/gen` 的代码生成、`/tool/build` 表单构建、`/tool/swagger` 系统接口）按同一模块划分方式新建 `app/<模块>`，不要塞进 `app/system`。
+- 其它模块（如 `app/gen` 的代码生成 `/gen/**`；仅菜单占位的 `/tool/build` 表单构建、`/tool/swagger` 系统接口）按同一模块划分方式新建 `app/<模块>`，不要塞进 `app/system`。
+- **路由前缀 = 模块名**：`app/cron` → `/cron/**`、`app/gen` → `/gen/**`、`app/monitor` → `/monitor/**`，不要借用其它模块前缀（历史别名除外）。
 
 ## 2. 开发工具：just（开发 / 测试 / 打包 / 发布）
 
@@ -98,7 +99,7 @@
   参与校验的前缀为 `system/`、`monitor/`、`tool/`（`app/system/middleware/auth.go` 的 `PathPermission`），
   无法由路径推导的（如 `/monitor/server`、`/monitor/cache`、`/monitor/cache/list`）在 `pathPermissionAlias` 中显式映射；
   `system/user/profile|password|avatar` 为登录用户自助接口，不参与权限校验。
-  注意：种子菜单的按钮权限命名（`xxx:remove` / `xxx:edit` / `monitor:job:changeStatus` 等），
+  注意：种子菜单的按钮权限命名（`xxx:remove` / `xxx:edit` / `cron:job:changeStatus` 等），
   开启 `AUTH_PERMISSION_ENABLED` 前需在 `pathPermissionAlias` 中补齐这类映射，否则非超管角色会被拒绝。
 - **配置**：新增开关必须同时改 `config/config.yaml`（`${KEY:-默认值}` 占位符）与 `.env.dev` / `.env.pro`；
   `config/config.yaml` 末尾维护变量清单，`common/config/config_test.go` 会校验代码读取的键在配置文件中存在，缺失即测试失败。
@@ -153,11 +154,11 @@
 
 ## 9. 代码生成（app/gen）约定
 
-- **模块位置**：代码生成属于系统工具（`/tool/**`），独立成 `app/gen` 模块（与 `app/system`、`app/monitor`、`app/cron` 平级），
+- **模块位置**：代码生成独立成 `app/gen` 模块，路由前缀 `/gen/**`（与 `app/system`、`app/monitor`、`app/cron` 平级），
   按「一表一套文件」建立 `domain/gen-table.go`、`domain/gen-table-column.go`、`service/table.go`、`controller/table.go`，
   模型在 `app/gen/domain/init.go` 的 `Models()` 中声明（`bootstrap` 汇总迁移，新增模块无需改迁移逻辑）。
-- **接口**：`/tool/gen/list`、`/tool/gen/db-list`、`/tool/gen/column-list`、`/tool/gen/detail`、`/tool/gen/import`、
-  `/tool/gen/update`、`/tool/gen/synch-db`、`/tool/gen/delete`、`/tool/gen/preview`、`/tool/gen/download`；
+- **接口**：`/gen/list`、`/gen/db-list`、`/gen/column-list`、`/gen/detail`、`/gen/import`、
+  `/gen/update`、`/gen/synch-db`、`/gen/delete`、`/gen/preview`、`/gen/download`；
   `gen_table` 只能由导入接口写入，**不提供 create 接口**。
 - **模板渲染**：`app/gen/service/render.go` + `app/gen/service/templates/*.tmpl`（`embed.FS` 内置，**只用标准库 `text/template`**，
   **禁止引入模板引擎/代码生成库**）；渲染结果按「项目约定」产出 domain/service/controller/接口测试/建表 SQL/接入说明，

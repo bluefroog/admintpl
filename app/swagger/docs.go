@@ -45,6 +45,1091 @@ const docTemplate = `{
                 }
             }
         },
+        "/cron/job/change-status": {
+            "put": {
+                "security": [],
+                "description": "修改定时任务状态（0正常 1暂停）",
+                "tags": [
+                    "定时任务"
+                ],
+                "summary": "修改任务状态",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobChangeStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job/check-name": {
+            "get": {
+                "security": [],
+                "description": "校验任务名称是否唯一",
+                "tags": [
+                    "定时任务"
+                ],
+                "summary": "校验任务名称是否唯一",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID（编辑时传入，排除自身）",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": true}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job/create": {
+            "post": {
+                "security": [],
+                "description": "添加定时任务",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "添加定时任务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除定时任务",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "删除定时任务",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的定时任务详情",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "获取指定ID的定时任务详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.Job"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job/list": {
+            "get": {
+                "security": [],
+                "description": "定时任务列表",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "获取定时任务列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "create_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务执行器",
+                        "name": "executor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务组名",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "调用目标字符串",
+                        "name": "invoke_target",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态（0正常 1暂停）",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "update_by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.Job"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job/run": {
+            "put": {
+                "security": [],
+                "description": "立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "立即执行一次定时任务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobRunRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job/update": {
+            "put": {
+                "security": [],
+                "description": "修改定时任务",
+                "tags": [
+                    "定时任务管理"
+                ],
+                "summary": "修改定时任务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.JobUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/jobLog/clear": {
+            "delete": {
+                "security": [],
+                "description": "清空定时任务日志",
+                "tags": [
+                    "定时任务日志"
+                ],
+                "summary": "清空定时任务日志",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/jobLog/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除定时任务日志",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "删除定时任务日志",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/jobLog/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的定时任务日志详情",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "获取指定ID的定时任务日志详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.JobLog"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/jobLog/list": {
+            "get": {
+                "security": [],
+                "description": "定时任务日志列表",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "获取定时任务日志列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务日志ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "调用目标字符串",
+                        "name": "invoke_target",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务执行器",
+                        "name": "job_executor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务组名",
+                        "name": "job_group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "job_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务触发器",
+                        "name": "job_trigger",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "执行状态（0正常 1失败）",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.JobLog"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/column-list": {
+            "get": {
+                "security": [],
+                "description": "获取指定代码生成表的字段配置列表",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取代码生成表字段列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "列名称",
+                        "name": "column_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "编号",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "归属表编号",
+                        "name": "table_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.TableColumn"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/db-list": {
+            "get": {
+                "security": [],
+                "description": "查询 information_schema.tables，返回尚未导入代码生成的数据库表",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取数据库表列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "开始时间",
+                        "name": "begin_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表描述",
+                        "name": "table_comment",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表名称",
+                        "name": "table_name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.DbTable"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除代码生成业务，同时清理其字段配置",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "删除代码生成业务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/detail": {
+            "get": {
+                "security": [],
+                "description": "获取代码生成表详情，包含字段配置、主键列与树表参数",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取代码生成表详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": {} }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.Table"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/download": {
+            "get": {
+                "security": [],
+                "description": "生成代码并打包为 zip 下载（文件名取自表名去前缀后的蛇形名）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "下载生成代码",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "代码压缩包",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/import": {
+            "post": {
+                "security": [],
+                "description": "按表名导入数据库表结构到代码生成业务表（已导入的表自动跳过）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "导入表结构",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.TableImportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/list": {
+            "get": {
+                "security": [],
+                "description": "已导入 gen_table 的代码生成业务表列表",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "获取代码生成表列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "开始时间",
+                        "name": "begin_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "create_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间",
+                        "name": "end_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "编号",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表描述",
+                        "name": "table_comment",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "表名称",
+                        "name": "table_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "update_by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.Table"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/preview": {
+            "get": {
+                "security": [],
+                "description": "按 gen_table / gen_table_column 的配置渲染模板，返回「文件相对路径 -\u003e 文件内容」",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "预览生成代码",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {\"app/system/domain/post.go\": \"package domain...\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/synch-db": {
+            "post": {
+                "security": [],
+                "description": "按数据库最新结构同步代码生成业务表（新增列 / 删除已移除列 / 列类型变化重置列配置）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "同步数据库表结构",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.TableSynchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/gen/update": {
+            "put": {
+                "security": [],
+                "description": "修改代码生成业务配置（表信息 + 字段配置）",
+                "tags": [
+                    "代码生成管理"
+                ],
+                "summary": "修改代码生成业务",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.TableUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/getInfo": {
             "get": {
                 "security": [],
@@ -296,590 +1381,6 @@ const docTemplate = `{
                                                             "type": "array",
                                                             "items": {
                                                                 "$ref": "#/definitions/domain.CacheItem"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/change-status": {
-            "put": {
-                "security": [],
-                "description": "修改定时任务状态（0正常 1暂停）",
-                "tags": [
-                    "定时任务"
-                ],
-                "summary": "修改任务状态",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobChangeStatusRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/check-name": {
-            "get": {
-                "security": [],
-                "description": "校验任务名称是否唯一",
-                "tags": [
-                    "定时任务"
-                ],
-                "summary": "校验任务名称是否唯一",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "任务ID（编辑时传入，排除自身）",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": true}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "boolean"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/create": {
-            "post": {
-                "security": [],
-                "description": "添加定时任务",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "添加定时任务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除定时任务",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "删除定时任务",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的定时任务详情",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "获取指定ID的定时任务详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.Job"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/list": {
-            "get": {
-                "security": [],
-                "description": "定时任务列表",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "获取定时任务列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "name": "create_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务执行器",
-                        "name": "executor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务组名",
-                        "name": "group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "任务ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "调用目标字符串",
-                        "name": "invoke_target",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "状态（0正常 1暂停）",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "update_by",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.Job"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/run": {
-            "put": {
-                "security": [],
-                "description": "立即执行一次定时任务（状态为暂停的任务同样可以执行），执行结果写入定时任务日志",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "立即执行一次定时任务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobRunRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/job/update": {
-            "put": {
-                "security": [],
-                "description": "修改定时任务",
-                "tags": [
-                    "定时任务管理"
-                ],
-                "summary": "修改定时任务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.JobUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/jobLog/clear": {
-            "delete": {
-                "security": [],
-                "description": "清空定时任务日志",
-                "tags": [
-                    "定时任务日志"
-                ],
-                "summary": "清空定时任务日志",
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/jobLog/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除定时任务日志",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "删除定时任务日志",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/jobLog/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的定时任务日志详情",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "获取指定ID的定时任务日志详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.JobLog"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/monitor/jobLog/list": {
-            "get": {
-                "security": [],
-                "description": "定时任务日志列表",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "获取定时任务日志列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "任务日志ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "调用目标字符串",
-                        "name": "invoke_target",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务执行器",
-                        "name": "job_executor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务组名",
-                        "name": "job_group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "job_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务触发器",
-                        "name": "job_trigger",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "执行状态（0正常 1失败）",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.JobLog"
                                                             }
                                                         }
                                                     }
@@ -6269,507 +6770,6 @@ const docTemplate = `{
                 "responses": {
                     "0": {
                         "description": "{\"code\": 0, \"msg\":\"Success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/column-list": {
-            "get": {
-                "security": [],
-                "description": "获取指定代码生成表的字段配置列表",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "获取代码生成表字段列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "列名称",
-                        "name": "column_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "编号",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "归属表编号",
-                        "name": "table_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.TableColumn"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/db-list": {
-            "get": {
-                "security": [],
-                "description": "查询 information_schema.tables，返回尚未导入代码生成的数据库表",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "获取数据库表列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "开始时间",
-                        "name": "begin_time",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "结束时间",
-                        "name": "end_time",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "表描述",
-                        "name": "table_comment",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "表名称",
-                        "name": "table_name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.DbTable"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除代码生成业务，同时清理其字段配置",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "删除代码生成业务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/detail": {
-            "get": {
-                "security": [],
-                "description": "获取代码生成表详情，包含字段配置、主键列与树表参数",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "获取代码生成表详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": {} }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.Table"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/download": {
-            "get": {
-                "security": [],
-                "description": "生成代码并打包为 zip 下载（文件名取自表名去前缀后的蛇形名）",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "下载生成代码",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "代码压缩包",
-                        "schema": {
-                            "type": "file"
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/import": {
-            "post": {
-                "security": [],
-                "description": "按表名导入数据库表结构到代码生成业务表（已导入的表自动跳过）",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "导入表结构",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.TableImportRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/list": {
-            "get": {
-                "security": [],
-                "description": "已导入 gen_table 的代码生成业务表列表",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "获取代码生成表列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "开始时间",
-                        "name": "begin_time",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "create_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "结束时间",
-                        "name": "end_time",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "编号",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "表描述",
-                        "name": "table_comment",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "表名称",
-                        "name": "table_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "update_by",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.Table"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/preview": {
-            "get": {
-                "security": [],
-                "description": "按 gen_table / gen_table_column 的配置渲染模板，返回「文件相对路径 -\u003e 文件内容」",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "预览生成代码",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {\"app/system/domain/post.go\": \"package domain...\"}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/synch-db": {
-            "post": {
-                "security": [],
-                "description": "按数据库最新结构同步代码生成业务表（新增列 / 删除已移除列 / 列类型变化重置列配置）",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "同步数据库表结构",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.TableSynchRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/tool/gen/update": {
-            "put": {
-                "security": [],
-                "description": "修改代码生成业务配置（表信息 + 字段配置）",
-                "tags": [
-                    "代码生成管理"
-                ],
-                "summary": "修改代码生成业务",
-                "parameters": [
-                    {
-                        "description": "data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.TableUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }

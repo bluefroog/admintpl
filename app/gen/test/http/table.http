@@ -1,21 +1,21 @@
 ### 代码生成（已导入的代码生成业务表列表）
-GET http://127.0.0.1:8080/tool/gen/list?pageSize=10
+GET http://127.0.0.1:8080/gen/list?pageSize=10
 Authorization: Bearer {{token}}
 
 ### 代码生成表列表（按表名 / 表描述 / 时间范围过滤）
-GET http://127.0.0.1:8080/tool/gen/list?table_name=sys_&table_comment=表&begin_time=2024-01-01&end_time=2030-01-01
+GET http://127.0.0.1:8080/gen/list?table_name=sys_&table_comment=表&begin_time=2024-01-01&end_time=2030-01-01
 Authorization: Bearer {{token}}
 
 ### 数据库表列表（未导入代码生成的表）
-GET http://127.0.0.1:8080/tool/gen/db-list?pageSize=10
+GET http://127.0.0.1:8080/gen/db-list?pageSize=10
 Authorization: Bearer {{token}}
 
 ### 数据库表列表（按表名过滤）
-GET http://127.0.0.1:8080/tool/gen/db-list?table_name=sys&pageSize=10
+GET http://127.0.0.1:8080/gen/db-list?table_name=sys&pageSize=10
 Authorization: Bearer {{token}}
 
 ### 导入表结构（tables 支持 JSON 数组，也支持 tables=a,b 逗号分隔）
-POST http://127.0.0.1:8080/tool/gen/import
+POST http://127.0.0.1:8080/gen/import
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -24,19 +24,19 @@ Content-Type: application/json
 }
 
 ### 导入表结构（逗号分隔写法）
-POST http://127.0.0.1:8080/tool/gen/import?tables=sys_notice,sys_post
+POST http://127.0.0.1:8080/gen/import?tables=sys_notice,sys_post
 Authorization: Bearer {{token}}
 
 ### 代码生成表详情（含 columns / pk_column / tree_code 等树表参数）
-GET http://127.0.0.1:8080/tool/gen/detail?id=1
+GET http://127.0.0.1:8080/gen/detail?id=1
 Authorization: Bearer {{token}}
 
 ### 代码生成表字段列表
-GET http://127.0.0.1:8080/tool/gen/column-list?table_id=1
+GET http://127.0.0.1:8080/gen/column-list?table_id=1
 Authorization: Bearer {{token}}
 
 ### 修改代码生成配置（表信息 + 字段配置，columns 可省略）
-PUT http://127.0.0.1:8080/tool/gen/update
+PUT http://127.0.0.1:8080/gen/update
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -73,7 +73,7 @@ Content-Type: application/json
 }
 
 ### 树表模板参数（tpl_category=tree 时使用，等价于 options 中的 treeCode/treeParentCode/treeName）
-PUT http://127.0.0.1:8080/tool/gen/update
+PUT http://127.0.0.1:8080/gen/update
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -88,7 +88,7 @@ Content-Type: application/json
 }
 
 ### 同步数据库表结构（表结构变更后重新读取列信息）
-POST http://127.0.0.1:8080/tool/gen/synch-db
+POST http://127.0.0.1:8080/gen/synch-db
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -97,19 +97,19 @@ Content-Type: application/json
 }
 
 ### 预览生成代码（返回「文件相对路径 -> 文件内容」，含 domain/service/controller/http/sql/接入说明）
-GET http://127.0.0.1:8080/tool/gen/preview?id=1
+GET http://127.0.0.1:8080/gen/preview?id=1
 Authorization: Bearer {{token}}
 
 ### 预览生成代码（缺少 id 应被拒绝）
-GET http://127.0.0.1:8080/tool/gen/preview
+GET http://127.0.0.1:8080/gen/preview
 Authorization: Bearer {{token}}
 
 ### 下载生成代码（zip，文件名取自表名去前缀后的蛇形名）
-GET http://127.0.0.1:8080/tool/gen/download?id=1
+GET http://127.0.0.1:8080/gen/download?id=1
 Authorization: Bearer {{token}}
 
 ### 删除代码生成配置（同时清理字段配置）
-DELETE http://127.0.0.1:8080/tool/gen/delete
+DELETE http://127.0.0.1:8080/gen/delete
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -118,7 +118,7 @@ Content-Type: application/json
 }
 
 ### 期望响应结构
-# /tool/gen/list
+# /gen/list
 # { "code": 0, "msg": "success",
 #   "data": { "list": [ { "id": 1, "table_name": "sys_notice", "table_comment": "通知公告表",
 #                         "class_name": "Notice", "tpl_category": "crud",
@@ -127,7 +127,7 @@ Content-Type: application/json
 #                         "gen_type": "0", "create_by": "admin", "create_time": "2024-01-01 00:00:00" } ],
 #             "total": 1, "page": 1, "pageSize": 10 } }
 #
-# /tool/gen/detail
+# /gen/detail
 # { "code": 0, "msg": "success",
 #   "data": { "id": 1, "table_name": "sys_notice", "class_name": "Notice",
 #             "columns": [ { "id": 1, "table_id": 1, "column_name": "notice_id", "column_type": "bigint(20)",
@@ -137,7 +137,7 @@ Content-Type: application/json
 #             "pk_column": { "column_name": "notice_id", "is_pk": "1" },
 #             "tree_code": "", "tree_parent_code": "", "tree_name": "" } }
 #
-# /tool/gen/preview
+# /gen/preview
 # { "code": 0, "msg": "success",
 #   "data": {
 #     "github.com/bluefroog/admintpl/app/system/domain/notice.go": "package domain\n\nimport (...",
@@ -148,16 +148,16 @@ Content-Type: application/json
 #     "github.com/bluefroog/admintpl/app/system/notice.register.md": "# 通知公告（sys_notice）代码生成接入说明..."
 #   } }
 #
-# /tool/gen/download  -> Content-Type: application/zip，Content-Disposition: attachment; filename=notice.zip
+# /gen/download  -> Content-Type: application/zip，Content-Disposition: attachment; filename=notice.zip
 
-# /tool/gen/db-list
+# /gen/db-list
 # { "code": 0, "msg": "success",
 #   "data": { "list": [ { "table_name": "sys_notice", "table_comment": "通知公告表",
 #                         "create_time": "2024-01-01T00:00:00+08:00" } ],
 #             "total": 1, "page": 1, "pageSize": 10 } }
 #
 # 说明：
-# - 「代码生成」只处理表结构导入与生成配置的维护；gen_table 仅能通过 /tool/gen/import 写入，
+# - 「代码生成」只处理表结构导入与生成配置的维护；gen_table 仅能通过 /gen/import 写入，
 #   因此没有独立的 create 接口（避免出现与实际表结构不一致的脏配置）
 # - 表前缀去除、包路径、模块名、作者等来自配置 system.gen.*（环境变量 GEN_PACKAGE_NAME /
 #   GEN_MODULE_NAME / GEN_AUTHOR / GEN_AUTO_REMOVE_PRE / GEN_TABLE_PREFIX）
