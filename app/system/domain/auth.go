@@ -1,6 +1,6 @@
 package domain
 
-// UserIdRequest 用户ID请求参数（关闭认证时用于调试 /getInfo、/getRouters）
+// UserIdRequest 用户ID请求参数（关闭认证时用于调试 /get-info、/get-routers）
 type UserIdRequest struct {
 	UserId uint `json:"userId" form:"userId"` // 用户ID
 }

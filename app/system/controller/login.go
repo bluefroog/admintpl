@@ -21,7 +21,7 @@ var (
 // @Description 获取图形验证码（system.captcha.enabled=false 时返回 captchaEnabled=false）
 // @Tags 登录认证
 // @Success 0 {object} response.Response{data=domain.CaptchaResponse} "{"code": 0, "msg":"success","data": {"captchaEnabled": true, "uuid": "", "img": ""}}"
-// @Router /captchaImage [get]
+// @Router /captcha-image [get]
 // @Security
 func (l *Login) Captcha(c *gin.Context) {
 	data, err := auth.Captcha()
@@ -85,7 +85,7 @@ func (l *Login) Logout(c *gin.Context) {
 // @Tags 登录认证
 // @Param userId query uint false "用户ID（未携带令牌时用于调试）"
 // @Success 0 {object} response.Response{data=domain.UserInfoResponse} "{"code": 0, "msg":"success","data": {}}"
-// @Router /getInfo [get]
+// @Router /get-info [get]
 // @Security
 func (l *Login) GetInfo(c *gin.Context) {
 	userID := currentUserID(c)
@@ -107,7 +107,7 @@ func (l *Login) GetInfo(c *gin.Context) {
 // @Tags 登录认证
 // @Param userId query uint false "用户ID（未携带令牌时用于调试）"
 // @Success 0 {object} response.Response{data=[]domain.RouterResponse} "{"code": 0, "msg":"success","data": []}"
-// @Router /getRouters [get]
+// @Router /get-routers [get]
 // @Security
 func (l *Login) GetRouters(c *gin.Context) {
 	userID := currentUserID(c)

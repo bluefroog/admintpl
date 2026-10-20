@@ -35,22 +35,22 @@ just init
 
 | 接口 | 方法 | 说明 |
 | ---- | ---- | ---- |
-| `/captchaImage` | GET | 获取图形验证码（返回 uuid + base64 PNG，验证码开关关闭时 `captchaEnabled=false`） |
+| `/captcha-image` | GET | 获取图形验证码（返回 uuid + base64 PNG，验证码开关关闭时 `captchaEnabled=false`） |
 | `/login` | POST | 登录（`{username, password, code?, uuid?}`），返回 `{token, expiresIn}` |
 | `/logout` | POST | 退出登录（删除令牌对应的在线记录） |
-| `/getInfo` | GET | 获取当前登录用户信息、角色标识与权限标识 |
-| `/getRouters` | GET | 获取当前用户的前端路由（Layout/ParentView、外链等前端约定结构） |
+| `/get-info` | GET | 获取当前登录用户信息、角色标识与权限标识 |
+| `/get-routers` | GET | 获取当前用户的前端路由（Layout/ParentView、外链等前端约定结构） |
 | `/monitor/online/*` | - | 在线用户列表 / 详情 / 强退（强退后令牌立即失效） |
 
 令牌携带方式（三选一，优先级从上到下）：
 
 ```bash
 # 1. Authorization: Bearer <token>
-curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8080/getInfo
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8080/get-info
 # 2. 自定义请求头
-curl -H "token: $TOKEN" http://127.0.0.1:8080/getInfo
+curl -H "token: $TOKEN" http://127.0.0.1:8080/get-info
 # 3. 查询参数
-curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
+curl "http://127.0.0.1:8080/get-info?token=$TOKEN"
 ```
 
 配置开关（`.env.dev` / `.env.pro` 中调整，详见 `config/config.yaml` 末尾变量清单）：
@@ -91,7 +91,7 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 | `/cron/job/list` `/create` `/update` `/delete` `/detail` | - | 任务增删改查（新增/修改会校验 cron 与调用目标） |
 | `/cron/job/change-status` | PUT | 启用（`status=0`）/ 暂停（`status=1`），立即生效 |
 | `/cron/job/run` | PUT | 立即执行一次（暂停中的任务同样可以执行） |
-| `/cron/jobLog/list` `/detail` `/delete` `/clear` | - | 任务执行日志查询 / 删除 / 清空 |
+| `/cron/job-log/list` `/detail` `/delete` `/clear` | - | 任务执行日志查询 / 删除 / 清空 |
 
 **cron 表达式**（6~7 段：`秒 分 时 日 月 周 [年]`，Quartz 语义）：
 
@@ -171,7 +171,7 @@ testTask.test1() / testTask.test2('hello')     # job_args 传参示例任务
 * **零新增依赖**：不使用 `gopsutil`，CPU/负载/内存/磁盘均读取 Linux `/proc`（`/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts`）+ `syscall.Statfs` 实现；非 Linux 平台仅返回 Go 运行时与主机基础信息，系统指标为零值；
 * 内存/磁盘单位均为 MB，使用率单位为 %；容器内根目录（`overlay`）与 `/dev/*` 设备都会作为磁盘列出；
 * 缓存监控基于进程内内存缓存（`common/cache`，无 Redis）。除默认缓存外，图形验证码缓存（`captcha`）、参数缓存（`sys_config`）、字典缓存（`sys_dict`）也注册到监控中；缓存列表中的过期项不展示；
-* 权限标识：`monitor:server:list`、`monitor:cache:list`、`monitor:cacheList:list`（已有种子菜单），认证开启权限校验时按 `/monitor/...` 路径推导。
+* 权限标识：`monitor:server:list`、`monitor:cache:list`、`monitor:cache-list:list`（已有种子菜单），认证开启权限校验时按 `/monitor/...` 路径推导。
 
 # 参数 / 字典缓存
 

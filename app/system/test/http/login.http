@@ -1,5 +1,5 @@
 ### 获取图形验证码
-GET http://127.0.0.1:8080/captchaImage
+GET http://127.0.0.1:8080/captcha-image
 
 ### 登录（默认账号 admin / admin123，密码由 system.seed 初始化）
 # @name login
@@ -23,11 +23,11 @@ content-type: application/json
 }
 
 ### 获取登录用户信息（令牌取自登录响应）
-GET http://127.0.0.1:8080/getInfo
+GET http://127.0.0.1:8080/get-info
 Authorization: Bearer {{login.response.body.$.data.token}}
 
 ### 获取前端路由
-GET http://127.0.0.1:8080/getRouters
+GET http://127.0.0.1:8080/get-routers
 Authorization: Bearer {{login.response.body.$.data.token}}
 
 ### 退出登录

@@ -2471,7 +2471,7 @@ info:
   title: github.com/bluefroog/admintpl API文档
   version: "1.0"
 paths:
-  /captchaImage:
+  /captcha-image:
     get:
       description: 获取图形验证码（system.captcha.enabled=false 时返回 captchaEnabled=false）
       responses:
@@ -2489,6 +2489,144 @@ paths:
       summary: 获取图形验证码
       tags:
       - 登录认证
+  /cron/job-log/clear:
+    delete:
+      description: 清空定时任务日志
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 清空定时任务日志
+      tags:
+      - 定时任务日志
+  /cron/job-log/delete:
+    delete:
+      description: 删除定时任务日志
+      parameters:
+      - description: '{ids: [1,2'']}'
+        in: body
+        name: ids
+        required: true
+        schema:
+          $ref: '#/definitions/request.IdsRequest'
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": null}'
+          schema:
+            $ref: '#/definitions/response.Response'
+      security: []
+      summary: 删除定时任务日志
+      tags:
+      - 定时任务日志管理
+  /cron/job-log/detail:
+    get:
+      description: 获取指定ID的定时任务日志详情
+      parameters:
+      - description: 主键ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.JobLog'
+              type: object
+      security: []
+      summary: 获取指定ID的定时任务日志详情
+      tags:
+      - 定时任务日志管理
+  /cron/job-log/list:
+    get:
+      description: 定时任务日志列表
+      parameters:
+      - description: 任务日志ID
+        in: query
+        name: id
+        type: integer
+      - collectionFormat: csv
+        description: 包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idIn
+        type: array
+      - collectionFormat: csv
+        description: 不包含的ID列表
+        in: query
+        items:
+          type: integer
+        name: idNotIn
+        type: array
+      - description: 调用目标字符串
+        in: query
+        name: invoke_target
+        type: string
+      - description: 任务执行器
+        in: query
+        name: job_executor
+        type: string
+      - description: 任务组名
+        in: query
+        name: job_group
+        type: string
+      - description: 任务名称
+        in: query
+        name: job_name
+        type: string
+      - description: 任务触发器
+        in: query
+        name: job_trigger
+        type: string
+      - description: 关键字
+        in: query
+        name: keyword
+        type: string
+      - description: 排序
+        in: query
+        name: orderBy
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页大小 不传默认 20条
+        in: query
+        name: pageSize
+        type: integer
+      - description: 执行状态（0正常 1失败）
+        in: query
+        name: status
+        type: integer
+      responses:
+        "0":
+          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
+            0 } }'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/domain.JobLog'
+                        type: array
+                    type: object
+              type: object
+      security: []
+      summary: 获取定时任务日志列表
+      tags:
+      - 定时任务日志管理
   /cron/job/change-status:
     put:
       description: 修改定时任务状态（0正常 1暂停）
@@ -2719,144 +2857,6 @@ paths:
       summary: 修改定时任务
       tags:
       - 定时任务管理
-  /cron/jobLog/clear:
-    delete:
-      description: 清空定时任务日志
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 清空定时任务日志
-      tags:
-      - 定时任务日志
-  /cron/jobLog/delete:
-    delete:
-      description: 删除定时任务日志
-      parameters:
-      - description: '{ids: [1,2'']}'
-        in: body
-        name: ids
-        required: true
-        schema:
-          $ref: '#/definitions/request.IdsRequest'
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": null}'
-          schema:
-            $ref: '#/definitions/response.Response'
-      security: []
-      summary: 删除定时任务日志
-      tags:
-      - 定时任务日志管理
-  /cron/jobLog/detail:
-    get:
-      description: 获取指定ID的定时任务日志详情
-      parameters:
-      - description: 主键ID
-        in: query
-        name: id
-        required: true
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg":"success","data": {}}'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/domain.JobLog'
-              type: object
-      security: []
-      summary: 获取指定ID的定时任务日志详情
-      tags:
-      - 定时任务日志管理
-  /cron/jobLog/list:
-    get:
-      description: 定时任务日志列表
-      parameters:
-      - description: 任务日志ID
-        in: query
-        name: id
-        type: integer
-      - collectionFormat: csv
-        description: 包含的ID列表
-        in: query
-        items:
-          type: integer
-        name: idIn
-        type: array
-      - collectionFormat: csv
-        description: 不包含的ID列表
-        in: query
-        items:
-          type: integer
-        name: idNotIn
-        type: array
-      - description: 调用目标字符串
-        in: query
-        name: invoke_target
-        type: string
-      - description: 任务执行器
-        in: query
-        name: job_executor
-        type: string
-      - description: 任务组名
-        in: query
-        name: job_group
-        type: string
-      - description: 任务名称
-        in: query
-        name: job_name
-        type: string
-      - description: 任务触发器
-        in: query
-        name: job_trigger
-        type: string
-      - description: 关键字
-        in: query
-        name: keyword
-        type: string
-      - description: 排序
-        in: query
-        name: orderBy
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页大小 不传默认 20条
-        in: query
-        name: pageSize
-        type: integer
-      - description: 执行状态（0正常 1失败）
-        in: query
-        name: status
-        type: integer
-      responses:
-        "0":
-          description: '{"code": 0, "msg": "success","data": { "list": [],"total":
-            0 } }'
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  allOf:
-                  - $ref: '#/definitions/response.PageResult'
-                  - properties:
-                      list:
-                        items:
-                          $ref: '#/definitions/domain.JobLog'
-                        type: array
-                    type: object
-              type: object
-      security: []
-      summary: 获取定时任务日志列表
-      tags:
-      - 定时任务日志管理
   /gen/column-list:
     get:
       description: 获取指定代码生成表的字段配置列表
@@ -3168,7 +3168,7 @@ paths:
       summary: 修改代码生成业务
       tags:
       - 代码生成管理
-  /getInfo:
+  /get-info:
     get:
       description: 获取当前登录用户的资料、角色标识与权限标识
       parameters:
@@ -3190,7 +3190,7 @@ paths:
       summary: 获取登录用户信息
       tags:
       - 登录认证
-  /getRouters:
+  /get-routers:
     get:
       description: 获取当前登录用户的菜单路由树
       parameters:

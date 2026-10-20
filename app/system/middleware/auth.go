@@ -30,10 +30,10 @@ var permissionPrefixes = []string{"system/", "monitor/", "cron/", "gen/", "tool/
 
 // pathPermissionAlias 路径无法推导出权限标识时的映射（沿用既有权限标识）
 var pathPermissionAlias = map[string]string{
-	"monitor/server":     "monitor:server:list",    // 服务监控
-	"monitor/cache":      "monitor:cache:list",     // 缓存监控
-	"monitor/cache/list": "monitor:cacheList:list", // 缓存列表
-	"gen/download":       "gen:code",               // 下载生成代码（沿用「生成代码」权限）
+	"monitor/server":     "monitor:server:list",     // 服务监控
+	"monitor/cache":      "monitor:cache:list",      // 缓存监控
+	"monitor/cache/list": "monitor:cache-list:list", // 缓存列表
+	"gen/download":       "gen:code",                // 下载生成代码（沿用「生成代码」权限）
 }
 
 // authService 认证服务实例（中间件内部使用）
@@ -101,11 +101,12 @@ func Token(c *gin.Context) string {
 // PathPermission 由请求路径推导权限标识
 // @author: [bluefrog](https://github.com/freewu)
 // @function: PathPermission
-// @description: 约定 /system/user/list -> system:user:list；非 /system 业务接口与自助接口返回空（不校验）
+// @description: 约定 /system/user/list -> system:user:list；路径先按 KebabPath 规范化（大写字母转「-小写」），
+// 因此 /cron/jobLog/list 与 /cron/job-log/list 都推导为 cron:job-log:list；非业务接口与自助接口返回空（不校验）
 // @param: path string 请求路径
 // @return: string 权限标识，空表示无需校验
 func PathPermission(path string) string {
-	path = strings.Trim(path, "/")
+	path = KebabPath(strings.Trim(path, "/"))
 	if path == "" || selfServicePaths[path] {
 		return ""
 	}
@@ -123,6 +124,28 @@ func PathPermission(path string) string {
 		return ""
 	}
 	return strings.ReplaceAll(path, "/", ":")
+}
+
+// KebabPath 把路径中的大写字母规范为「-小写」（如 userOnline -> user-online，
+// jobLog/list -> job-log/list）；路由前缀必须全小写 + 中划线连接，权限标识由规范化后的路径推导，
+// 保证 /cron/job-log/list -> cron:job-log:list 这类标识不因大小写写法不同而漂移
+// @param: path string 已去除首尾斜杠的路径
+// @return: string 规范化后的路径
+func KebabPath(path string) string {
+	if path == "" {
+		return path
+	}
+	var builder strings.Builder
+	builder.Grow(len(path) + 8)
+	for _, r := range path {
+		if r >= 'A' && r <= 'Z' {
+			builder.WriteByte('-')
+			builder.WriteRune(r - 'A' + 'a')
+			continue
+		}
+		builder.WriteRune(r)
+	}
+	return builder.String()
 }
 
 // GetLoginUser 从上下文中获取登录用户

@@ -57,7 +57,7 @@ var menuSeeds = []menuSeed{
 	{id: 109, parentID: 2, name: "在线用户", sort: 1, path: "online", component: "monitor/online/index", menuType: "C", perms: "monitor:online:list", icon: "online"},
 	{id: 110, parentID: 2, name: "定时任务", sort: 2, path: "job", component: "cron/job/index", menuType: "C", perms: "cron:job:list", icon: "job"},
 	{id: 111, parentID: 2, name: "缓存监控", sort: 3, path: "cache", component: "monitor/cache/index", menuType: "C", perms: "monitor:cache:list", icon: "redis"},
-	{id: 112, parentID: 2, name: "缓存列表", sort: 4, path: "cacheList", component: "monitor/cacheList/index", menuType: "C", perms: "monitor:cacheList:list", icon: "redis-list"},
+	{id: 112, parentID: 2, name: "缓存列表", sort: 4, path: "cache-list", component: "monitor/cache-list/index", menuType: "C", perms: "monitor:cache-list:list", icon: "redis-list"},
 	{id: 113, parentID: 2, name: "服务监控", sort: 5, path: "server", component: "monitor/server/index", menuType: "C", perms: "monitor:server:list", icon: "server"},
 
 	// ---- 系统工具 ----
@@ -72,7 +72,7 @@ var menuSeeds = []menuSeed{
 	{id: 1004, parentID: 100, name: "用户删除", sort: 4, menuType: "F", perms: "system:user:remove"},
 	{id: 1005, parentID: 100, name: "用户导出", sort: 5, menuType: "F", perms: "system:user:export"},
 	{id: 1006, parentID: 100, name: "用户导入", sort: 6, menuType: "F", perms: "system:user:import"},
-	{id: 1007, parentID: 100, name: "重置密码", sort: 7, menuType: "F", perms: "system:user:resetPwd"},
+	{id: 1007, parentID: 100, name: "重置密码", sort: 7, menuType: "F", perms: "system:user:reset-pwd"},
 
 	// ---- 角色管理按钮 ----
 	{id: 1008, parentID: 101, name: "角色查询", sort: 1, menuType: "F", perms: "system:role:query"},
@@ -132,14 +132,14 @@ var menuSeeds = []menuSeed{
 
 	// ---- 在线用户按钮 ----
 	{id: 1046, parentID: 109, name: "在线查询", sort: 1, menuType: "F", perms: "monitor:online:query"},
-	{id: 1047, parentID: 109, name: "强退", sort: 2, menuType: "F", perms: "monitor:online:forceLogout"},
+	{id: 1047, parentID: 109, name: "强退", sort: 2, menuType: "F", perms: "monitor:online:force-logout"},
 
 	// ---- 定时任务按钮 ----
 	{id: 1049, parentID: 110, name: "任务查询", sort: 1, menuType: "F", perms: "cron:job:query"},
 	{id: 1050, parentID: 110, name: "任务新增", sort: 2, menuType: "F", perms: "cron:job:add"},
 	{id: 1051, parentID: 110, name: "任务修改", sort: 3, menuType: "F", perms: "cron:job:edit"},
 	{id: 1052, parentID: 110, name: "任务删除", sort: 4, menuType: "F", perms: "cron:job:remove"},
-	{id: 1053, parentID: 110, name: "状态修改", sort: 5, menuType: "F", perms: "cron:job:changeStatus"},
+	{id: 1053, parentID: 110, name: "状态修改", sort: 5, menuType: "F", perms: "cron:job:change-status"},
 	{id: 1054, parentID: 110, name: "任务导出", sort: 6, menuType: "F", perms: "cron:job:export"},
 
 	// ---- 代码生成按钮 ----

@@ -1,45 +1,45 @@
 ### list default
-GET http://127.0.0.1:8080/cron/jobLog/list
+GET http://127.0.0.1:8080/cron/job-log/list
 
 ### list search by keyword
-GET http://127.0.0.1:8080/cron/jobLog/list?keyword=任务
+GET http://127.0.0.1:8080/cron/job-log/list?keyword=任务
 
 ### list search by status = 1
-GET http://127.0.0.1:8080/cron/jobLog/list?status=1
+GET http://127.0.0.1:8080/cron/job-log/list?status=1
 
 ### list search by status = 0
-GET http://127.0.0.1:8080/cron/jobLog/list?status=0
+GET http://127.0.0.1:8080/cron/job-log/list?status=0
 
 ### list search by job_name
-GET http://127.0.0.1:8080/cron/jobLog/list?job_name=任务名称
+GET http://127.0.0.1:8080/cron/job-log/list?job_name=任务名称
 
 ### list search by job_group
-GET http://127.0.0.1:8080/cron/jobLog/list?job_group=default
+GET http://127.0.0.1:8080/cron/job-log/list?job_group=default
 
 ### list search by id
-GET http://127.0.0.1:8080/cron/jobLog/list?id=1
+GET http://127.0.0.1:8080/cron/job-log/list?id=1
 
 ### detail empty
-GET http://127.0.0.1:8080/cron/jobLog/detail
+GET http://127.0.0.1:8080/cron/job-log/detail
 
 ### detail empty id
-GET http://127.0.0.1:8080/cron/jobLog/detail?id=
+GET http://127.0.0.1:8080/cron/job-log/detail?id=
 
 ### detail not exist data
-GET http://127.0.0.1:8080/cron/jobLog/detail?id=99999
+GET http://127.0.0.1:8080/cron/job-log/detail?id=99999
 
 ### detail success
-GET http://127.0.0.1:8080/cron/jobLog/detail?id=1
+GET http://127.0.0.1:8080/cron/job-log/detail?id=1
 
 ### delete empty
-DELETE http://127.0.0.1:8080/cron/jobLog/delete
+DELETE http://127.0.0.1:8080/cron/job-log/delete
 content-type: application/json
 
 {
 }
 
 ### delete empty ids
-DELETE http://127.0.0.1:8080/cron/jobLog/delete
+DELETE http://127.0.0.1:8080/cron/job-log/delete
 content-type: application/json
 
 {
@@ -47,7 +47,7 @@ content-type: application/json
 }
 
 ### delete success
-DELETE http://127.0.0.1:8080/cron/jobLog/delete
+DELETE http://127.0.0.1:8080/cron/job-log/delete
 content-type: application/json
 
 {
@@ -55,4 +55,4 @@ content-type: application/json
 }
 
 ### check delete
-GET http://127.0.0.1:8080/cron/jobLog/detail?id=1
+GET http://127.0.0.1:8080/cron/job-log/detail?id=1

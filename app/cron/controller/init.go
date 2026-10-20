@@ -26,9 +26,9 @@ func InitRouter(r *gin.Engine) {
 
 		// 定时任务日志相关接口
 		jobLog := JobLog{}
-		group.GET("/jobLog/list", jobLog.List)
-		group.DELETE("/jobLog/delete", jobLog.Delete)
-		group.GET("/jobLog/detail", jobLog.Detail)
-		group.DELETE("/jobLog/clear", jobLog.Clear)
+		group.GET("/job-log/list", jobLog.List)
+		group.DELETE("/job-log/delete", jobLog.Delete)
+		group.GET("/job-log/detail", jobLog.Detail)
+		group.DELETE("/job-log/clear", jobLog.Clear)
 	}
 }

@@ -9,7 +9,7 @@
     "host": "localhost",
     "basePath": "/",
     "paths": {
-        "/captchaImage": {
+        "/captcha-image": {
             "get": {
                 "security": [],
                 "description": "获取图形验证码（system.captcha.enabled=false 时返回 captchaEnabled=false）",
@@ -30,6 +30,225 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/domain.CaptchaResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job-log/clear": {
+            "delete": {
+                "security": [],
+                "description": "清空定时任务日志",
+                "tags": [
+                    "定时任务日志"
+                ],
+                "summary": "清空定时任务日志",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job-log/delete": {
+            "delete": {
+                "security": [],
+                "description": "删除定时任务日志",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "删除定时任务日志",
+                "parameters": [
+                    {
+                        "description": "{ids: [1,2']}",
+                        "name": "ids",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.IdsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job-log/detail": {
+            "get": {
+                "security": [],
+                "description": "获取指定ID的定时任务日志详情",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "获取指定ID的定时任务日志详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "主键ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.JobLog"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/job-log/list": {
+            "get": {
+                "security": [],
+                "description": "定时任务日志列表",
+                "tags": [
+                    "定时任务日志管理"
+                ],
+                "summary": "获取定时任务日志列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务日志ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "包含的ID列表",
+                        "name": "idIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "不包含的ID列表",
+                        "name": "idNotIn",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "调用目标字符串",
+                        "name": "invoke_target",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务执行器",
+                        "name": "job_executor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务组名",
+                        "name": "job_group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "job_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务触发器",
+                        "name": "job_trigger",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "关键字",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "排序",
+                        "name": "orderBy",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页大小 不传默认 20条",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "执行状态（0正常 1失败）",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/domain.JobLog"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
                                         }
                                     }
                                 }
@@ -399,225 +618,6 @@
                         "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/cron/jobLog/clear": {
-            "delete": {
-                "security": [],
-                "description": "清空定时任务日志",
-                "tags": [
-                    "定时任务日志"
-                ],
-                "summary": "清空定时任务日志",
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/cron/jobLog/delete": {
-            "delete": {
-                "security": [],
-                "description": "删除定时任务日志",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "删除定时任务日志",
-                "parameters": [
-                    {
-                        "description": "{ids: [1,2']}",
-                        "name": "ids",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.IdsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": null}",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/cron/jobLog/detail": {
-            "get": {
-                "security": [],
-                "description": "获取指定ID的定时任务日志详情",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "获取指定ID的定时任务日志详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "主键ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/domain.JobLog"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/cron/jobLog/list": {
-            "get": {
-                "security": [],
-                "description": "定时任务日志列表",
-                "tags": [
-                    "定时任务日志管理"
-                ],
-                "summary": "获取定时任务日志列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "任务日志ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "包含的ID列表",
-                        "name": "idIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "不包含的ID列表",
-                        "name": "idNotIn",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "调用目标字符串",
-                        "name": "invoke_target",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务执行器",
-                        "name": "job_executor",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务组名",
-                        "name": "job_group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务名称",
-                        "name": "job_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "任务触发器",
-                        "name": "job_trigger",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "关键字",
-                        "name": "keyword",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序",
-                        "name": "orderBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页大小 不传默认 20条",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "执行状态（0正常 1失败）",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "0": {
-                        "description": "{\"code\": 0, \"msg\": \"success\",\"data\": { \"list\": [],\"total\": 0 } }",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/response.PageResult"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "list": {
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/definitions/domain.JobLog"
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
                         }
                     }
                 }
@@ -1124,7 +1124,7 @@
                 }
             }
         },
-        "/getInfo": {
+        "/get-info": {
             "get": {
                 "security": [],
                 "description": "获取当前登录用户的资料、角色标识与权限标识",
@@ -1162,7 +1162,7 @@
                 }
             }
         },
-        "/getRouters": {
+        "/get-routers": {
             "get": {
                 "security": [],
                 "description": "获取当前登录用户的菜单路由树",

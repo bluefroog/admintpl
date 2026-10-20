@@ -11,7 +11,7 @@
 | ---- | ---- | -------- | ---- |
 | 系统管理 | `app/system` | `/system/...` | 用户/角色/部门/菜单/岗位/字典/参数/公告/日志/认证 |
 | 系统监控 | `app/monitor` | `/monitor/...` | 在线用户/登录日志/操作日志/服务监控/缓存监控 |
-| 定时任务 | `app/cron` | `/cron/job...`、`/cron/jobLog/...` | 任务配置/调度器/任务日志/内置调用目标 |
+| 定时任务 | `app/cron` | `/cron/job...`、`/cron/job-log/...` | 任务配置/调度器/任务日志/内置调用目标 |
 | 代码生成 | `app/gen` | `/gen/...` | 表结构导入/生成配置/同步数据库表结构/模板渲染与下载 |
 
 每个模块包含 `domain/`（实体 + 请求结构体）、`service/`（业务逻辑）、`controller/`（HTTP 控制器）、`initialize.go`（初始化入口，负责注册路由与模块级启动逻辑）、`test/http/`（接口测试文件）。
@@ -26,7 +26,7 @@
 - 路由统一 `<前缀>/<表名>/<list|create|update|delete|detail>`：
   - 业务表：全量 5 个接口；日志表：仅 list/delete/detail；关系表（复合主键）：仅 list/create/delete。
   - 需登录的接口必须注册到所属模块 `controller/init.go` 的 `authorized` 分组内（已挂 `middleware.Auth()`）；
-    免登录接口（`/login`、`/captchaImage`）注册在该分组之前。
+    免登录接口（`/login`、`/captcha-image`）注册在该分组之前。
   - 扩展动作（`tree`、`check-*`、`roles`、`menu`、`data-scope`、`clear`、`force-logout` 等）见 `docs/开发规范.md` 1.3 节。
 - 响应：成功 `response.OK(data, c)` / `response.Success("提示", c)`；失败 `response.Fail(-1, "错误", c)`。
 - 树形表（部门、菜单）删除前必须检查子节点，存在子节点禁止删除。
@@ -99,7 +99,7 @@
   参与校验的前缀为 `system/`、`monitor/`、`tool/`（`app/system/middleware/auth.go` 的 `PathPermission`），
   无法由路径推导的（如 `/monitor/server`、`/monitor/cache`、`/monitor/cache/list`）在 `pathPermissionAlias` 中显式映射；
   `system/user/profile|password|avatar` 为登录用户自助接口，不参与权限校验。
-  注意：种子菜单的按钮权限命名（`xxx:remove` / `xxx:edit` / `cron:job:changeStatus` 等），
+  注意：种子菜单的按钮权限命名（`xxx:remove` / `xxx:edit` / `cron:job:change-status` 等），
   开启 `AUTH_PERMISSION_ENABLED` 前需在 `pathPermissionAlias` 中补齐这类映射，否则非超管角色会被拒绝。
 - **配置**：新增开关必须同时改 `config/config.yaml`（`${KEY:-默认值}` 占位符）与 `.env.dev` / `.env.pro`；
   `config/config.yaml` 末尾维护变量清单，`common/config/config_test.go` 会校验代码读取的键在配置文件中存在，缺失即测试失败。
@@ -178,6 +178,6 @@
 - **服务监控** `/monitor/server`（权限 `monitor:server:list`）：采集逻辑在 `common/sysinfo`，**只用标准库**（Linux 读 `/proc/stat`、`/proc/meminfo`、`/proc/loadavg`、`/proc/mounts` + `syscall.Statfs`），
   禁止引入 `gopsutil`；平台相关代码用构建标签拆分（`sysinfo_linux.go` / `sysinfo_other.go`），字符串解析逻辑放在平台无关文件以便单测；
   返回字段名与前端监控页面约定一致（`cpuNum`/`memTotal`/`goVersion`/`sysFiles` 等），单位 MB、使用率 %。
-- **缓存监控** `/monitor/cache`、`/monitor/cache/list`、`/monitor/cache/clear`（权限 `monitor:cache:list`、`monitor:cacheList:list`）：
+- **缓存监控** `/monitor/cache`、`/monitor/cache/list`、`/monitor/cache/clear`（权限 `monitor:cache:list`、`monitor:cache-list:list`）：
   基于进程内内存缓存 `common/cache`（无 Redis）；新增业务缓存后用 `cache.Register("名称", 实例)` 注册即会被监控页面列出，
   缓存列表只展示未过期条目，缓存值超过 200 字符截断。

@@ -8,15 +8,15 @@ import (
 func InitRouter(r *gin.Engine) {
 	// 登录认证接口（无需令牌）
 	login := Login{}
-	r.GET("/captchaImage", login.Captcha)
+	r.GET("/captcha-image", login.Captcha)
 	r.POST("/login", login.Login)
 
 	// 需登录的接口（认证开关见 system.auth.enabled）
 	authorized := r.Group("", middleware.Auth())
 	{
 		authorized.POST("/logout", login.Logout)
-		authorized.GET("/getInfo", login.GetInfo)
-		authorized.GET("/getRouters", login.GetRouters)
+		authorized.GET("/get-info", login.GetInfo)
+		authorized.GET("/get-routers", login.GetRouters)
 	}
 
 	group := authorized.Group("/system")

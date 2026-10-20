@@ -14,7 +14,7 @@ B="$BASE_URL/system"
 MON="$BASE_URL/monitor"   # 系统监控
 G="$BASE_URL/gen"         # 代码生成
 CJ="$BASE_URL/cron/job"    # 定时任务
-CL="$BASE_URL/cron/jobLog" # 定时任务日志
+CL="$BASE_URL/cron/job-log" # 定时任务日志
 S=$(date +%s)
 ok=0; sqlbad=0; bad=0
 
@@ -102,9 +102,9 @@ authed() {
     bad=$((bad+1)); printf '\033[33mWARN\033[0m  %-44s %s\n' "$p" "$(echo "$out" | head -c 170)"
   fi
 }
-authed '/captchaImage'
-authed '/getInfo'
-authed '/getRouters'
+authed '/captcha-image'
+authed '/get-info'
+authed '/get-routers'
 if [ -n "$TOKEN" ]; then
   code=$(curl -s -m 10 -o /dev/null -w '%{http_code}' "$B/user/list")
   if [ "$code" = "401" ]; then
@@ -161,8 +161,8 @@ creq GET '/job/list?pageSize=3'
 creq GET '/job/list?name=x&groupId=1&status=0'
 creq GET '/job/detail?id=1'
 creq GET '/job/check-name?name=x'
-creq GET '/jobLog/list?pageSize=3'
-creq GET '/jobLog/detail?id=1'
+creq GET '/job-log/list?pageSize=3'
+creq GET '/job-log/detail?id=1'
 
 mreq GET '/logininfor/list?pageSize=3'
 mreq GET '/logininfor/list?loginName=x&status=0'

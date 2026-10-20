@@ -51,7 +51,7 @@ func TestPathPermission(t *testing.T) {
 		"/system/user/profile":  "", // 自助接口不校验
 		"/system/user/password": "", // 自助接口不校验
 		"/system/user/avatar":   "", // 自助接口不校验
-		"/getInfo":              "", // 非业务接口不校验
+		"/get-info":             "", // 非业务接口不校验
 		"/login":                "",
 		"/swagger.json":         "",
 		"":                      "",
@@ -63,20 +63,43 @@ func TestPathPermission(t *testing.T) {
 		"/monitor/operlog/list":        "monitor:operlog:list",
 		"/cron/job/list":               "cron:job:list",
 		"/cron/job/change-status":      "cron:job:change-status",
-		"/cron/jobLog/list":            "cron:jobLog:list",
+		"/cron/job-log/list":           "cron:job-log:list",
 		// 无法由路径推导的监控接口走别名
 		"/monitor/server":      "monitor:server:list",
 		"/monitor/cache":       "monitor:cache:list",
-		"/monitor/cache/list":  "monitor:cacheList:list",
+		"/monitor/cache/list":  "monitor:cache-list:list",
 		"/monitor/cache/clear": "monitor:cache:clear",
 		// 代码生成：下载接口沿用「生成代码」权限标识
 		"/gen/list":     "gen:list",
 		"/gen/preview":  "gen:preview",
 		"/gen/download": "gen:code",
+		// 路径中的大写字母按「-小写」规范化后再推导（历史写法同样能对上权限标识）
+		"/cron/jobLog/list":       "cron:job-log:list",
+		"/system/userOnline/list": "system:user-online:list",
 	}
 	for path, want := range cases {
 		if got := PathPermission(path); got != want {
 			t.Errorf("PathPermission(%q) = %q，期望 %q", path, got, want)
+		}
+	}
+}
+
+// TestKebabPath 校验路径大写字母规范化为「-小写」
+func TestKebabPath(t *testing.T) {
+	cases := map[string]string{
+		"":                   "",
+		"system/user/list":   "system/user/list",
+		"userOnline":         "user-online",
+		"jobLog/list":        "job-log/list",
+		"cron/jobLog/clear":  "cron/job-log/clear",
+		"captchaImage":       "captcha-image",
+		"getInfo":            "get-info",
+		"aBC":                "a-b-c",
+		"system/user-online": "system/user-online",
+	}
+	for path, want := range cases {
+		if got := KebabPath(path); got != want {
+			t.Errorf("KebabPath(%q) = %q，期望 %q", path, got, want)
 		}
 	}
 }
