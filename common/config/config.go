@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bluefroog/admintpl/common/secret"
 	"github.com/spf13/viper"
 )
 
@@ -50,6 +51,13 @@ func init() {
 
 	// 展开配置文件中的 ${ENV} 占位符，实现配置与环境的解耦
 	expandAll()
+
+	// 解密配置中的敏感值（AES-256-GCM）。所有中间件（数据库等）读取到的都是明文，
+	// 因此连接参数无需各自处理解密。
+	if err := DecryptAll(v, Bool(KeySecretEnabled), String(KeySecretKey)); err != nil {
+		fmt.Fprintf(os.Stderr, "config decrypt err: %s\n", err)
+		os.Exit(1) // 安全类配置错误必须快速失败，避免用密文/错误参数继续启动
+	}
 }
 
 // envFilePath 返回 .env 文件路径，可通过 ENV_FILE 指定
@@ -110,6 +118,50 @@ func expandEnv(s string) string {
 		}
 		return groups[2] // 未设置时使用默认值（未写默认值则为空字符串）
 	})
+}
+
+// 配置加密相关的配置项（值为空时表示不加密，兼容历史明文配置）
+const (
+	// KeySecretEnabled 是否启用配置敏感值加密（secret.enabled / CONFIG_ENCRYPT_ENABLED）
+	KeySecretEnabled = "secret.enabled"
+	// KeySecretKey 加密密钥（secret.key / CONFIG_SECRET_KEY）
+	KeySecretKey = "secret.key"
+
+	// EnvSecretEnabled / EnvSecretKey 环境变量名（.env / 容器环境变量注入）
+	EnvSecretEnabled = "CONFIG_ENCRYPT_ENABLED"
+	EnvSecretKey     = "CONFIG_SECRET_KEY"
+)
+
+// DecryptAll 解密配置中所有含 ENC(...) 片段的值，就地写回配置对象：
+//   - enabled=false 且未出现密文：全部按明文处理（向后兼容）；
+//   - enabled=false 但出现密文：报错，避免把密文当作明文去连数据库；
+//   - enabled=true：密钥缺失或解密失败即报错（快速失败）。
+//
+// 支持整体加密（ENC(xxx)）与局部加密（root:ENC(xxx)@tcp(127.0.0.1:3306)/db）。
+func DecryptAll(conf *viper.Viper, enabled bool, key string) error {
+	for _, name := range conf.AllKeys() {
+		if name == KeySecretKey {
+			continue // 密钥本身不参与解密
+		}
+
+		value, ok := conf.Get(name).(string)
+		if !ok || !secret.IsEncrypted(value) {
+			continue
+		}
+
+		if !enabled {
+			return fmt.Errorf("配置项 %s 使用了加密值，但未开启配置加密：请设置 %s=true（secret.enabled）并配置 %s",
+				name, EnvSecretEnabled, EnvSecretKey)
+		}
+
+		plain, err := secret.Resolve(value, key)
+		if err != nil {
+			return fmt.Errorf("配置项 %s 解密失败: %w", name, err)
+		}
+		conf.Set(name, plain)
+	}
+
+	return nil
 }
 
 // 返回字符类型配置

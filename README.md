@@ -57,6 +57,8 @@ curl "http://127.0.0.1:8080/getInfo?token=$TOKEN"
 
 | 变量 | 默认值 | 说明 |
 | ---- | ------ | ---- |
+| `CONFIG_ENCRYPT_ENABLED` | false | 配置敏感值是否使用 AES 密文（详见「配置加密」） |
+| `CONFIG_SECRET_KEY` | 空 | 配置加密密钥（任意字符串，经 SHA-256 派生 32 字节密钥） |
 | `AUTH_ENABLED` | true | 关闭后所有业务接口（`/system/...`、`/monitor/...`）免登录（仅用于本地调试） |
 | `AUTH_TOKEN_EXPIRE` | 720 | 令牌有效期（分钟） |
 | `AUTH_MAX_RETRY` | 5 | 连续登录失败次数上限，超过后锁定账号 |
@@ -232,6 +234,8 @@ app/gen       代码生成（表结构导入/生成配置/同步数据库表结�
 common/database  数据库初始化与迁移（DB/InitDB/AutoMigrateAll/TableEmpty）
 common/sysinfo   服务器指标采集（标准库 /proc 实现）
 common/cache     进程内内存缓存（含监控统计与注册表）
+common/secret    配置敏感值加解密（crypto-go AES/GCM，ENC(...) 密文）
+cmd/encrypt      配置值加密/解密命令行（just encrypt / decrypt 调用）
 bootstrap     启动编排：初始化数据库 → 迁移各模块模型 → 依次注册各模块路由
 ```
 
@@ -255,6 +259,46 @@ just env pro
 - `.env` 不入库；环境模板 `.env.dev`、`.env.pro` 入库，按需增删变量
 - 可用 `ENV_FILE` 指定其它 env 文件，用 `CONFIG_NAME` 指定其它配置文件
 
+# 配置加密（明文 / AES-256-GCM 密文）
+
+敏感配置（数据库密码、令牌密钥等）支持两种写法，由开关切换，**解密在配置加载阶段统一完成**，
+因此数据库等所有中间件拿到的都是明文，无需各自处理解密：
+
+| 开关 | 值的要求 | 说明 |
+| ---- | -------- | ---- |
+| `CONFIG_ENCRYPT_ENABLED=false`（默认） | 明文 | 与历史配置完全兼容；若检测到 `ENC(...)` 密文会**启动失败**并提示开启开关 |
+| `CONFIG_ENCRYPT_ENABLED=true` | 密文或明文 | 自动解密所有含 `ENC(...)` 片段的值；密钥缺失或解密失败直接启动失败（快速失败，不会拿密文连库） |
+
+密钥 `CONFIG_SECRET_KEY`：任意字符串（内部 SHA-256 派生 32 字节 AES 密钥），通过 `.env` / 容器环境变量注入；
+更换密钥需要重新加密已有密文。
+
+```bash
+# 1. 先生成密钥并写入 .env（只需一次）
+echo 'CONFIG_SECRET_KEY=my-strong-passphrase' >> .env
+
+# 2. 加密敏感值，输出形如 ENC(xxxxx)
+just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
+
+# 2'. 或者直接输出可粘贴到 .env 的配置片段（含开关、密钥、加密后的 DB_DSN）
+just encrypt-env 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
+
+# 3. 把密文写进 .env，并打开开关
+#    CONFIG_ENCRYPT_ENABLED=true
+#    DB_DSN=ENC(xxxxx)
+
+# 4. 排查用：解密回读
+just decrypt 'ENC(xxxxx)'
+```
+
+- 支持**整体加密**（`DB_DSN=ENC(...)`）与**局部加密**（`DB_DSN=root:ENC(...)@tcp(127.0.0.1:3306)/admintpl?...`），
+  局部加密可以只保护密码，主机、库名保持可读；
+- 明文与密文可以混用，便于逐个变量迁移；
+- 算法为 AES-256-GCM（带认证），加解密由 `github.com/freewu/crypto-go` 的 AES 封装实现
+  （`aes.GetInstance("GCM")`，nonce 由该封装生成并拼在密文头部；密钥固定 SHA-256 派生为 32 字节，
+  规避 crypto-go「密钥长度必须为 16/24/32 字节」的限制），密文被篡改或密钥不匹配都会解密失败，不会静默返回脏数据；
+- 密文使用 base64 URL 安全字母表，不含 `+ / =` 与括号，可安全嵌入 DSN / URL；
+- 用户登录口令与配置加密是两件事：用户口令以 bcrypt 落库，配置敏感值以 AES 密文落配置。
+
 # 项目开发 / 测试 / 打包 / 发布（使用 just）
 ```bash
 # 查看全部命令
@@ -265,6 +309,11 @@ just init
 
 # 环境切换：dev / pro
 just env dev
+
+# 配置加密：加密敏感值 / 输出 .env 片段 / 解密排查
+just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
+just encrypt-env 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
+just decrypt 'ENC(xxxxx)'
 
 # 开发：启动项目（默认监听 :8080）
 just dev
@@ -355,6 +404,8 @@ github.com/sirupsen/logrus 日志
 github.com/spf13/viper 配置文件
 github.com/go-playground/validator/v10 结构体参数验证
 github.com/swaggo/swag 接口文档
+golang.org/x/crypto bcrypt 用户口令
+github.com/freewu/crypto-go 配置敏感值加解密（AES/GCM 封装）
 ```
 
 # swag 安装

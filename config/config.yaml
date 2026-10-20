@@ -8,6 +8,13 @@
 service:
   port: "${SERVICE_PORT:-:8080}"
   debug: "${SERVICE_DEBUG:-true}"
+# 配置加密：敏感值（如数据库密码）可用 AES-256-GCM 密文书写，形如 ENC(xxxxx)
+#   - 生成密文：just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?...'
+#   - 支持整体加密（ENC(...)）与局部加密（root:ENC(...)@tcp(127.0.0.1:3306)/db?...）
+#   - 解密在配置加载阶段统一完成，数据库等所有中间件拿到的都是明文
+secret:
+  enabled: "${CONFIG_ENCRYPT_ENABLED:-false}" # true：解密所有 ENC(...) 值（密钥缺失或解密失败则启动失败）
+  key: "${CONFIG_SECRET_KEY:-}" # 加密密钥（任意字符串，内部 SHA-256 派生 32 字节），建议放 .env / 容器环境变量
 database:
   admin:
     type: "${DB_TYPE:-mysql}"
@@ -52,6 +59,7 @@ system:
     table-prefix: "${GEN_TABLE_PREFIX:-sys_}" # 表前缀，多个以英文逗号分隔
 
 # 环境变量清单（.env / 容器环境变量 / 系统环境变量均可注入，优先级从高到低）：
+#   CONFIG_ENCRYPT_ENABLED CONFIG_SECRET_KEY
 #   SERVICE_PORT SERVICE_DEBUG
 #   DB_TYPE DB_DSN DB_PREFIX DB_MAX_IDLE DB_MAX_OPEN DB_MAX_LIFETIME DB_DEBUG
 #   AUTH_ENABLED AUTH_TOKEN_EXPIRE AUTH_MAX_RETRY AUTH_LOCK_TIME AUTH_PERMISSION_ENABLED

@@ -3,6 +3,7 @@ module github.com/bluefroog/admintpl
 go 1.25
 
 require (
+	github.com/freewu/crypto-go v0.0.0-20260824081841-7d2418300c35
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/sirupsen/logrus v1.8.1

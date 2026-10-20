@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bluefroog/admintpl/common/secret"
 	"github.com/spf13/viper"
 )
 
@@ -123,6 +124,7 @@ func TestConfigFileExpansion(t *testing.T) {
 	// 代码读取的配置项必须全部存在于配置文件中：
 	// 防止「代码读 system.auth.enabled、配置写在 auth.enabled」这类键名不一致导致开关静默失效
 	required := []string{
+		"secret.enabled", "secret.key",
 		"service.port", "service.debug",
 		"database.admin.type", "database.admin.dsn", "database.admin.prefix",
 		"database.admin.max-idle", "database.admin.max-open", "database.admin.max-lifetime",
@@ -153,6 +155,7 @@ func TestConfigFileExpansion(t *testing.T) {
 
 	// 开关型配置必须能解析为布尔值（值写错时 viper 会静默返回 false）
 	bools := []string{
+		"secret.enabled",
 		"service.debug", "database.admin.debug", "system.auth.enabled",
 		"system.auth.permission-enabled", "system.captcha.enabled", "system.seed.enabled",
 		"system.job.enabled", "system.data-scope.enabled", "system.cache.enabled",
@@ -163,5 +166,109 @@ func TestConfigFileExpansion(t *testing.T) {
 		if value != "true" && value != "false" {
 			t.Errorf("开关型配置 %s 取值非法（应为 true/false）: %q", key, conf.GetString(key))
 		}
+	}
+}
+
+// TestDecryptAll 校验配置敏感值的解密行为（开关、密钥、整体/局部加密、错误场景）
+func TestDecryptAll(t *testing.T) {
+	const key = "unit-test-key"
+	encryptedDSN, err := secret.Encrypt("root:p@ss@tcp(127.0.0.1:3306)/admintpl", key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encryptedPassword, err := secret.Encrypt("p@ss", key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		name     string
+		settings map[string]interface{}
+		enabled  bool
+		key      string
+		want     map[string]string
+		wantErr  string
+	}{
+		{
+			name:     "未开启且无密文：按明文处理",
+			settings: map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": "root:123456@tcp(db:3306)/admintpl"}}},
+			enabled:  false,
+			key:      "",
+			want:     map[string]string{"database.admin.dsn": "root:123456@tcp(db:3306)/admintpl"},
+		},
+		{
+			name:     "开启后整体解密",
+			settings: map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": encryptedDSN}}},
+			enabled:  true,
+			key:      key,
+			want:     map[string]string{"database.admin.dsn": "root:p@ss@tcp(127.0.0.1:3306)/admintpl"},
+		},
+		{
+			name:     "开启后局部解密（只加密密码）",
+			settings: map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": "root:" + encryptedPassword + "@tcp(127.0.0.1:3306)/admintpl?parseTime=True"}}},
+			enabled:  true,
+			key:      key,
+			want:     map[string]string{"database.admin.dsn": "root:p@ss@tcp(127.0.0.1:3306)/admintpl?parseTime=True"},
+		},
+		{
+			name:     "明文与密文可混用",
+			settings: map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": encryptedDSN, "type": "mysql"}}},
+			enabled:  true,
+			key:      key,
+			want:     map[string]string{"database.admin.dsn": "root:p@ss@tcp(127.0.0.1:3306)/admintpl", "database.admin.type": "mysql"},
+		},
+		{
+			name:     "有密文但未开启：报错提示开启开关",
+			settings: map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": encryptedDSN}}},
+			enabled:  false,
+			key:      key,
+			wantErr:  "未开启配置加密",
+		},
+		{
+			name:     "开启但密钥为空：报错",
+			settings: map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": encryptedDSN}}},
+			enabled:  true,
+			key:      "",
+			wantErr:  "未配置加密密钥",
+		},
+		{
+			name:     "开启但密钥不匹配：报错",
+			settings: map[string]interface{}{"database": map[string]interface{}{"admin": map[string]interface{}{"dsn": encryptedDSN}}},
+			enabled:  true,
+			key:      "wrong-key",
+			wantErr:  "解密失败",
+		},
+		{
+			name:     "密钥本身不参与解密",
+			settings: map[string]interface{}{"secret": map[string]interface{}{"enabled": "true", "key": encryptedPassword}},
+			enabled:  true,
+			key:      key,
+			want:     map[string]string{"secret.key": encryptedPassword},
+		},
+	}
+
+	for _, item := range cases {
+		t.Run(item.name, func(t *testing.T) {
+			conf := viper.New()
+			for k, val := range item.settings {
+				conf.Set(k, val)
+			}
+
+			err := DecryptAll(conf, item.enabled, item.key)
+			if item.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), item.wantErr) {
+					t.Fatalf("错误信息应包含 %q，实际 %v", item.wantErr, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("不应报错: %v", err)
+			}
+			for k, want := range item.want {
+				if got := conf.GetString(k); got != want {
+					t.Fatalf("%s = %q, want %q", k, got, want)
+				}
+			}
+		})
 	}
 }
