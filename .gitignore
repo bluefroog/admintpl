@@ -1,5 +1,4 @@
 /.idea
-/go.sum
 /admintpl-server
 /.env
 /.env.local
