@@ -25,6 +25,8 @@ init:
     @if command -v git >/dev/null 2>&1; then printf '  \033[32m✔\033[0m git       %s\n' "$(git --version)"; else printf '  \033[33m✘\033[0m git       未安装\n'; fi
     # swag（接口文档）
     @if command -v swag >/dev/null 2>&1; then printf '  \033[32m✔\033[0m swag      %s\n' "$(swag --version 2>/dev/null | head -1)"; else printf '  \033[33m✘\033[0m swag      未安装，正在自动安装...\n'; go install github.com/swaggo/swag/cmd/swag@latest; fi
+    # openssl（scripts/smoke.sh 计算前端密码 hash 用）
+    @if command -v openssl >/dev/null 2>&1; then printf '  \033[32m✔\033[0m openssl   %s\n' "$(openssl version 2>/dev/null | awk '{print $2}')"; else printf '  \033[33m✘\033[0m openssl   未安装（冒烟脚本计算前端密码 hash 需要，可退化为 md5sum/sha1sum/sha256sum）\n'; fi
     # just（命令运行器）
     @if command -v just >/dev/null 2>&1; then printf '  \033[32m✔\033[0m just      %s\n' "$(just --version)"; else printf '  \033[33m✘\033[0m just      未安装，正在自动安装...\n'; go install github.com/casey/just@latest; fi
     # docker（发布需要）
@@ -59,6 +61,14 @@ encrypt-env plaintext algo="":
 # 用法：just decrypt 'ENC(AES:xxxx)'
 decrypt ciphertext:
     @go run ./cmd/encrypt -d "$1"
+
+# 密码 hash：按配置的前后端算法计算（前端 hash 明文 -> 后端 hash 前端 hash+盐）
+# 用法：just hash 'admin123'                        自动生成 4 位随机盐
+#       just hash 'admin123' 'aB3d'                 指定盐（复现库中密码 / 校验记录）
+#       just hash 'admin123' 'aB3d' sha256 sm3      临时指定前端 / 后端算法
+#       just hash 'admin123' 'aB3d' '' '' admin     额外输出 UPDATE SQL（第 5 个参数为用户名）
+hash plaintext salt="" front="" back="" user="":
+    @go run ./cmd/hash -u "$5" "$1" "$2" "$3" "$4"
 
 # 开发：启动项目（默认监听 :8080）
 dev: _ensure-env

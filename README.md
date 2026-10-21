@@ -121,6 +121,11 @@ printf '%s' 'admin123' | openssl dgst -sha256 -r | cut -d' ' -f1
 # 3. 用前端 hash 登录
 curl -X POST http://127.0.0.1:8080/login -H 'Content-Type: application/json' \
   -d '{"username":"admin","password":"240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"}'
+
+# 4. 手工生成/核对入库密码（按 .env 配置的前后端算法计算；盐留空则随机生成 4 位）
+just hash 'admin123'
+just hash 'admin123' 'aB3d'                # 指定盐：复现库中记录 / 排查登录失败
+just hash 'admin123' 'aB3d' '' '' admin    # 末尾填用户名：额外输出可直接执行的 UPDATE SQL
 ```
 
 > 升级提示：旧版本口令以 bcrypt 落库、无 `salt`，切换到本方案后需重置密码
@@ -479,6 +484,11 @@ just env dev
 just encrypt 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
 just encrypt-env 'root:123456@tcp(127.0.0.1:3306)/admintpl?charset=utf8mb4&parseTime=True&loc=Local'
 just decrypt 'ENC(xxxxx)'
+
+# 密码 hash：按配置的前后端算法计算（前端 hash -> 后端 hash+盐），用于手工改库/核对
+just hash 'admin123'                          # 随机 4 位盐
+just hash 'admin123' 'aB3d'                   # 指定盐（复现库中记录）
+just hash 'admin123' 'aB3d' '' '' admin       # 附带 UPDATE SQL
 
 # 开发：启动项目（默认监听 :8080）
 just dev

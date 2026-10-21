@@ -49,6 +49,8 @@
   - `just encrypt '<明文>' [AES|SM4]` — 加密配置敏感值（默认 AES-256-GCM，可选国密 SM4-CBC），输出 `ENC(...)` 密文
   - `just encrypt-env '<明文>' [AES|SM4]` — 加密并输出可粘贴到 `.env` 的配置片段（开关/算法/密钥/密文）
   - `just decrypt 'ENC(...)'` — 解密配置敏感值（排查用）
+  - `just hash '<明文>' [盐] [前端算法] [后端算法] [用户名]` — 按配置的前后端算法计算两段式密码 hash
+    （输出前端 hash / 入库密码 / 盐；盐留空随机生成，填用户名时附 `UPDATE` SQL；实现 `cmd/hash`）
   - `just build` — 打包：编译供镜像使用的 linux/amd64 静态二进制 `admintpl-server`
   - `just release` — 发布：构建 Docker 镜像并推送远程仓库
   - `just docs` — 生成 swagger 文档
