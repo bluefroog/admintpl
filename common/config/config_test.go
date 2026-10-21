@@ -134,6 +134,7 @@ func TestConfigFileExpansion(t *testing.T) {
 		"system.auth.enabled", "system.auth.token-expire", "system.auth.max-retry",
 		"system.auth.lock-time", "system.auth.permission-enabled",
 		"system.captcha.enabled", "system.captcha.length", "system.captcha.expire",
+		"system.password.frontend-hash", "system.password.backend-hash",
 		"system.seed.enabled",
 		"system.job.enabled", "system.job.log-retain-days",
 		"system.data-scope.enabled",

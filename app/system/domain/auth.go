@@ -8,7 +8,7 @@ type UserIdRequest struct {
 // LoginRequest 登录请求结构体
 type LoginRequest struct {
 	Username string `json:"username" form:"username" validate:"required"` // 登录账号
-	Password string `json:"password" form:"password" validate:"required"` // 登录密码
+	Password string `json:"password" form:"password" validate:"required"` // 登录密码（前端按 hashAlgorithm 计算后的值）
 	Code     string `json:"code" form:"code"`                             // 验证码（开启验证码时必填）
 	UUID     string `json:"uuid" form:"uuid"`                             // 验证码标识
 }
@@ -24,6 +24,12 @@ type CaptchaResponse struct {
 	Enabled bool   `json:"captchaEnabled"` // 是否开启验证码
 	UUID    string `json:"uuid"`           // 验证码标识
 	Img     string `json:"img"`            // 验证码图片（base64，前端拼接 data:image/png;base64, 前缀）
+}
+
+// FrontendConfigResponse 前端初始化配置（登录页登录前读取）
+type FrontendConfigResponse struct {
+	HashAlgorithm  string `json:"hashAlgorithm"`  // 密码 hash 算法（md5 / sha1 / sha256 / sm3）：前端对明文密码 hash 后再提交
+	CaptchaEnabled bool   `json:"captchaEnabled"` // 是否开启图形验证码
 }
 
 // LoginUser 登录用户信息（认证通过后写入请求上下文）

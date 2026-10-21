@@ -14,8 +14,11 @@ import (
 // Seed 基础数据初始化服务
 type Seed struct{}
 
-// 内置账号初始密码（登录后请立即修改）
-const seedInitPassword = "admin123"
+// 内置账号初始密码（登录后请立即修改）及对应的系统参数键名
+const (
+	seedInitPassword    = "admin123"
+	seedInitPasswordKey = "sys.user.initPassword"
+)
 
 // menuSeed 菜单种子数据（紧凑结构，便于维护）
 type menuSeed struct {
@@ -384,16 +387,13 @@ func (s Seed) seedRoles(tx *gorm.DB) error {
 	return tx.Create(&rows).Error
 }
 
-// seedUsers 初始化内置账号（密码为 bcrypt 加密后的 admin123）
+// seedUsers 初始化内置账号（密码为 admin123 经「前端 hash + 后端加盐 hash」后的结果）
 func (s Seed) seedUsers(tx *gorm.DB) error {
 	empty, err := s.empty(tx, &domain.User{})
 	if err != nil || !empty {
 		return err
 	}
-	password, err := lib.HashPassword(seedInitPassword)
-	if err != nil {
-		return err
-	}
+	// 每个账号独立随机盐（同一个初始密码也会得到不同的入库密码）
 	rows := []domain.User{
 		{
 			Model: core.Model{ID: 1},
@@ -408,7 +408,6 @@ func (s Seed) seedUsers(tx *gorm.DB) error {
 				Remark:       "超级管理员账号",
 				IsAdmin:      true,
 			},
-			Password: password,
 		},
 		{
 			Model: core.Model{ID: 2},
@@ -423,8 +422,16 @@ func (s Seed) seedUsers(tx *gorm.DB) error {
 				Remark:       "普通角色账号",
 				IsAdmin:      false,
 			},
-			Password: password,
 		},
+	}
+	// 初始密码统一为 seedInitPassword，按「前端 hash + 后端加盐 hash」写入（每个账号独立随机盐）
+	for i := range rows {
+		password, salt, err := lib.HashPlainPassword(seedInitPassword)
+		if err != nil {
+			return err
+		}
+		rows[i].Password = password
+		rows[i].Salt = salt
 	}
 	return tx.Create(&rows).Error
 }
@@ -517,7 +524,7 @@ func (s Seed) seedConfigs(tx *gorm.DB) error {
 		value string
 	}{
 		{name: "主框架页-默认皮肤样式名称", key: "sys.index.skinName", value: "skin-blue"},
-		{name: "用户管理-账号初始密码", key: "sys.user.initPassword", value: seedInitPassword},
+		{name: "用户管理-账号初始密码", key: seedInitPasswordKey, value: seedInitPassword},
 		{name: "主框架页-侧边栏主题", key: "sys.index.sideTheme", value: "theme-dark"},
 		{name: "账号自助-是否开启用户注册功能", key: "sys.account.registerUser", value: "false"},
 		{name: "用户登录-验证码开关", key: "sys.account.captchaEnabled", value: "false"},

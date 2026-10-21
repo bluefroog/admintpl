@@ -116,13 +116,23 @@ func (s User) parseFilter(db *gorm.DB, searchParams *domain.UserSearchRequest) *
 
 // @author: [bluefrog](https://github.com/freewu)
 // @function: Create
-// @description: 添加用户数据
+// @description: 添加用户数据，密码取参数 sys.user.initPassword（默认 admin123），并生成随机盐
 // @param: data *domain.UserAddRequest
 // @return: error
 func (s User) Create(data *domain.UserAddRequest) error {
 	// todo 判断用户名是否已存在
 	// todo 判断手机号是否已存在
 	// todo 判断邮箱是否已存在
+	// 初始密码取系统参数 sys.user.initPassword，未配置时回退内置默认值
+	initPassword := seedInitPassword
+	if err, value := (Config{}).GetByKey(seedInitPasswordKey); err == nil && value != "" {
+		initPassword = value
+	}
+	// 服务端已知明文，按「前端 hash + 后端加盐 hash」两段式写入
+	password, salt, err := lib.HashPlainPassword(initPassword)
+	if err != nil {
+		return err
+	}
 	// 注意：结构体方式 Create 会让带 default 标签的零值字段（如 status 默认 1）被数据库默认值覆盖，
 	// 导致显式传入的「禁用（0）」被写成「正常（1）」，因此与 Update 保持一致，使用 map 显式写入。
 	now := time.Now()
@@ -138,7 +148,9 @@ func (s User) Create(data *domain.UserAddRequest) error {
 		"DepartmentID": data.DepartmentID,
 		"Remark":       data.Remark,
 		"IsAdmin":      data.IsAdmin,
-		"RegisterTime": now, // 注册时间
+		"Password":     password, // 初始密码（两段式 hash）
+		"Salt":         salt,     // 密码盐
+		"RegisterTime": now,      // 注册时间
 		"CreatedAt":    now,
 		"UpdatedAt":    now,
 	}
@@ -304,12 +316,14 @@ func (s User) CheckUniqueEmail(req *domain.UserCheckUniqueRequest) (err error, u
 // @param: req *domain.UserResetPwdRequest
 // @return: err error
 func (s User) ResetPwd(req *domain.UserResetPwdRequest) (err error) {
-	password, err := lib.HashPassword(req.Password)
+	// 前端已对明文做过 hash，这里再加盐做后端 hash
+	password, salt, err := lib.HashPassword(req.Password)
 	if err != nil {
 		return err
 	}
 	record := make(map[string]interface{})
 	record["Password"] = password
+	record["Salt"] = salt
 	record["UpdatedAt"] = time.Now()
 	return s.UpdateByMap(req.ID, record)
 }
@@ -451,15 +465,17 @@ func (s User) UpdatePassword(req *domain.UserPasswordUpdateRequest) (err error) 
 	if err != nil {
 		return errors.New("用户不存在")
 	}
-	if !lib.CheckPassword(detail.Password, req.OldPassword) {
+	if !lib.CheckPassword(detail.Password, detail.Salt, req.OldPassword) {
 		return errors.New("原密码错误")
 	}
-	password, err := lib.HashPassword(req.NewPassword)
+	// 修改密码时重新生成盐
+	password, salt, err := lib.HashPassword(req.NewPassword)
 	if err != nil {
 		return err
 	}
 	record := make(map[string]interface{})
 	record["Password"] = password
+	record["Salt"] = salt
 	record["UpdatedAt"] = time.Now()
 	return s.UpdateByMap(req.ID, record)
 }

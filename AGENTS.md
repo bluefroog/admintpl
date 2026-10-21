@@ -94,6 +94,14 @@
 
 - **认证**：登录成功签发 64 位令牌并写入 `user_online` 表；请求头 `Authorization: Bearer <token>`（兼容 `token` 请求头与 `?token=`）携带。
   鉴权逻辑集中在 `app/system/middleware/auth.go`，业务方法取当前用户用 `middleware.GetLoginUser(c)` / `middleware.GetUserID(c)`，禁止再写 `// todo 通过登录服务获取`。
+- **密码（两段式 hash + 随机盐）**：前端按 `system.password.frontend-hash`（`md5`/`sha1`/`sha256`/`sm3`，
+  经 `GET /frontend-config` 下发）对明文 hash 后提交，后端把该值与账号随机盐（4 位，`user.salt`）
+  按 `system.password.backend-hash` 再 hash 后写入 `user.password`。
+  统一走 `common/lib/password.go`：`lib.HashValue` / `lib.HashPassword`（前端 hash 入参）/ `lib.HashPlainPassword`（服务端已知明文，
+  如种子账号、新增用户初始密码 `sys.user.initPassword`）/ `lib.CheckPassword` / `lib.RandomSalt`；
+  **禁止**在业务代码里自己拼接 hash 算法、禁止明文口令落库或写日志，重置/修改密码必须重新生成盐。
+- **前端配置接口**：`GET /frontend-config`（免登录，注册在 `authorized` 分组之前）返回
+  `{hashAlgorithm, captchaEnabled}`；新增前端所需开关时在此接口与 `domain.FrontendConfigResponse` 中追加字段。
 - **权限标识**：路径 `<模块前缀>/<子模块>/<动作>` 对应权限 `<模块前缀>:<子模块>:<动作>`
   （如 `/system/user/list` -> `system:user:list`、`/monitor/online/list` -> `monitor:online:list`），与菜单 `perms` 字段一致；
   参与校验的前缀为 `system/`、`monitor/`、`tool/`（`app/system/middleware/auth.go` 的 `PathPermission`），

@@ -13,9 +13,10 @@ type User struct {
 	UserBase
 
 	RegisterTime  time.Time `json:"registerTime" form:"registerTime" gorm:"default:null;comment:注册时间"`                // 注册时间
-	Password      string    `json:"-" form:"password" gorm:"type:varchar(255);default:null;comment:登录密码"`             // 登录密码;cmf_password加密'
-	LastLoginTime time.Time `json:"lastLoginTime" form:"lastLoginTime" gorm:"default:null;comment:最后登录时间"`            // 最后登录时间
-	LastLoginIP   string    `json:"lastLoginIP" form:"lastLoginIP" gorm:"type:varchar(15);default:'';comment:最后登录IP"` // 最后登录IP
+	Password      string    `json:"-" form:"password" gorm:"type:varchar(255);default:null;comment:登录密码（前端hash+后端加盐hash）"` // 登录密码：前端 hash 后再与 salt 一起做后端 hash
+	Salt          string    `json:"-" form:"salt" gorm:"type:varchar(16);default:'';comment:密码盐（随机4位）"`                  // 密码盐：随机 4 位字符，重置密码时重新生成
+	LastLoginTime time.Time `json:"lastLoginTime" form:"lastLoginTime" gorm:"default:null;comment:最后登录时间"`                  // 最后登录时间
+	LastLoginIP   string    `json:"lastLoginIP" form:"lastLoginIP" gorm:"type:varchar(15);default:'';comment:最后登录IP"`       // 最后登录IP
 }
 
 // TableName 指定表名
@@ -76,7 +77,7 @@ type UserEditRequest struct {
 // UserResetPwdRequest 重置用户密码请求结构体
 type UserResetPwdRequest struct {
 	ID       uint   `json:"id" form:"id" validate:"required"`             // 用户ID
-	Password string `json:"password" form:"password" validate:"required"` // 新密码
+	Password string `json:"password" form:"password" validate:"required"` // 新密码（前端 hash 后的值）
 }
 
 // UserChangeStatusRequest 修改用户状态请求结构体
@@ -117,8 +118,8 @@ type UserProfileUpdateRequest struct {
 // UserPasswordUpdateRequest 用户修改密码请求结构体
 type UserPasswordUpdateRequest struct {
 	ID          uint   `json:"id" form:"id" validate:"required"`                     // 用户ID
-	OldPassword string `json:"old_password" form:"old_password" validate:"required"` // 旧密码
-	NewPassword string `json:"new_password" form:"new_password" validate:"required"` // 新密码
+	OldPassword string `json:"old_password" form:"old_password" validate:"required"` // 旧密码（前端 hash 后的值）
+	NewPassword string `json:"new_password" form:"new_password" validate:"required"` // 新密码（前端 hash 后的值）
 }
 
 // UserAvatarUpdateRequest 用户头像修改请求结构体

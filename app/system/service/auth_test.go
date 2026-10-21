@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/bluefroog/admintpl/app/system/domain"
+	"github.com/bluefroog/admintpl/common/config"
+	"github.com/bluefroog/admintpl/common/lib"
 )
 
 // TestHasPermission 校验权限判定（超级管理员放行、通配权限、精确匹配）
@@ -113,5 +115,22 @@ func TestMenuListToRouters(t *testing.T) {
 
 	if got := menuListToRouters(nil); len(got) != 0 {
 		t.Errorf("空菜单应返回空切片，实际 %d", len(got))
+	}
+}
+
+// TestFrontendConfig 校验前端初始化配置接口：hash 算法合法且与后端配置一致，验证码开关可读
+func TestFrontendConfig(t *testing.T) {
+	data := Auth{}.FrontendConfig()
+	if data == nil {
+		t.Fatal("FrontendConfig() 不应返回 nil")
+	}
+	if _, err := lib.NormalizeHashAlgorithm(data.HashAlgorithm); err != nil {
+		t.Errorf("下发的前端 hash 算法应合法，实际 %q（%v）", data.HashAlgorithm, err)
+	}
+	if data.HashAlgorithm != lib.FrontendHashAlgorithm() {
+		t.Errorf("hash 算法应与配置一致，期望 %q，实际 %q", lib.FrontendHashAlgorithm(), data.HashAlgorithm)
+	}
+	if data.CaptchaEnabled != config.Bool("system.captcha.enabled") {
+		t.Errorf("验证码开关应与配置一致，期望 %v，实际 %v", config.Bool("system.captcha.enabled"), data.CaptchaEnabled)
 	}
 }

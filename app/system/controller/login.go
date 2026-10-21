@@ -32,6 +32,17 @@ func (l *Login) Captcha(c *gin.Context) {
 	response.OK(data, c)
 }
 
+// FrontendConfig 获取前端初始化配置
+// @Summary 获取前端初始化配置
+// @Description 登录页在登录前读取：密码 hash 算法（md5 / sha1 / sha256 / sm3）、是否开启图形验证码
+// @Tags 登录认证
+// @Success 0 {object} response.Response{data=domain.FrontendConfigResponse} "{"code": 0, "msg":"success","data": {"hashAlgorithm": "sha256", "captchaEnabled": true}}"
+// @Router /frontend-config [get]
+// @Security
+func (l *Login) FrontendConfig(c *gin.Context) {
+	response.OK(auth.FrontendConfig(), c)
+}
+
 // Login 用户登录
 // @Summary 用户登录
 // @Description 用户登录，成功后返回访问令牌

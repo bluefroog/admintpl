@@ -123,6 +123,10 @@ system:
     max-retry: "${AUTH_MAX_RETRY:-5}" # 连续登录失败次数上限（0 表示不限制）
     lock-time: "${AUTH_LOCK_TIME:-10}" # 登录失败锁定时间（分钟）
     permission-enabled: "${AUTH_PERMISSION_ENABLED:-false}" # 是否按请求路径校验角色权限标识
+  # 密码安全（两段式 hash：前端按 frontend-hash 计算后提交，后端把该值与随机盐按 backend-hash 再 hash 后入库）
+  password:
+    frontend-hash: "${PASSWORD_FRONTEND_HASH:-sha256}" # 前端 hash 算法：md5 / sha1 / sha256 / sm3（前端读取 /frontend-config 获取）
+    backend-hash: "${PASSWORD_BACKEND_HASH:-sha256}" # 后端 hash 算法：md5 / sha1 / sha256 / sm3（与随机盐一起参与）
   # 图形验证码
   captcha:
     enabled: "${CAPTCHA_ENABLED:-false}" # 是否开启登录验证码
@@ -152,6 +156,7 @@ system:
 #   DB_DEFAULT DB_TYPE DB_DSN DB_PREFIX DB_SINGULAR DB_MAX_IDLE DB_MAX_OPEN DB_MAX_LIFETIME DB_DEBUG
 #   AUTH_ENABLED AUTH_TOKEN_EXPIRE AUTH_MAX_RETRY AUTH_LOCK_TIME AUTH_PERMISSION_ENABLED
 #   CAPTCHA_ENABLED CAPTCHA_LENGTH CAPTCHA_EXPIRE
+#   PASSWORD_FRONTEND_HASH PASSWORD_BACKEND_HASH
 #   SEED_ENABLED
 #   JOB_ENABLED JOB_LOG_RETAIN_DAYS
 #   DATA_SCOPE_ENABLED

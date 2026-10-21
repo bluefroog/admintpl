@@ -629,6 +629,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/frontend-config": {
+            "get": {
+                "security": [],
+                "description": "登录页在登录前读取：密码 hash 算法（md5 / sha1 / sha256 / sm3）、是否开启图形验证码",
+                "tags": [
+                    "登录认证"
+                ],
+                "summary": "获取前端初始化配置",
+                "responses": {
+                    "0": {
+                        "description": "{\"code\": 0, \"msg\":\"success\",\"data\": {\"hashAlgorithm\": \"sha256\", \"captchaEnabled\": true}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.FrontendConfigResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/gen/column-list": {
             "get": {
                 "security": [],
@@ -7601,6 +7631,19 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.FrontendConfigResponse": {
+            "type": "object",
+            "properties": {
+                "captchaEnabled": {
+                    "description": "是否开启图形验证码",
+                    "type": "boolean"
+                },
+                "hashAlgorithm": {
+                    "description": "密码 hash 算法（md5 / sha1 / sha256 / sm3）：前端对明文密码 hash 后再提交",
+                    "type": "string"
+                }
+            }
+        },
         "domain.Job": {
             "type": "object",
             "required": [
@@ -7955,7 +7998,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "description": "登录密码",
+                    "description": "登录密码（前端按 hashAlgorithm 计算后的值）",
                     "type": "string"
                 },
                 "username": {
@@ -9964,11 +10007,11 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "new_password": {
-                    "description": "新密码",
+                    "description": "新密码（前端 hash 后的值）",
                     "type": "string"
                 },
                 "old_password": {
-                    "description": "旧密码",
+                    "description": "旧密码（前端 hash 后的值）",
                     "type": "string"
                 }
             }
@@ -10056,7 +10099,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "password": {
-                    "description": "新密码",
+                    "description": "新密码（前端 hash 后的值）",
                     "type": "string"
                 }
             }

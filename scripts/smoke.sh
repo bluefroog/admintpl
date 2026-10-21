@@ -21,9 +21,31 @@ ok=0; sqlbad=0; bad=0
 # ---- 登录获取令牌（认证关闭或未初始化数据时自动降级为免认证模式） ----
 SMOKE_USER="${SMOKE_USER:-admin}"
 SMOKE_PASS="${SMOKE_PASS:-admin123}"
+# 密码为两段式 hash：前端先按 system.password.frontend-hash 计算后提交，
+# 脚本用 openssl 模拟前端行为（算法可用 PASSWORD_FRONTEND_HASH 覆盖）
+PASSWORD_FRONTEND_HASH="${PASSWORD_FRONTEND_HASH:-sha256}"
+front_hash() {
+  local algo
+  algo="$(echo "$PASSWORD_FRONTEND_HASH" | tr 'A-Z' 'a-z')"
+  case "$algo" in
+    md5|sha1|sha256|sm3) ;;
+    *) echo "不支持的 PASSWORD_FRONTEND_HASH：$PASSWORD_FRONTEND_HASH" >&2; return 1 ;;
+  esac
+  if command -v openssl >/dev/null 2>&1; then
+    printf '%s' "$1" | openssl dgst "-$algo" -r | cut -d' ' -f1
+  elif [ "$algo" = "md5" ] && command -v md5sum >/dev/null 2>&1; then
+    printf '%s' "$1" | md5sum | cut -d' ' -f1
+  elif [ "$algo" = "sha1" ] && command -v sha1sum >/dev/null 2>&1; then
+    printf '%s' "$1" | sha1sum | cut -d' ' -f1
+  elif [ "$algo" = "sha256" ] && command -v sha256sum >/dev/null 2>&1; then
+    printf '%s' "$1" | sha256sum | cut -d' ' -f1
+  else
+    echo "缺少 $algo hash 工具，请安装 openssl" >&2; return 1
+  fi
+}
 TOKEN=""
 login_out=$(curl -s -m 10 -X POST "$BASE_URL/login" -H 'Content-Type: application/json' \
-  -d "{\"username\":\"$SMOKE_USER\",\"password\":\"$SMOKE_PASS\"}")
+  -d "{\"username\":\"$SMOKE_USER\",\"password\":\"$(front_hash "$SMOKE_PASS")\"}")
 TOKEN=$(echo "$login_out" | grep -o '"token":"[^"]*"' | head -1 | cut -d'"' -f4)
 # 始终携带认证头（令牌为空时等价于未认证；服务端认证关闭时该头会被忽略）
 auth_header=(-H "Authorization: Bearer ${TOKEN}")
@@ -35,6 +57,14 @@ fi
 
 # 取 JSON 中第一个 "id" 值（不依赖 jq）
 pick_id() { echo "$1" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
+
+# 前端初始化配置（免登录）：hash 算法必须是前端支持的四种之一
+fc_out=$(curl -s -m 10 "$BASE_URL/frontend-config")
+if echo "$fc_out" | grep -qE '"hashAlgorithm":"(md5|sha1|sha256|sm3)"'; then
+  ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s %s\n' "前端配置 /frontend-config" "$(echo "$fc_out" | head -c 100)"
+else
+  bad=$((bad+1)); printf '\033[31mFAIL\033[0m  %-44s %s\n' "前端配置 /frontend-config" "$(echo "$fc_out" | head -c 160)"
+fi
 
 # 读接口断言：SQL 列名错误单独计数（这类错误一定是 bug）
 req() {
@@ -321,10 +351,10 @@ post /user/create "{\"username\":\"$DSA\",\"mobile\":\"137$S\",\"nickname\":\"�
 USERA=$(pick_id "$(getq "/user/list?pageSize=1&username=$DSA")")
 post /user/create "{\"username\":\"$DSB\",\"mobile\":\"136$S\",\"nickname\":\"数据权限用户B$S\",\"status\":1,\"email\":\"$DSB@test.com\",\"gender\":1,\"departmentID\":$DEPB,\"remark\":\"数据权限\"}" >/dev/null
 USERB=$(pick_id "$(getq "/user/list?pageSize=1&username=$DSB")")
-put /user/reset-pwd "{\"id\":$USERA,\"password\":\"admin123\"}" >/dev/null
+put /user/reset-pwd "{\"id\":$USERA,\"password\":\"$(front_hash 'admin123')\"}" >/dev/null
 put /user/roles "{\"id\":$USERA,\"role_ids\":[$ROLD]}" >/dev/null
 TOKENA=$(curl -s -m 10 -X POST "$BASE_URL/login" -H 'Content-Type: application/json' \
-  -d "{\"username\":\"$DSA\",\"password\":\"admin123\"}" | grep -o '"token":"[^"]*"' | head -1 | cut -d'"' -f4)
+  -d "{\"username\":\"$DSA\",\"password\":\"$(front_hash 'admin123')\"}" | grep -o '"token":"[^"]*"' | head -1 | cut -d'"' -f4)
 if [ -n "$DEPA" ] && [ -n "$DEPA2" ] && [ -n "$DEPB" ] && [ -n "$ROLD" ] && [ -n "$USERA" ] && [ -n "$USERB" ] && [ -n "$TOKENA" ]; then
   ok=$((ok+1)); printf '\033[32mok\033[0m    %-44s 角色=%s 部门=%s/%s/%s 用户=%s/%s\n' '构造数据权限测试数据' "$ROLD" "$DEPA" "$DEPA2" "$DEPB" "$USERA" "$USERB"
 else

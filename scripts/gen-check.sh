@@ -18,9 +18,29 @@ T="$BASE_URL/gen"
 DEMO_TABLE="smoke_gen_demo"
 ok=0; bad=0
 
-# 登录获取令牌（与 smoke.sh 一致：认证关闭时自动降级为免认证）
+# 登录获取令牌（与 smoke.sh 一致：认证关闭时自动降级为免认证；密码为前端 hash 后的值）
+PASSWORD_FRONTEND_HASH="${PASSWORD_FRONTEND_HASH:-sha256}"
+front_hash() {
+  local algo
+  algo="$(echo "$PASSWORD_FRONTEND_HASH" | tr 'A-Z' 'a-z')"
+  case "$algo" in
+    md5|sha1|sha256|sm3) ;;
+    *) echo "不支持的 PASSWORD_FRONTEND_HASH：$PASSWORD_FRONTEND_HASH" >&2; return 1 ;;
+  esac
+  if command -v openssl >/dev/null 2>&1; then
+    printf '%s' "$1" | openssl dgst "-$algo" -r | cut -d' ' -f1
+  elif [ "$algo" = "md5" ] && command -v md5sum >/dev/null 2>&1; then
+    printf '%s' "$1" | md5sum | cut -d' ' -f1
+  elif [ "$algo" = "sha1" ] && command -v sha1sum >/dev/null 2>&1; then
+    printf '%s' "$1" | sha1sum | cut -d' ' -f1
+  elif [ "$algo" = "sha256" ] && command -v sha256sum >/dev/null 2>&1; then
+    printf '%s' "$1" | sha256sum | cut -d' ' -f1
+  else
+    echo "缺少 $algo hash 工具，请安装 openssl" >&2; return 1
+  fi
+}
 TOKEN=$(curl -s -m 10 -X POST "$BASE_URL/login" -H 'Content-Type: application/json' \
-  -d "{\"username\":\"${SMOKE_USER:-admin}\",\"password\":\"${SMOKE_PASS:-admin123}\"}" \
+  -d "{\"username\":\"${SMOKE_USER:-admin}\",\"password\":\"$(front_hash "${SMOKE_PASS:-admin123}")\"}" \
   | grep -o '"token":"[^"]*"' | head -1 | cut -d'"' -f4)
 AUTH=(-H "Authorization: Bearer ${TOKEN}")
 

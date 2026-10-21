@@ -1,14 +1,20 @@
+### 获取前端初始化配置（登录前读取：密码 hash 算法、是否开启验证码）
+GET http://127.0.0.1:8080/frontend-config
+
 ### 获取图形验证码
 GET http://127.0.0.1:8080/captcha-image
 
 ### 登录（默认账号 admin / admin123，密码由 system.seed 初始化）
+# 注意：password 传「前端 hash 后的值」，不是明文。
+# 前端算法见 GET /frontend-config 返回的 hashAlgorithm（默认 sha256，
+# 即 sha256("admin123") = 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9）
 # @name login
 POST http://127.0.0.1:8080/login
 content-type: application/json
 
 {
   "username": "admin",
-  "password": "admin123"
+  "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"
 }
 
 ### 登录（带验证码，CAPTCHA_ENABLED=true 时使用）
@@ -17,7 +23,7 @@ content-type: application/json
 
 {
   "username": "admin",
-  "password": "admin123",
+  "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
   "code": "1234",
   "uuid": "验证码标识"
 }

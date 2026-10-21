@@ -15,7 +15,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/swaggo/swag v1.16.4
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.75
-	golang.org/x/crypto v0.46.0
+	github.com/tjfoc/gmsm v1.4.1
 	gorm.io/driver/mysql v1.1.2
 	gorm.io/gorm v1.21.12
 )
@@ -73,10 +73,10 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
+	golang.org/x/crypto v0.46.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.32.0 // indirect

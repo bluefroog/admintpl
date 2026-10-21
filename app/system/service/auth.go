@@ -69,8 +69,8 @@ func (s Auth) SignIn(req *domain.LoginRequest, ip string, userAgent string) (res
 		return nil, errors.New("您的账号已停用，请联系管理员")
 	}
 
-	// 4、密码校验（bcrypt）
-	if !lib.CheckPassword(user.Password, password) {
+	// 4、密码校验（前端 hash 值 + 库中盐 → 后端同一算法 hash 后对比）
+	if !lib.CheckPassword(user.Password, user.Salt, password) {
 		s.recordLoginLog(username, ip, browser, osName, "账号或密码不正确", 1)
 		if maxRetry > 0 && lockTime > 0 {
 			if remaining := maxRetry - int(failed) - 1; remaining > 0 {
@@ -254,6 +254,18 @@ func (s Auth) Captcha() (*domain.CaptchaResponse, error) {
 	// 调试模式下输出验证码，便于开发环境自测
 	log.Debugf("图形验证码 %s = %s", id, code)
 	return &domain.CaptchaResponse{Enabled: true, UUID: id, Img: image}, nil
+}
+
+// FrontendConfig 获取前端初始化配置（登录页在登录前读取，无需令牌）
+// @author: [bluefrog](https://github.com/freewu)
+// @function: FrontendConfig
+// @description: 返回密码 hash 算法与是否开启验证码等前端启动参数
+// @return: *domain.FrontendConfigResponse
+func (s Auth) FrontendConfig() *domain.FrontendConfigResponse {
+	return &domain.FrontendConfigResponse{
+		HashAlgorithm:  lib.FrontendHashAlgorithm(),
+		CaptchaEnabled: config.Bool("system.captcha.enabled"),
+	}
 }
 
 // CleanExpiredOnline 清理过期的在线用户记录（服务启动时调用）

@@ -3,6 +3,7 @@ package lib
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"math/big"
 )
 
@@ -37,17 +38,30 @@ func RandomDigits(n int) string {
 	if n <= 0 {
 		return ""
 	}
-	max := big.NewInt(10)
 	buf := make([]byte, n)
 	for i := 0; i < n; i++ {
-		v, err := rand.Int(rand.Reader, max)
+		v, err := randIndex(10)
 		if err != nil {
 			buf[i] = byte('0' + i%10)
 			continue
 		}
-		buf[i] = byte('0' + v.Int64())
+		buf[i] = byte('0' + v)
 	}
 	return string(buf)
+}
+
+// randIndex 返回 [0, n) 区间内的随机整数（基于 crypto/rand）
+// @param: n int 上界（不含）
+// @return: int 随机整数, error
+func randIndex(n int) (int, error) {
+	if n <= 0 {
+		return 0, errors.New("随机数上界必须大于 0")
+	}
+	v, err := rand.Int(rand.Reader, big.NewInt(int64(n)))
+	if err != nil {
+		return 0, err
+	}
+	return int(v.Int64()), nil
 }
 
 // fallbackHex 随机数源不可用时的兜底实现（基于 big.Int 的随机源同样源自 crypto/rand，故仅在极端情况下触发）

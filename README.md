@@ -3,7 +3,8 @@
 
 # 内置功能
 
-* [已实现]登录认证：账号密码登录（bcrypt 校验）、令牌签发与校验、退出登录、图形验证码、登录失败锁定。
+* [已实现]登录认证：账号密码登录（前端 hash + 后端加盐 hash 两段式校验，算法可选 md5/sha1/sha256/sm3）、令牌签发与校验、退出登录、图形验证码、登录失败锁定。
+* [已实现]前端配置接口：`/frontend-config` 下发密码 hash 算法与验证码开关，登录页据此计算密码、决定是否展示验证码。
 * [已实现]用户管理：用户是系统操作者，该功能主要完成系统用户配置。
 * [已实现]部门管理：配置系统组织机构（公司、部门、小组），树结构展现支持数据权限。
 * [已实现]岗位管理：配置系统用户所属担任职务。
@@ -37,6 +38,7 @@ just init
 
 | 接口 | 方法 | 说明 |
 | ---- | ---- | ---- |
+| `/frontend-config` | GET | 获取前端初始化配置（`{hashAlgorithm, captchaEnabled}`，登录前读取） |
 | `/captcha-image` | GET | 获取图形验证码（返回 uuid + base64 PNG，验证码开关关闭时 `captchaEnabled=false`） |
 | `/login` | POST | 登录（`{username, password, code?, uuid?}`），返回 `{token, expiresIn}` |
 | `/logout` | POST | 退出登录（删除令牌对应的在线记录） |
@@ -68,6 +70,8 @@ curl "http://127.0.0.1:8080/get-info?token=$TOKEN"
 | `AUTH_PERMISSION_ENABLED` | false | 开启后按请求路径推导权限标识（如 `system/user/list` -> `system:user:list`、`monitor/online/list` -> `monitor:online:list`）做角色权限校验 |
 | `CAPTCHA_ENABLED` | dev=false / pro=true | 是否开启登录图形验证码 |
 | `CAPTCHA_LENGTH` / `CAPTCHA_EXPIRE` | 4 / 120 | 验证码位数 / 有效期（秒） |
+| `PASSWORD_FRONTEND_HASH` | sha256 | 前端密码 hash 算法（md5 / sha1 / sha256 / sm3），经 `/frontend-config` 下发给前端 |
+| `PASSWORD_BACKEND_HASH` | sha256 | 后端密码 hash 算法（md5 / sha1 / sha256 / sm3），与随机盐一起参与 |
 | `SEED_ENABLED` | dev=true / pro=false | 空库时自动初始化基础数据（部门/岗位/角色/用户/菜单/字典/参数/定时任务） |
 | `JOB_ENABLED` | true | 是否启动定时任务调度器（在 `app/cron` 模块启动时生效） |
 
@@ -82,6 +86,46 @@ curl "http://127.0.0.1:8080/get-info?token=$TOKEN"
 > `system 初始化：登录认证=true 权限校验=false 图形验证码=false 数据权限=true 基础数据初始化=true`，
 > `cron 初始化：定时任务调度=true 基础数据初始化=true`
 > 部署后请核对，避免「配置未随部署更新」导致开关静默失效。
+
+# 密码存储（两段式 hash + 随机盐）
+
+用户口令不再直接存明文/单段 hash，而是「前端 hash + 后端加盐 hash」两段式：
+
+```
+前端：frontHash = H_front(明文密码)            // 算法 = hashAlgorithm（GET /frontend-config）
+提交：POST /login {"username": "...", "password": frontHash}
+后端：入库 = H_back(frontHash + salt)          // salt = 随机 4 位字符，每个账号独立，重置密码时重新生成
+校验：H_back(收到的 frontHash + 库中 salt) 与库中 password 比对（常量时间比较）
+```
+
+- 明文密码不落库、不落日志，也不经过网络：浏览器只提交 `frontHash`；
+- 前端算法与后端算法可分别配置（`PASSWORD_FRONTEND_HASH` / `PASSWORD_BACKEND_HASH`），
+  可选 `md5` / `sha1` / `sha256` / `sm3`，两端不必相同；
+- 密码字段：`user.password`（varchar 255，存 `H_back` 结果）、`user.salt`（varchar 16，存随机 4 位盐），
+  两者都不出现在接口响应（`json:"-"`）；
+- 服务端已知明文的场景（`SEED_ENABLED` 种子账号、后台新增用户）按同一流程计算：
+  `lib.HashPlainPassword(明文)` → `H_back(H_front(明文) + salt)`，新增用户的初始密码取参数 `sys.user.initPassword`（默认 `admin123`）；
+- 相关实现集中在 `common/lib/password.go`：`HashValue`（单次算法）、`HashPassword`（后端加盐）、
+  `HashPlainPassword`（明文 → 两段式）、`CheckPassword`（校验）、`RandomSalt`（随机盐），
+  算法非法时回退默认并打印告警，不阻塞启动。
+
+```bash
+# 1. 登录前先取前端配置
+curl http://127.0.0.1:8080/frontend-config
+# {"code":0,"msg":"success","data":{"hashAlgorithm":"sha256","captchaEnabled":false}}
+
+# 2. 前端按 hashAlgorithm 计算前端 hash（以 sha256 为例）
+printf '%s' 'admin123' | openssl dgst -sha256 -r | cut -d' ' -f1
+# 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
+
+# 3. 用前端 hash 登录
+curl -X POST http://127.0.0.1:8080/login -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"}'
+```
+
+> 升级提示：旧版本口令以 bcrypt 落库、无 `salt`，切换到本方案后需重置密码
+> （`PUT /system/user/reset-pwd` 或清空 `user` 表后由 `SEED_ENABLED=true` 重新写入种子账号）。
+> 前端 hash 只是避免明文传输，安全强度主要由后端算法与盐决定，生产环境建议两端都用 `sha256` 或 `sm3`。
 
 # 定时任务调度
 
@@ -418,7 +462,7 @@ just decrypt 'ENC(AES:xxxxx)'
   篡改 IV、密文或换错密钥都会校验失败；
   合规场景需要国密时选 `SM4`，安全优先仍建议用默认的 `AES`（AEAD，完整性保证更强）；
 - 密文使用 base64 URL 安全字母表，不含 `+ / =` 与括号，可安全嵌入 DSN / URL；
-- 用户登录口令与配置加密是两件事：用户口令以 bcrypt 落库，配置敏感值以 AES/SM4 密文落配置。
+- 用户登录口令与配置加密是两件事：用户口令以「前端 hash + 后端加盐 hash」落库（详见「密码存储」），配置敏感值以 AES/SM4 密文落配置。
 
 # 项目开发 / 测试 / 打包 / 发布（使用 just）
 ```bash
@@ -525,7 +569,7 @@ github.com/sirupsen/logrus 日志
 github.com/spf13/viper 配置文件
 github.com/go-playground/validator/v10 结构体参数验证
 github.com/swaggo/swag 接口文档
-golang.org/x/crypto bcrypt 用户口令
+github.com/tjfoc/gmsm sm3 用户口令 hash（可选国密 SM3）
 github.com/freewu/crypto-go 配置敏感值加解密（AES/GCM 封装）
 ```
 

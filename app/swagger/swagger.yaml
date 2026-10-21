@@ -604,6 +604,15 @@ definitions:
     - name
     - type
     type: object
+  domain.FrontendConfigResponse:
+    properties:
+      captchaEnabled:
+        description: 是否开启图形验证码
+        type: boolean
+      hashAlgorithm:
+        description: 密码 hash 算法（md5 / sha1 / sha256 / sm3）：前端对明文密码 hash 后再提交
+        type: string
+    type: object
   domain.Job:
     properties:
       concurrent:
@@ -861,7 +870,7 @@ definitions:
         description: 验证码（开启验证码时必填）
         type: string
       password:
-        description: 登录密码
+        description: 登录密码（前端按 hashAlgorithm 计算后的值）
         type: string
       username:
         description: 登录账号
@@ -2316,10 +2325,10 @@ definitions:
         description: 用户ID
         type: integer
       new_password:
-        description: 新密码
+        description: 新密码（前端 hash 后的值）
         type: string
       old_password:
-        description: 旧密码
+        description: 旧密码（前端 hash 后的值）
         type: string
     required:
     - id
@@ -2382,7 +2391,7 @@ definitions:
         description: 用户ID
         type: integer
       password:
-        description: 新密码
+        description: 新密码（前端 hash 后的值）
         type: string
     required:
     - id
@@ -2866,6 +2875,24 @@ paths:
       summary: 修改定时任务
       tags:
       - 定时任务管理
+  /frontend-config:
+    get:
+      description: 登录页在登录前读取：密码 hash 算法（md5 / sha1 / sha256 / sm3）、是否开启图形验证码
+      responses:
+        "0":
+          description: '{"code": 0, "msg":"success","data": {"hashAlgorithm": "sha256",
+            "captchaEnabled": true}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.FrontendConfigResponse'
+              type: object
+      security: []
+      summary: 获取前端初始化配置
+      tags:
+      - 登录认证
   /gen/column-list:
     get:
       description: 获取指定代码生成表的字段配置列表
